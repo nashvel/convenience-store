@@ -13,10 +13,15 @@ This is a web application for browsing and ordering items from a convenience sto
 
 ## Screenshots
 
-| | | |
-|:---:|:---:|:---:|
-| <img src="./images/Homepage.png" alt="Homepage" width="100%"> | <img src="./images/AllProducts.png" alt="All Products" width="100%"> | <img src="./images/Productpage.png" alt="Product Page" width="100%"> |
-| <img src="./images/Category.png" alt="Category" width="100%"> | <img src="./images/Navbar.png" alt="Navbar" width="100%"> | <img src="./images/Footer.png" alt="Footer" width="100%"> |
+<p align="center">
+  <img src="./images/Homepage.png" alt="Homepage" width="32%">
+  <img src="./images/AllProducts.png" alt="All Products" width="32%">
+  <img src="./images/Productpage.png" alt="Product Page" width="32%">
+  <br>
+  <img src="./images/Category.png" alt="Category" width="32%">
+  <img src="./images/Navbar.png" alt="Navbar" width="32%">
+  <img src="./images/Footer.png" alt="Footer" width="32%">
+</p>
 
 ## Technologies Used
 
