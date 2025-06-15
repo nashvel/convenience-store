@@ -18,8 +18,8 @@ This is a web application for browsing and ordering items from a convenience sto
   <img src="./images/AllProducts.png" alt="All Products" width="32%">
   <img src="./images/Productpage.png" alt="Product Page" width="32%">
   <br>
-  <img src="./images/Category.png" alt="Category" width="32%">
-  <img src="./images/Navbar.png" alt="Navbar" width="32%">
+  <img src="./images/Categories.png" alt="Category" width="32%">
+  <img src="./images/NavbarUi.png" alt="Navbar" width="32%">
   <img src="./images/Footer.png" alt="Footer" width="32%">
 </p>
 
