@@ -64,14 +64,16 @@ const Navbar = () => {
           >
             <FaStore /> <span>Products</span>
           </NavLink>
-          <NavLink 
-            to="/account"
-            $isActive={location.pathname === '/account'}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <FaUser /> <span>Account</span>
-          </NavLink>
+          <DropdownContainer>
+            <NavLink as="div" $isActive={location.pathname.startsWith('/sign')}>
+              <FaUser /> <span>Account</span>
+            </NavLink>
+            <DropdownMenu>
+              <DropdownItem to="/signin">Sign In</DropdownItem>
+              <DropdownItem to="/signup">Sign Up</DropdownItem>
+              <DropdownItem to="/forgot-password">Forgot Password</DropdownItem>
+            </DropdownMenu>
+          </DropdownContainer>
         </NavLinks>
 
         <NavActions>
@@ -192,6 +194,37 @@ const NavLinks = styled.div`
       $mobileMenuOpen ? 'visible' : 'hidden'};
     transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
     z-index: -1;
+  }
+`;
+
+const DropdownContainer = styled.div`
+  position: relative;
+  display: inline-block;
+
+  &:hover > div {
+    display: block;
+  }
+`;
+
+const DropdownMenu = styled.div`
+  display: none;
+  position: absolute;
+  background-color: ${({ theme }) => theme.cardBg};
+  min-width: 160px;
+  box-shadow: ${({ theme }) => theme.cardShadow};
+  z-index: 1;
+  border-radius: 8px;
+  padding: 10px 0;
+`;
+
+const DropdownItem = styled(Link)`
+  color: ${({ theme }) => theme.text};
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.body};
   }
 `;
 

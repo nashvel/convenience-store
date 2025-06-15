@@ -1,16 +1,13 @@
 import axios from 'axios';
 
-// For demo purposes, we'll use mock data
-// In a real app, you would connect to a real API
 
-// Mock data for convenience store products
 const mockProducts = [
   {
     id: '1',
     name: 'Instant Ramen Cup',
     description: 'Quick and delicious instant noodles in a cup. Just add hot water!',
     price: 99.50,
-    image: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    image: 'https://c8.alamy.com/comp/KWG512/kuala-lumpur-malaysia-december-22-2017-instant-noodle-cups-from-maggi-KWG512.jpg',
     category: 'Food',
     inStock: true,
     rating: 4.5,
@@ -54,7 +51,7 @@ const mockProducts = [
     name: 'Chocolate Bar',
     description: 'Smooth and creamy milk chocolate for a delightful treat.',
     price: 74.50,
-    image: 'https://images.unsplash.com/photo-1621371205896-3fe08dac9d52?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    image: 'https://cdn.apartmenttherapy.info/image/upload/f_auto,q_auto:eco,c_fill,g_center,w_730,h_487/k/archive/792ab073b37f2333c64d2a92c0d719e827308989',
     category: 'Snacks',
     inStock: true,
     rating: 4.7,
@@ -62,10 +59,10 @@ const mockProducts = [
   },
   {
     id: '6',
-    name: 'Sandwich',
-    description: 'Freshly made sandwich with quality ingredients.',
-    price: 199.50,
-    image: 'https://images.unsplash.com/photo-1553909489-cd47e0907980?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    name: 'Meat',
+    description: 'Fresh meat for your meal.',
+    price: 380.50,
+    image: 'https://th.bing.com/th/id/OIP.91w5gc5bvHDWH3iG6_wpQAHaFj?r=0&w=960&h=720&rs=1&pid=ImgDetMain&cb=idpwebpc1',
     category: 'Food',
     inStock: true,
     rating: 4.4,
@@ -139,7 +136,6 @@ const mockProducts = [
   },
 ];
 
-// Mock categories
 const mockCategories = [
   { id: '1', name: 'Food', icon: 'utensils' },
   { id: '2', name: 'Beverages', icon: 'coffee' },
@@ -149,23 +145,18 @@ const mockCategories = [
   { id: '6', name: 'Health', icon: 'medkit' },
 ];
 
-// Fetch all products
 export const fetchAllProducts = async () => {
-  // Simulate API delay
+
   await new Promise(resolve => setTimeout(resolve, 500));
   return mockProducts;
 };
 
-// Fetch featured products
 export const fetchFeaturedProducts = async () => {
-  // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 500));
   return mockProducts.filter(product => product.featured);
 };
 
-// Fetch product by ID
 export const fetchProductById = async (id) => {
-  // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 300));
   const product = mockProducts.find(p => p.id === id);
   if (!product) {
@@ -174,23 +165,22 @@ export const fetchProductById = async (id) => {
   return product;
 };
 
-// Fetch products by category
 export const fetchProductsByCategory = async (category) => {
-  // Simulate API delay
+
   await new Promise(resolve => setTimeout(resolve, 400));
   return mockProducts.filter(p => p.category === category);
 };
 
-// Fetch all categories
+
 export const fetchCategories = async () => {
-  // Simulate API delay
+
   await new Promise(resolve => setTimeout(resolve, 300));
   return mockCategories;
 };
 
-// Search products
+
 export const searchProducts = async (query) => {
-  // Simulate API delay
+
   await new Promise(resolve => setTimeout(resolve, 400));
   const lowercaseQuery = query.toLowerCase();
   return mockProducts.filter(p => 
