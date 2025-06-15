@@ -11,6 +11,13 @@ This is a web application for browsing and ordering items from a convenience sto
 - **Order History**: View past orders.
 - **Favorites**: Keep a list of favorite items for easy reordering.
 
+## Screenshots
+
+| | | |
+|:---:|:---:|:---:|
+| <img src="./images/Homepage.png" alt="Homepage" width="100%"> | <img src="./images/AllProducts.png" alt="All Products" width="100%"> | <img src="./images/Productpage.png" alt="Product Page" width="100%"> |
+| <img src="./images/Category.png" alt="Category" width="100%"> | <img src="./images/Navbar.png" alt="Navbar" width="100%"> | <img src="./images/Footer.png" alt="Footer" width="100%"> |
+
 ## Technologies Used
 
 - **React**: A JavaScript library for building user interfaces.
