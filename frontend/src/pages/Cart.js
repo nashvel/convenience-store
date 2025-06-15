@@ -100,9 +100,9 @@ const Cart = () => {
                   </CartItemInfo>
                   
                   <CartItemPrice $flex="1">
-                    ${(item.price * (1 - item.discount / 100)).toFixed(2)}
+                    ₱{(item.price * (1 - item.discount / 100)).toFixed(2)}
                     {item.discount > 0 && (
-                      <OriginalPrice>${item.price.toFixed(2)}</OriginalPrice>
+                      <OriginalPrice>₱{item.price.toFixed(2)}</OriginalPrice>
                     )}
                   </CartItemPrice>
                   
@@ -124,7 +124,7 @@ const Cart = () => {
                   </CartItemQuantity>
                   
                   <CartItemTotal $flex="1">
-                    ${itemTotal.toFixed(2)}
+                    ₱{itemTotal.toFixed(2)}
                   </CartItemTotal>
                   
                   <CartItemRemove $flex="0.5">
@@ -147,7 +147,7 @@ const Cart = () => {
               
               <SummaryRow>
                 <SummaryLabel>Items ({cartCount}):</SummaryLabel>
-                <SummaryValue>${cartTotal.toFixed(2)}</SummaryValue>
+                <SummaryValue>₱{cartTotal.toFixed(2)}</SummaryValue>
               </SummaryRow>
               
               <SummaryRow>
@@ -157,14 +157,14 @@ const Cart = () => {
               
               <SummaryRow>
                 <SummaryLabel>Tax:</SummaryLabel>
-                <SummaryValue>${(cartTotal * 0.1).toFixed(2)}</SummaryValue>
+                <SummaryValue>₱{(cartTotal * 0.1).toFixed(2)}</SummaryValue>
               </SummaryRow>
               
               <Divider />
               
               <SummaryRow $total>
                 <SummaryLabel>Total:</SummaryLabel>
-                <SummaryValue>${(cartTotal * 1.1).toFixed(2)}</SummaryValue>
+                <SummaryValue>₱{(cartTotal * 1.1).toFixed(2)}</SummaryValue>
               </SummaryRow>
               
               <CheckoutButton onClick={() => setIsCheckingOut(true)}>
@@ -290,7 +290,7 @@ const Cart = () => {
                   <SummaryItem key={item.id}>
                     <SummaryItemName>{item.name} × {item.quantity}</SummaryItemName>
                     <SummaryItemPrice>
-                      ${(item.price * (1 - item.discount / 100) * item.quantity).toFixed(2)}
+                      ₱{(item.price * (1 - item.discount / 100) * item.quantity).toFixed(2)}
                     </SummaryItemPrice>
                   </SummaryItem>
                 ))}
@@ -310,7 +310,7 @@ const Cart = () => {
               
               <SummaryRow $total>
                 <SummaryLabel>Total:</SummaryLabel>
-                <SummaryValue>${(cartTotal * 1.1).toFixed(2)}</SummaryValue>
+                <SummaryValue>₱{(cartTotal * 1.1).toFixed(2)}</SummaryValue>
               </SummaryRow>
             </OrderSummary>
             

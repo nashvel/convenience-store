@@ -98,7 +98,7 @@ const Home = () => {
         <PromoCard $bgColor="#FFF3E0">
           <PromoContent>
             <PromoTitle>Free Delivery</PromoTitle>
-            <PromoDescription>On your first order over $15</PromoDescription>
+            <PromoDescription>On your first order over ₱15</PromoDescription>
             <PromoButton to="/products">Order Now</PromoButton>
           </PromoContent>
           <PromoImage src="https://images.unsplash.com/photo-1586999768265-24af89630739?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Delivery" />

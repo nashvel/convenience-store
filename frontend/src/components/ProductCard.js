@@ -39,7 +39,7 @@ const ProductCard = ({ product }) => {
         <ProductName>{product.name}</ProductName>
         
         <PriceRatingContainer>
-          <Price>${product.price.toFixed(2)}</Price>
+          <Price>₱{product.price.toFixed(2)}</Price>
           <Rating>
             <FaStar /> {product.rating}
           </Rating>

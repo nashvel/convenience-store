@@ -14,7 +14,7 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   
   // Find the product by ID
-  const product = products.find(p => p.id === parseInt(id));
+  const product = products.find(p => p.id === id);
   
   if (!product) {
     return (
@@ -66,10 +66,10 @@ const ProductDetails = () => {
           
           <PriceContainer>
             {product.discount > 0 && (
-              <OriginalPrice>${product.price.toFixed(2)}</OriginalPrice>
+              <OriginalPrice>₱{product.price.toFixed(2)}</OriginalPrice>
             )}
             <CurrentPrice>
-              ${(product.price * (1 - product.discount / 100)).toFixed(2)}
+              ₱{(product.price * (1 - product.discount / 100)).toFixed(2)}
             </CurrentPrice>
             {product.discount > 0 && (
               <DiscountBadge>{product.discount}% OFF</DiscountBadge>

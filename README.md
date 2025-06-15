@@ -1,15 +1,15 @@
-# Manga Store
+# Convenience Store Ordering System
 
-This is a web application for browsing and purchasing manga. Users can discover new titles, view details, add items to their cart, and manage their favorite manga.
+This is a web application for browsing and ordering items from a convenience store. Users can browse products, view details, add items to their cart, and place an order.
 
 ## Features
 
-- **Home Page**: Displays a curated selection of manga.
-- **Products Page**: Browse all available manga with filtering and sorting options.
-- **Product Details**: View detailed information about a specific manga, including synopsis and reviews.
-- **Cart**: Add and remove manga from the shopping cart and proceed to checkout.
-- **Favorites**: Keep a list of favorite manga for easy access.
-- **Manga Reader**: An integrated reader to view purchased manga.
+- **Home Page**: Displays featured products and special offers.
+- **Products Page**: Browse all available items with filtering and sorting options.
+- **Product Details**: View detailed information about a specific item, including price and description.
+- **Cart**: Add and remove items from the shopping cart and proceed to checkout.
+- **Order History**: View past orders.
+- **Favorites**: Keep a list of favorite items for easy reordering.
 
 ## Technologies Used
 
