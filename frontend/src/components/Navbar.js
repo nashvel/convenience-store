@@ -44,7 +44,7 @@ const Navbar = () => {
     >
       <NavContent>
         <LogoContainer to="/">
-          <LogoText>Nash<LogoSpan>Mart</LogoSpan></LogoText>
+          <LogoText>Nash<LogoSpan>QuickMart</LogoSpan></LogoText>
         </LogoContainer>
 
         <NavLinks $mobileMenuOpen={mobileMenuOpen}>
