@@ -142,7 +142,7 @@ const DropdownItem = styled.a`
   }
 `;
 
-const Header = () => {
+const Header = ({ setActiveView }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setDropdownOpen] = useState(false);
 
@@ -172,15 +172,15 @@ const Header = () => {
         <SearchInput placeholder="Search..." />
       </SearchBar>
       <QuickAccessBar>
-        <QuickAccessButton>
+        <QuickAccessButton onClick={() => setActiveView('manageProducts')}>
           <FaBoxes />
           <span>Stocks</span>
         </QuickAccessButton>
-        <QuickAccessButton>
+        <QuickAccessButton onClick={() => setActiveView('orders')}>
           <FaClipboardList />
           <span>Orders</span>
         </QuickAccessButton>
-        <QuickAccessButton>
+        <QuickAccessButton onClick={() => setActiveView('addProduct')}>
           <FaPlus />
           <span>Add Product</span>
         </QuickAccessButton>

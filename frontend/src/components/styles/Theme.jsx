@@ -1,6 +1,7 @@
 export const theme = {
   primary: '#FF5722',       // Vibrant orange for primary actions
   secondary: '#2196F3',     // Blue for secondary elements
+  tertiary: '#4ECDC4',      // Teal for customer actions
   accent: '#4CAF50',        // Green for accents and success states
   background: '#FFFFFF',    // White background for clean look
   cardBg: '#F5F5F5',        // Light gray for cards

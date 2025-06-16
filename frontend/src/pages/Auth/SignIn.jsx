@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -6,16 +7,18 @@ const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
-  const handleClientLogin = () => {
-    setEmail('client@store.com');
-    setPassword('clientpassword');
-  };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (email === 'client@store.com' && password === 'clientpassword') {
-      navigate('/client-dashboard');
+      login({ email, role: 'client' });
+      navigate('/client/dashboard');
+    } else if (email === 'customer@store.com' && password === 'customerpassword') {
+      login({ email, role: 'customer' });
+      navigate('/');
     } else {
       alert('Invalid credentials');
     }
@@ -44,7 +47,7 @@ const SignIn = () => {
           <StyledLink to="/signup">Don't have an account? Sign Up</StyledLink>
           <StyledLink to="/forgot-password">Forgot Password?</StyledLink>
         </Links>
-        <ClientButton onClick={handleClientLogin}>Log in as Client</ClientButton>
+
       </FormWrapper>
     </Container>
   );
@@ -98,9 +101,7 @@ const Button = styled.button`
   margin-bottom: 10px;
 `;
 
-const ClientButton = styled(Button)`
-  background-color: ${({ theme }) => theme.secondary};
-`;
+
 
 const Links = styled.div`
   margin-top: 20px;

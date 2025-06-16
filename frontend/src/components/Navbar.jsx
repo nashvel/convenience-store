@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaShoppingBag, FaBell } from 'react-icons/fa';
 import { CartContext } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -11,6 +12,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
+  const { user, logout } = useAuth();
     const { totalItems } = useContext(CartContext);
   const [notificationCount, setNotificationCount] = useState(2); // Placeholder for notification count
 
@@ -65,16 +67,29 @@ const Navbar = () => {
           >
             <FaStore /> <span>Products</span>
           </NavLink>
-          <DropdownContainer>
-            <NavLink as="div" $isActive={location.pathname.startsWith('/sign')}>
-              <FaUser /> <span>Account</span>
-            </NavLink>
-            <DropdownMenu>
-              <DropdownItem to="/signin">Sign In</DropdownItem>
-              <DropdownItem to="/signup">Sign Up</DropdownItem>
-                            <DropdownItem to="/forgot-password">Forgot Password</DropdownItem>
-            </DropdownMenu>
-          </DropdownContainer>
+          {user ? (
+            <DropdownContainer>
+              <NavLink as="div" $isActive={location.pathname.startsWith('/profile')}>
+                <FaUser /> <span>Profile</span>
+              </NavLink>
+              <DropdownMenu>
+                <DropdownItem to="/profile/manage">Manage</DropdownItem>
+                <DropdownItem to="/profile/settings">Settings</DropdownItem>
+                <DropdownButton onClick={logout}>Logout</DropdownButton>
+              </DropdownMenu>
+            </DropdownContainer>
+          ) : (
+            <DropdownContainer>
+              <NavLink as="div" $isActive={location.pathname.startsWith('/sign')}>
+                <FaUser /> <span>Account</span>
+              </NavLink>
+              <DropdownMenu>
+                <DropdownItem to="/signin">Sign In</DropdownItem>
+                <DropdownItem to="/signup">Sign Up</DropdownItem>
+                <DropdownItem to="/forgot-password">Forgot Password</DropdownItem>
+              </DropdownMenu>
+            </DropdownContainer>
+          )}
         </NavLinks>
 
         <NavActions>
@@ -366,6 +381,23 @@ const SearchButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.primary};
     filter: brightness(1.1);
+  }
+`;
+
+const DropdownButton = styled.button`
+  color: ${({ theme }) => theme.text};
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.body};
   }
 `;
 

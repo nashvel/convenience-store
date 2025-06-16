@@ -62,7 +62,7 @@ const Dashboard = () => {
       <DashboardLayout>
         <Sidebar activeView={activeView} setActiveView={setActiveView} />
         <MainContentWrapper>
-          <Header />
+          <Header setActiveView={setActiveView} />
           <Content>
             {renderView()}
           </Content>

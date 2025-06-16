@@ -2,8 +2,9 @@ import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { CartContext } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import { FaTrash, FaArrowLeft, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
+import { CartContext } from '../../context/CartContext';
 
 const Cart = () => {
   const { 
@@ -11,9 +12,10 @@ const Cart = () => {
     removeFromCart, 
     updateQuantity, 
     clearCart, 
-    cartTotal,
+    cartTotal = 0,
     cartCount 
   } = useContext(CartContext);
+  const { user } = useAuth();
   
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [formData, setFormData] = useState({
@@ -85,7 +87,8 @@ const Cart = () => {
             </CartHeader>
             
             {cartItems.map(item => {
-              const itemTotal = item.price * (1 - item.discount / 100) * item.quantity;
+              const { price = 0, discount = 0, quantity = 1 } = item;
+              const itemTotal = price * (1 - discount / 100) * quantity;
               
               return (
                 <CartItemRow key={item.id}>
@@ -100,9 +103,9 @@ const Cart = () => {
                   </CartItemInfo>
                   
                   <CartItemPrice $flex="1">
-                    ₱{(item.price * (1 - item.discount / 100)).toFixed(2)}
-                    {item.discount > 0 && (
-                      <OriginalPrice>₱{item.price.toFixed(2)}</OriginalPrice>
+                    ₱{(price * (1 - discount / 100)).toFixed(2)}
+                    {discount > 0 && (
+                      <OriginalPrice>₱{price.toFixed(2)}</OriginalPrice>
                     )}
                   </CartItemPrice>
                   
@@ -147,7 +150,7 @@ const Cart = () => {
               
               <SummaryRow>
                 <SummaryLabel>Items ({cartCount}):</SummaryLabel>
-                <SummaryValue>₱{cartTotal.toFixed(2)}</SummaryValue>
+                <SummaryValue>₱{(cartTotal || 0).toFixed(2)}</SummaryValue>
               </SummaryRow>
               
               <SummaryRow>
@@ -167,9 +170,15 @@ const Cart = () => {
                 <SummaryValue>₱{(cartTotal * 1.1).toFixed(2)}</SummaryValue>
               </SummaryRow>
               
-              <CheckoutButton onClick={() => setIsCheckingOut(true)}>
-                <FaCreditCard /> Proceed to Checkout
-              </CheckoutButton>
+              {user ? (
+                <CheckoutButton onClick={() => setIsCheckingOut(true)}>
+                  <FaCreditCard /> Proceed to Checkout
+                </CheckoutButton>
+              ) : (
+                <LoginPrompt>
+                  Please <Link to="/signin">log in</Link> to proceed to checkout.
+                </LoginPrompt>
+              )}
             </SummaryCard>
           </CartSummarySection>
         </CartContent>
@@ -817,6 +826,23 @@ const PlaceOrderButton = styled.button`
   
   &:hover {
     filter: brightness(1.1);
+  }
+`;
+
+const LoginPrompt = styled.p`
+  text-align: center;
+  margin-top: 20px;
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 1rem;
+
+  a {
+    color: ${({ theme }) => theme.primary};
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 `;
 
