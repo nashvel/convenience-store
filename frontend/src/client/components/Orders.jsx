@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+
 import { FaBoxOpen, FaCreditCard, FaMapMarkerAlt, FaMotorcycle, FaCheck, FaTimes, FaTags, FaRulerCombined } from 'react-icons/fa';
 
 const OrdersContainer = styled.div`
@@ -149,37 +150,37 @@ const ActionButton = styled.button`
 const mockOrders = [
   {
     id: 'ORD-12345',
-    customer: 'John Doe',
+    customer: 'Jay Nashvel',
     product: {
-      name: 'Neumorphic Smart Watch',
+      name: 'Wireless Mouse',
       category: 'Electronics',
-      imageUrl: 'https://i.pinimg.com/564x/e6/17/71/e61771930796332d0274a1f335334e38.jpg',
+      imageUrl: '/assets/products/mouse.png',
       quantity: 1,
       size: '44mm',
     },
     payment: 'Credit Card',
-    address: '123 Tech Lane, Silicon Valley, CA',
+    address: 'Crossing Libona Bukidnon',
   },
   {
     id: 'ORD-12346',
-    customer: 'Jane Smith',
+    customer: 'Ann Angel',
     product: {
-      name: 'Minimalist Desk Lamp',
+      name: 'Umbrella',
       category: 'Home Decor',
-      imageUrl: 'https://i.pinimg.com/564x/78/47/58/78475831541a026132793b82963c6731.jpg',
+      imageUrl: '/assets/products/candles.png',
       quantity: 2,
       size: 'Medium',
     },
     payment: 'PayPal',
-    address: '456 Design Ave, San Francisco, CA',
+    address: 'Crossing Libona Bukidnon',
   },
   {
     id: 'ORD-12347',
-    customer: 'Peter Jones',
+    customer: 'Kutchiki Byakuya',
     product: {
-      name: 'Floating Bookshelf',
+      name: 'Scented Candles',
       category: 'Furniture',
-      imageUrl: 'https://i.pinimg.com/564x/41/55/28/4155289945b6f95b5443a73c13e55139.jpg',
+      imageUrl: '/assets/products/umbrella.png',
       quantity: 1,
       size: '3-Tier',
     },

@@ -3,7 +3,7 @@ export const mockReviews = [
   {
     id: 1,
     productId: '1', // Instant Ramen Cup
-    customerName: 'John Doe',
+    customerName: 'Nashvel',
     avatar: 'https://i.pravatar.cc/150?u=john',
     rating: 5,
     comment: 'Absolutely love this ramen! Quick, easy, and surprisingly flavorful. A pantry staple for sure.',
@@ -12,7 +12,7 @@ export const mockReviews = [
   {
     id: 2,
     productId: '3', // Potato Chips
-    customerName: 'Jane Smith',
+    customerName: 'Jay Nashvel',
     avatar: 'https://i.pravatar.cc/150?u=jane',
     rating: 4,
     comment: 'Very crunchy and well-seasoned. Could be a little less salty, but overall a great snack.',
@@ -21,7 +21,7 @@ export const mockReviews = [
   {
     id: 3,
     productId: '7', // Coffee
-    customerName: 'Sam Wilson',
+    customerName: 'Sam',
     avatar: 'https://i.pravatar.cc/150?u=sam',
     rating: 5,
     comment: 'Best coffee I’ve had in a while. Smooth, rich, and no bitter aftertaste. Perfect start to my day!',
@@ -30,7 +30,7 @@ export const mockReviews = [
   {
     id: 4,
     productId: '5', // Chocolate Bar
-    customerName: 'Emily Brown',
+    customerName: 'Emily',
     avatar: 'https://i.pravatar.cc/150?u=emily',
     rating: 5,
     comment: 'So creamy and delicious. The perfect afternoon treat. Melts in your mouth!',
@@ -39,7 +39,7 @@ export const mockReviews = [
   {
     id: 5,
     productId: '1', // Instant Ramen Cup
-    customerName: 'Mike Johnson',
+    customerName: 'Mike',
     avatar: 'https://i.pravatar.cc/150?u=mike',
     rating: 4,
     comment: 'Good for a quick meal, but the vegetable packet is a bit sparse. I usually add my own extras.',

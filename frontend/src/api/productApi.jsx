@@ -203,23 +203,23 @@ export const addProduct = async (productData) => {
 
 export const mockReviews = [
   {
-    id: 1, productId: '1', customerName: 'John Doe', avatar: 'https://i.pravatar.cc/150?u=john',
+    id: 1, productId: '1', customerName: 'Nashvel', avatar: 'https://i.pravatar.cc/150?u=john',
     rating: 5, comment: 'Absolutely love this ramen! The design is so unique and feels great to hold. Highly recommend!', date: '2025-06-15',
   },
   {
-    id: 2, productId: '2', customerName: 'Jane Smith', avatar: 'https://i.pravatar.cc/150?u=jane',
+    id: 2, productId: '2', customerName: 'Nacht', avatar: 'https://i.pravatar.cc/150?u=jane',
     rating: 4, comment: 'Great water, looks fantastic on my desk. The lighting is a bit dimmer than I expected, but overall a great purchase.', date: '2025-06-14',
   },
   {
-    id: 3, productId: '3', customerName: 'Sam Wilson', avatar: 'https://i.pravatar.cc/150?u=sam',
+    id: 3, productId: '3', customerName: 'Sam', avatar: 'https://i.pravatar.cc/150?u=sam',
     rating: 5, comment: 'Perfect chips for my living room. It\'s silent and looks very modern. Exactly what I was looking for.', date: '2025-06-12',
   },
   {
-    id: 4, productId: '4', customerName: 'Emily Brown', avatar: 'https://i.pravatar.cc/150?u=emily',
+    id: 4, productId: '4', customerName: 'Emily Bayag', avatar: 'https://i.pravatar.cc/150?u=emily',
     rating: 3, comment: 'The energy drink looks nice, but the installation was a nightmare. The instructions were not clear at all.', date: '2025-06-10',
   },
   {
-    id: 5, productId: '1', customerName: 'Chris Green', avatar: 'https://i.pravatar.cc/150?u=chris',
+    id: 5, productId: '1', customerName: 'Chris Mejias', avatar: 'https://i.pravatar.cc/150?u=chris',
     rating: 4, comment: 'Pretty good, but a bit too spicy for my taste.', date: '2025-06-11',
   },
 ];

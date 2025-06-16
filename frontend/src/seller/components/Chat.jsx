@@ -4,8 +4,8 @@ import { FaPaperPlane, FaSearch, FaEllipsisV, FaEdit, FaTrash } from 'react-icon
 
 // Mock Data with message IDs
 const mockContacts = [
-  { id: 1, name: 'Alice', avatar: 'https://i.pravatar.cc/150?u=alice' },
-  { id: 2, name: 'Bob', avatar: 'https://i.pravatar.cc/150?u=bob' },
+  { id: 1, name: 'Angel', avatar: 'https://i.pravatar.cc/150?u=alice' },
+  { id: 2, name: 'Nash', avatar: 'https://i.pravatar.cc/150?u=bob' },
   { id: 3, name: 'Charlie', avatar: 'https://i.pravatar.cc/150?u=charlie' },
   { id: 4, name: 'David', avatar: 'https://i.pravatar.cc/150?u=david' },
   { id: 5, name: 'Eve', avatar: 'https://i.pravatar.cc/150?u=eve' },

@@ -103,7 +103,7 @@ const ClientHome = () => {
       <SummaryCard>
         <SummaryIcon><FaDollarSign /></SummaryIcon>
         <SummaryInfo>
-          <h3>$24,800</h3>
+          <h3>₱24,800</h3>
           <p>Total Sales</p>
         </SummaryInfo>
       </SummaryCard>

@@ -79,3 +79,38 @@ This project is built with a modern, multi-platform stack:
 - **Mobile**: A cross-platform mobile app developed with **React Native**.
 
 > **Database**: The database schema and integration are planned for a future update.
+
+## Client Dashboard
+
+<div align="center">
+
+<table width="100%">
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <img src="./images/clientdashboard.png" alt="Client Dashboard" width="100%">
+      <br>
+      <b>Client Dashboard</b>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <img src="./images/clientorders.png" alt="Client Orders" width="100%">
+      <br>
+      <b>Client Orders</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <img src="./images/clientstore.png" alt="Client Store" width="100%">
+      <br>
+      <b>Client Store</b>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <img src="./images/clientreview.png" alt="Client Reviews" width="100%">
+      <br>
+      <b>Client Reviews</b>
+    </td>
+  </tr>
+</table>
+
+</div>
+
+> **Note**: Client Dashboard is currently desktop-only, mobile version is in development.

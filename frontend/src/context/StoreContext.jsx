@@ -1,4 +1,13 @@
 import React, { createContext, useState, useEffect } from 'react';
+import mouse from '../assets/products/mouse.png';
+import keyboard from '../assets/products/keyboard.png';
+import summerdress from '../assets/products/summerdress.png';
+import leatherjacket from '../assets/products/leatherjacket.png';
+import pillow from '../assets/products/pillow.png';
+import candles from '../assets/products/candles.png';
+import thegreatgatsby from '../assets/products/thegreatgatsby.png';
+import basketball from '../assets/products/basketball.png';
+import umbrella from '../assets/products/umbrella.png';
 
 export const StoreContext = createContext();
 
@@ -9,12 +18,12 @@ const mockStores = [
 ];
 
 const mockProducts = [
-  { id: 'p1', name: 'Wireless Mouse', price: 25.99, category: 'Electronics', storeId: 'store1', popularity: 9, discount: 10, image: '/path/to/mouse.jpg' },
-  { id: 'p2', name: 'Bluetooth Keyboard', price: 45.00, category: 'Electronics', storeId: 'store1', popularity: 8, discount: 0, image: '/path/to/keyboard.jpg' },
-  { id: 'p3', name: 'Summer Dress', price: 35.50, category: 'Apparel', storeId: 'store2', popularity: 10, discount: 15, image: '/path/to/dress.jpg' },
-  { id: 'p4', name: 'Leather Jacket', price: 150.00, category: 'Apparel', storeId: 'store2', popularity: 7, discount: 0, image: '/path/to/jacket.jpg' },
-  { id: 'p5', name: 'Throw Pillow', price: 15.00, category: 'Home Goods', storeId: 'store3', popularity: 6, discount: 5, image: '/path/to/pillow.jpg' },
-  { id: 'p6', name: 'Scented Candle', price: 12.99, category: 'Home Goods', storeId: 'store3', popularity: 9, discount: 0, image: '/path/to/candle.jpg' },
+  { id: 'p1', name: 'Wireless Mouse', price: 25.99, category: 'Electronics', storeId: 'store1', popularity: 9, discount: 10, image: mouse },
+  { id: 'p2', name: 'Bluetooth Keyboard', price: 45.00, category: 'Electronics', storeId: 'store1', popularity: 8, discount: 0, image: keyboard },
+  { id: 'p3', name: 'Summer Dress', price: 35.50, category: 'Apparel', storeId: 'store2', popularity: 10, discount: 15, image: summerdress },
+  { id: 'p4', name: 'Leather Jacket', price: 150.00, category: 'Apparel', storeId: 'store2', popularity: 7, discount: 0, image: leatherjacket },
+  { id: 'p5', name: 'Throw Pillow', price: 15.00, category: 'Home Goods', storeId: 'store3', popularity: 6, discount: 5, image: pillow },
+  { id: 'p6', name: 'Scented Candle', price: 12.99, category: 'Home Goods', storeId: 'store3', popularity: 9, discount: 0, image: candles },
   {
     id: 'p7',
     name: 'The Great Gatsby',
@@ -23,7 +32,7 @@ const mockProducts = [
     storeId: 'store1',
     popularity: 9,
     discount: 0,
-    image: 'https://via.placeholder.com/300x300.png?text=The+Great+Gatsby',
+    image: thegreatgatsby,
   },
   {
     id: 'p8',
@@ -33,17 +42,17 @@ const mockProducts = [
     storeId: 'store2',
     popularity: 8,
     discount: 0,
-    image: 'https://via.placeholder.com/300x300.png?text=Basketball',
+    image: basketball,
   },
   {
     id: 'p9',
-    name: 'Margherita Pizza',
-    price: 15.99,
-    category: 'Food',
-    storeId: 'store3',
+    name: 'Umbrella',
+    price: 29.99,
+    category: 'Fashion',
+    storeId: 'store2',
     popularity: 9,
     discount: 10,
-    image: 'https://via.placeholder.com/300x300.png?text=Pizza',
+    image: umbrella,
   }
 ];
 
@@ -59,7 +68,7 @@ export const StoreProvider = ({ children }) => {
         id: 'store1',
         name: 'Tech World',
         description: 'Your one-stop shop for all things tech.',
-        logo: 'https://via.placeholder.com/150x150.png?text=Tech+World',
+        logo: keyboard,
         location: 'Downtown',
         products: ['p1', 'p7']
       },
@@ -67,15 +76,15 @@ export const StoreProvider = ({ children }) => {
         id: 'store2',
         name: 'Fashion Hub',
         description: 'Latest fashion trends at great prices.',
-        logo: 'https://via.placeholder.com/150x150.png?text=Fashion+Hub',
+        logo: summerdress,
         location: 'Shopping District',
-        products: ['p4', 'p8']
+        products: ['p3', 'p4', 'p9']
       },
       {
         id: 'store3',
         name: 'Home Essentials',
         description: 'Everything you need for your home.',
-        logo: 'https://via.placeholder.com/150x150.png?text=Home+Essentials',
+        logo: pillow,
         location: 'Residential Area',
         products: ['p5', 'p6', 'p9']
       }
