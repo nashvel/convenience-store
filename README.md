@@ -15,7 +15,7 @@ This is a web application for browsing and ordering items from a convenience sto
 
 > **Note**: Some features are currently in development and will be available in future updates.
 
-## Screenshots
+## Screenshots (outdated images)
 
 <div align="center">
 
