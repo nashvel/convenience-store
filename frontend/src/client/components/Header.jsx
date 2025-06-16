@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaSearch, FaBell, FaUserCircle, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { FaSearch, FaBell, FaUserCircle, FaCog, FaSignOutAlt, FaBoxes, FaClipboardList, FaPlus } from 'react-icons/fa';
 
 const HeaderContainer = styled.header`
   display: flex;
@@ -9,6 +10,36 @@ const HeaderContainer = styled.header`
   padding: 20px 40px;
   background: ${({ theme }) => theme.body};
   height: 100px;
+`;
+
+const QuickAccessBar = styled.div`
+  display: flex;
+  gap: 15px;
+`;
+
+const QuickAccessButton = styled.button`
+  ${({ theme }) => theme.neumorphism(false, '15px')};
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.textSecondary};
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    color: ${({ theme }) => theme.primary};
+  }
+
+  &:active {
+    ${({ theme }) => theme.neumorphismPressed('15px')};
+  }
+
+  svg {
+    font-size: 1.2rem;
+  }
 `;
 
 const SearchBar = styled.div`
@@ -112,7 +143,14 @@ const DropdownItem = styled.a`
 `;
 
 const Header = () => {
+  const navigate = useNavigate();
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    // In a real app, you would clear auth tokens here
+    navigate('/');
+  };
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -133,6 +171,20 @@ const Header = () => {
         <FaSearch />
         <SearchInput placeholder="Search..." />
       </SearchBar>
+      <QuickAccessBar>
+        <QuickAccessButton>
+          <FaBoxes />
+          <span>Stocks</span>
+        </QuickAccessButton>
+        <QuickAccessButton>
+          <FaClipboardList />
+          <span>Orders</span>
+        </QuickAccessButton>
+        <QuickAccessButton>
+          <FaPlus />
+          <span>Add Product</span>
+        </QuickAccessButton>
+      </QuickAccessBar>
       <UserActions>
         <IconButton>
           <FaBell />
@@ -149,7 +201,7 @@ const Header = () => {
             <DropdownItem href="#">
               <FaCog /> Settings
             </DropdownItem>
-            <DropdownItem href="#">
+            <DropdownItem href="#" onClick={handleLogout}>
               <FaSignOutAlt /> Logout
             </DropdownItem>
           </DropdownMenu>

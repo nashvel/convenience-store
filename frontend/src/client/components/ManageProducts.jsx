@@ -1,19 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FaEdit, FaTrash, FaPlus, FaMinus, FaEllipsisV } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaMinus, FaEllipsisV, FaStar } from 'react-icons/fa';
+import ProductReviewsModal from './ProductReviewsModal';
+import { fetchAllProducts } from '../../api/productApi';
+import Loading from './Loading';
 
 // Expanded Mock Data
-const initialProducts = [
-  { id: 1, name: 'Pro Gaming Laptop', price: 1499.99, stock: 15, imageUrl: 'https://via.placeholder.com/300x200.png?text=Laptop' },
-  { id: 2, name: 'Ergonomic Mouse', price: 79.99, stock: 120, imageUrl: 'https://via.placeholder.com/300x200.png?text=Mouse' },
-  { id: 3, name: 'Mechanical Keyboard', price: 129.99, stock: 75, imageUrl: 'https://via.placeholder.com/300x200.png?text=Keyboard' },
-  { id: 4, name: '4K Ultra HD Monitor', price: 599.99, stock: 30, imageUrl: 'https://via.placeholder.com/300x200.png?text=Monitor' },
-  { id: 5, name: 'HD Webcam', price: 89.99, stock: 90, imageUrl: 'https://via.placeholder.com/300x200.png?text=Webcam' },
-  { id: 6, name: 'Noise-Cancelling Headphones', price: 199.99, stock: 50, imageUrl: 'https://via.placeholder.com/300x200.png?text=Headphones' },
-  { id: 7, name: 'USB-C Hub', price: 49.99, stock: 250, imageUrl: 'https://via.placeholder.com/300x200.png?text=USB+Hub' },
-  { id: 8, name: 'Adjustable Laptop Stand', price: 59.99, stock: 8, imageUrl: 'https://via.placeholder.com/300x200.png?text=Stand' },
-  { id: 9, name: 'Leather Desk Mat', price: 39.99, stock: 150, imageUrl: 'https://via.placeholder.com/300x200.png?text=Mat' },
-];
+
 
 // Styled Components
 const Container = styled.div` padding: 40px; `;
@@ -53,9 +46,25 @@ const DropdownItem = styled.button`
 `;
 
 const ManageProducts = () => {
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [cardSize, setCardSize] = useState(280);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [viewingReviewsFor, setViewingReviewsFor] = useState(null);
+
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        const fetchedProducts = await fetchAllProducts();
+        setProducts(fetchedProducts.map(p => ({ ...p, imageUrl: p.image }))); // Adapt image property
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getProducts();
+  }, []);
 
   const handleStockChange = (id, amount) => {
     setProducts(products.map(p => p.id === id ? { ...p, stock: Math.max(0, p.stock + amount) } : p));
@@ -65,6 +74,10 @@ const ManageProducts = () => {
     setProducts(products.filter(p => p.id !== id));
     setOpenMenuId(null);
   };
+
+    if (loading) {
+    return <Loading />;
+  }
 
   return (
     <Container>
@@ -97,11 +110,20 @@ const ManageProducts = () => {
               <DropdownMenu>
                 <DropdownItem><FaEdit /> Edit</DropdownItem>
                 <DropdownItem color="#FF5722" onClick={() => handleDelete(product.id)}><FaTrash /> Delete</DropdownItem>
+                <DropdownItem onClick={() => { setViewingReviewsFor(product); setOpenMenuId(null); }}>
+                  <FaStar /> View Reviews
+                </DropdownItem>
               </DropdownMenu>
             )}
           </ProductCard>
         ))}
       </ProductGrid>
+      {viewingReviewsFor && 
+        <ProductReviewsModal 
+          product={viewingReviewsFor} 
+          onClose={() => setViewingReviewsFor(null)} 
+        />
+      }
     </Container>
   );
 };

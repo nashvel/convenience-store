@@ -1,10 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence } from 'framer-motion';
+import styled from 'styled-components';
+
 import GlobalStyle from './components/styles/GlobalStyle';
-import { theme } from './components/styles/Theme';
+import { neumorphicTheme as theme } from './client/styles/neumorphicTheme';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+
 import Home from './pages/Navbar/Home';
 import Products from './pages/Products/Products';
 import ProductDetails from './pages/Products/ProductDetails';
@@ -15,9 +21,29 @@ import ForgotPassword from './pages/Auth/ForgotPassword';
 import MyOrders from './pages/Navbar/MyOrders';
 import Notifications from './pages/Navbar/Notifications';
 import ClientDashboard from './client/page/Dashboard';
-import Footer from './components/Footer';
+
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
+
+const StyledToastContainer = styled(ToastContainer)`
+  .Toastify__toast {
+    ${({ theme }) => theme.neumorphism(false, '15px')};
+    background: ${({ theme }) => theme.body};
+    color: ${({ theme }) => theme.text};
+    font-weight: 600;
+    border-radius: 15px;
+  }
+
+  .Toastify__progress-bar {
+    background: ${({ theme }) => theme.primary};
+  }
+
+  .Toastify__close-button {
+    color: ${({ theme }) => theme.text};
+  }
+`;
+
+
 
 // Layout component to conditionally render Navbar and Footer
 const AppLayout = () => {
@@ -38,7 +64,7 @@ const AppLayout = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/client-dashboard" element={<ClientDashboard />} />
+          <Route path="/client-dashboard/*" element={<ClientDashboard />} />
         </Routes>
       </AnimatePresence>
       {!isClientRoute && <Footer />}
@@ -53,6 +79,17 @@ function App() {
         <CartProvider>
           <Router>
             <GlobalStyle />
+            <StyledToastContainer 
+              position="bottom-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+            />
             <AppLayout />
           </Router>
         </CartProvider>

@@ -106,6 +106,41 @@ const MessageDropdownItem = styled.button`
   &:hover { background: ${({ theme }) => theme.shadows.dark}; color: ${({ theme, color }) => color || theme.primary}; }
 `;
 
+const EditMessageForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+`;
+
+const EditInput = styled.input`
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.shadows.dark};
+  background: ${({ theme }) => theme.body};
+  color: ${({ theme }) => theme.text};
+`;
+
+const EditActions = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+
+  button {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    background: #3498db;
+    color: white;
+
+    &:last-child {
+      background: ${({ theme }) => theme.textSecondary};
+    }
+  }
+`;
+
 const MessageInputContainer = styled.div`
   padding: 20px; border-top: 2px solid ${({ theme }) => theme.shadows.dark}; display: flex; gap: 10px;
 `;
@@ -137,7 +172,9 @@ const Chat = () => {
   const [messages, setMessages] = useState(mockMessages);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [openMessageMenuId, setOpenMessageMenuId] = useState(null);
+    const [openMessageMenuId, setOpenMessageMenuId] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingMessageText, setEditingMessageText] = useState('');
   const messageEndRef = useRef(null);
 
   useEffect(() => {
@@ -152,6 +189,28 @@ const Chat = () => {
     newMessages[selectedContact.id].push(newMsg);
     setMessages(newMessages);
     setNewMessage('');
+  };
+
+    const handleEditMessage = (message) => {
+    setEditingMessageId(message.id);
+    setEditingMessageText(message.text);
+    setOpenMessageMenuId(null);
+  };
+
+  const handleSaveEdit = (contactId, messageId) => {
+    const newMessages = { ...messages };
+    const messageIndex = newMessages[contactId].findIndex(m => m.id === messageId);
+    if (messageIndex !== -1) {
+      newMessages[contactId][messageIndex].text = editingMessageText;
+      setMessages(newMessages);
+    }
+    setEditingMessageId(null);
+    setEditingMessageText('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditingMessageText('');
   };
 
   const handleDeleteMessage = (contactId, messageId) => {
@@ -198,10 +257,20 @@ const Chat = () => {
                       <FaEllipsisV />
                     </MessageOptionsButton>
                   )}
-                  <MessageBubble sender={msg.sender}>{msg.text}</MessageBubble>
+                                    {editingMessageId === msg.id ? (
+                    <EditMessageForm onSubmit={(e) => { e.preventDefault(); handleSaveEdit(selectedContact.id, msg.id); }}>
+                      <EditInput type="text" value={editingMessageText} onChange={(e) => setEditingMessageText(e.target.value)} autoFocus />
+                      <EditActions>
+                        <button type="submit">Save</button>
+                        <button type="button" onClick={handleCancelEdit}>Cancel</button>
+                      </EditActions>
+                    </EditMessageForm>
+                  ) : (
+                    <MessageBubble sender={msg.sender}>{msg.text}</MessageBubble>
+                  )}
                   {openMessageMenuId === msg.id && (
                     <MessageDropdownMenu sender={msg.sender}>
-                      <MessageDropdownItem><FaEdit /> Edit</MessageDropdownItem>
+                                            <MessageDropdownItem onClick={() => handleEditMessage(msg)}><FaEdit /> Edit</MessageDropdownItem>
                       <MessageDropdownItem color="#FF5722" onClick={() => handleDeleteMessage(selectedContact.id, msg.id)}><FaTrash /> Delete</MessageDropdownItem>
                     </MessageDropdownMenu>
                   )}

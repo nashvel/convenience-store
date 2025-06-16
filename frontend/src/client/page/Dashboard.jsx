@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import AddProduct from '../components/AddProduct';
-import ViewSales from '../components/ViewSales';
+import Orders from '../components/Orders';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { neumorphicTheme } from '../styles/neumorphicTheme';
 import ClientHome from '../components/ClientHome';
 import ManageProducts from '../components/ManageProducts';
 import Chat from '../components/Chat';
+import Reviews from '../components/Reviews';
+import ManageStore from '../components/ManageStore';
 
 const DashboardLayout = styled.div`
   display: flex;
@@ -42,10 +44,14 @@ const Dashboard = () => {
         return <ManageProducts />;
       case 'addProduct':
         return <AddProduct />;
-      case 'viewSales':
-        return <ViewSales />;
+      case 'orders':
+        return <Orders />;
       case 'chat':
         return <Chat />;
+      case 'reviews':
+        return <Reviews />;
+      case 'manageStore':
+        return <ManageStore />;
       default:
         return <ClientHome />;
     }
