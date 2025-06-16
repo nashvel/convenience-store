@@ -4,9 +4,13 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { FaStar, FaShoppingCart } from 'react-icons/fa';
 import { CartContext } from '../context/CartContext';
+import { StoreContext } from '../context/StoreContext';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useContext(CartContext);
+  const { stores } = useContext(StoreContext);
+
+  const store = stores.find(s => s.id === product.storeId);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -36,6 +40,7 @@ const ProductCard = ({ product }) => {
       </ImageContainer>
       
       <CardContent>
+        <StoreName>{store ? store.name : 'Unknown Store'}</StoreName>
         <ProductName>{product.name}</ProductName>
         
         <PriceRatingContainer>
@@ -120,6 +125,14 @@ const CardContent = styled.div`
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+`;
+
+const StoreName = styled.p`
+  font-size: 0.8rem;
+  color: ${({ theme }) => theme.textSecondary};
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  font-weight: 600;
 `;
 
 const ProductName = styled.h3`

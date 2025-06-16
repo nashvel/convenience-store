@@ -1,41 +1,28 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft } from 'react-icons/fa';
 import { ProductContext } from '../../context/ProductContext';
+import { StoreContext } from '../../context/StoreContext';
 import { CartContext } from '../../context/CartContext';
 import Reviews from '../../components/Reviews';
-import { fetchProductById } from '../../api/productApi';
 
 const ProductDetails = () => {
   const { id } = useParams();
   const { addToCart } = useContext(CartContext);
-  const { toggleFavorite, isFavorite } = useContext(ProductContext);
+  const { products, loading, error, isFavorite, toggleFavorite } = useContext(ProductContext);
+  const { stores } = useContext(StoreContext);
 
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
-  useEffect(() => {
-    const getProduct = async () => {
-      try {
-        setLoading(true);
-        const fetchedProduct = await fetchProductById(id);
-        setProduct(fetchedProduct);
-      } catch (err) {
-        setError('Product not found');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getProduct();
-  }, [id]);
+  const product = !loading && products.length > 0 ? products.find(p => String(p.id) === id) : null;
+  const store = product ? stores.find(s => s.id === product.storeId) : null;
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    if (product) {
+      addToCart(product, quantity);
+    }
   };
 
   const handleQuantityChange = (e) => {
@@ -49,18 +36,25 @@ const ProductDetails = () => {
     return <ProductDetailsContainer><h2>Loading...</h2></ProductDetailsContainer>;
   }
 
-  if (error || !product) {
+  if (error) {
     return (
       <ErrorContainer>
-        <h2>{error || 'Product not found'}</h2>
+        <h2>{error}</h2>
+        <BackButton to="/products">Back to Products</BackButton>
+      </ErrorContainer>
+    );
+  }
+
+  if (!product) {
+    return (
+      <ErrorContainer>
+        <h2>Product not found</h2>
         <BackButton to="/products">Back to Products</BackButton>
       </ErrorContainer>
     );
   }
 
   const favorite = isFavorite(product.id);
-
-
 
   return (
     <ProductDetailsContainer
@@ -86,11 +80,16 @@ const ProductDetails = () => {
         
         <ProductInfo>
           <ProductCategory>{product.category}</ProductCategory>
-          <ProductName>{product.name}</ProductName>
+          <ProductTitle>{product.name}</ProductTitle>
+          {store && (
+            <StoreInfo to={`/stores/${store.id}`}>
+              Sold by {store.name}
+            </StoreInfo>
+          )}
           
           <PriceContainer>
             <CurrentPrice>
-              ₱{product.price.toFixed(2)}
+              ₱{product && product.price ? product.price.toFixed(2) : '0.00'}
             </CurrentPrice>
           </PriceContainer>
           
@@ -100,7 +99,7 @@ const ProductDetails = () => {
                 <FaStar />
               </StarIcon>
             ))}
-            <RatingText>({product.rating.toFixed(1)})</RatingText>
+            <RatingText>({product && product.rating ? product.rating.toFixed(1) : '0.0'})</RatingText>
           </RatingContainer>
           
           <Divider />
@@ -154,10 +153,6 @@ const ProductDetails = () => {
       </ProductContent>
       
       <Reviews />
-      
-      {/*
-        Removed the related products section as it relies on the global product list
-      */}
     </ProductDetailsContainer>
   );
 };
@@ -283,7 +278,20 @@ const ProductCategory = styled.div`
   letter-spacing: 1px;
 `;
 
-const ProductName = styled.h1`
+const StoreInfo = styled(Link)`
+  font-size: 1rem;
+  color: ${({ theme }) => theme.textSecondary};
+  text-decoration: none;
+  margin-bottom: 15px;
+  display: inline-block;
+
+  &:hover {
+    text-decoration: underline;
+    color: ${({ theme }) => theme.primary};
+  }
+`;
+
+const ProductTitle = styled.h1`
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 15px;

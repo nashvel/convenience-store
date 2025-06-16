@@ -21,11 +21,14 @@ import SignUp from './pages/Auth/SignUp';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import MyOrders from './pages/Navbar/MyOrders';
 import Notifications from './pages/Navbar/Notifications';
-import ClientDashboard from './client/page/Dashboard';
+import Stores from './pages/Stores/Stores';
+import StorePage from './pages/Stores/StorePage';
+import SellerDashboard from './seller/SellerDashboard';
 
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import { StoreProvider } from './context/StoreContext';
 
 const StyledToastContainer = styled(ToastContainer)`
   .Toastify__toast {
@@ -47,14 +50,15 @@ const StyledToastContainer = styled(ToastContainer)`
 
 const AppContent = () => {
   const location = useLocation();
-  const isClientRoute = location.pathname.startsWith('/client/dashboard');
-  const theme = isClientRoute ? neumorphicTheme : customerTheme;
+    const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
+    const theme = isSellerRoute ? neumorphicTheme : customerTheme;
 
   return (
-    <ThemeProvider theme={theme}>
-      <AuthProvider>
-        <ProductProvider>
-          <CartProvider>
+    <StoreProvider>
+      <ThemeProvider theme={theme}>
+        <AuthProvider>
+          <ProductProvider>
+            <CartProvider>
           <GlobalStyle />
           <StyledToastContainer
             position="bottom-right"
@@ -67,7 +71,7 @@ const AppContent = () => {
             draggable
             pauseOnHover
           />
-          {!isClientRoute && <Navbar />}
+                    {!isSellerRoute && <Navbar />}
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<Home />} />
@@ -79,14 +83,17 @@ const AppContent = () => {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/my-orders" element={<MyOrders />} />
               <Route path="/notifications" element={<Notifications />} />
-              <Route path="/client/dashboard/*" element={<ClientDashboard />} />
+              <Route path="/stores" element={<Stores />} />
+              <Route path="/stores/:storeId" element={<StorePage />} />
+                            <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
             </Routes>
           </AnimatePresence>
-          {!isClientRoute && <Footer />}
-          </CartProvider>
-        </ProductProvider>
-      </AuthProvider>
-    </ThemeProvider>
+                    {!isSellerRoute && <Footer />}
+            </CartProvider>
+          </ProductProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </StoreProvider>
   );
 };
 

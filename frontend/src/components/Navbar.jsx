@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaShoppingBag, FaBell } from 'react-icons/fa';
+import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaShoppingBag, FaBell, FaBuilding } from 'react-icons/fa';
 import { CartContext } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -67,13 +67,16 @@ const Navbar = () => {
           >
             <FaStore /> <span>Products</span>
           </NavLink>
+          <NavLink to="/stores" $isActive={location.pathname.startsWith('/stores')}>
+            <FaBuilding /> <span>Stores</span>
+          </NavLink>
           {user ? (
             <DropdownContainer>
               <NavLink as="div" $isActive={location.pathname.startsWith('/profile')}>
                 <FaUser /> <span>Profile</span>
               </NavLink>
               <DropdownMenu>
-                <DropdownItem to="/profile/manage">Manage</DropdownItem>
+                <DropdownItem to="/seller/dashboard">Manage</DropdownItem>
                 <DropdownItem to="/profile/settings">Settings</DropdownItem>
                 <DropdownButton onClick={logout}>Logout</DropdownButton>
               </DropdownMenu>

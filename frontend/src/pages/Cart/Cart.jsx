@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { FaTrash, FaArrowLeft, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
 import { CartContext } from '../../context/CartContext';
+import { StoreContext } from '../../context/StoreContext';
 
 const Cart = () => {
   const { 
@@ -15,7 +16,21 @@ const Cart = () => {
     cartTotal = 0,
     cartCount 
   } = useContext(CartContext);
+  const { stores } = useContext(StoreContext);
   const { user } = useAuth();
+
+  const groupedCart = cartItems.reduce((acc, item) => {
+    const storeId = item.product.storeId;
+    if (!acc[storeId]) {
+      const store = stores.find(s => s.id === storeId);
+      acc[storeId] = {
+        storeName: store ? store.name : 'Unknown Store',
+        items: []
+      };
+    }
+    acc[storeId].items.push(item);
+    return acc;
+  }, {});
   
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [formData, setFormData] = useState({
@@ -78,66 +93,71 @@ const Cart = () => {
       {!isCheckingOut ? (
         <CartContent>
           <CartItemsSection>
-            <CartHeader>
-              <HeaderItem $flex="3">Product</HeaderItem>
-              <HeaderItem $flex="1">Price</HeaderItem>
-              <HeaderItem $flex="1">Quantity</HeaderItem>
-              <HeaderItem $flex="1">Total</HeaderItem>
-              <HeaderItem $flex="0.5"></HeaderItem>
-            </CartHeader>
-            
-            {cartItems.map(item => {
-              const { price = 0, discount = 0, quantity = 1 } = item;
-              const itemTotal = price * (1 - discount / 100) * quantity;
-              
-              return (
-                <CartItemRow key={item.id}>
-                  <CartItemInfo $flex="3">
-                    <CartItemImage src={item.image} alt={item.name} />
-                    <CartItemDetails>
-                      <CartItemName to={`/products/${item.id}`}>{item.name}</CartItemName>
-                      {item.discount > 0 && (
-                        <DiscountBadge>{item.discount}% OFF</DiscountBadge>
-                      )}
-                    </CartItemDetails>
-                  </CartItemInfo>
+            {Object.entries(groupedCart).map(([storeId, group]) => (
+              <StoreGroup key={storeId}>
+                <StoreName>{group.storeName}</StoreName>
+                  <CartHeader>
+                    <HeaderItem $flex="3">Product</HeaderItem>
+                    <HeaderItem $flex="1">Price</HeaderItem>
+                    <HeaderItem $flex="1">Quantity</HeaderItem>
+                    <HeaderItem $flex="1">Total</HeaderItem>
+                    <HeaderItem $flex="0.5"></HeaderItem>
+                  </CartHeader>
                   
-                  <CartItemPrice $flex="1">
-                    ₱{(price * (1 - discount / 100)).toFixed(2)}
-                    {discount > 0 && (
-                      <OriginalPrice>₱{price.toFixed(2)}</OriginalPrice>
-                    )}
-                  </CartItemPrice>
-                  
-                  <CartItemQuantity $flex="1">
-                    <QuantityControl>
-                      <QuantityButton 
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        -
-                      </QuantityButton>
-                      <QuantityValue>{item.quantity}</QuantityValue>
-                      <QuantityButton 
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      >
-                        +
-                      </QuantityButton>
-                    </QuantityControl>
-                  </CartItemQuantity>
-                  
-                  <CartItemTotal $flex="1">
-                    ₱{itemTotal.toFixed(2)}
-                  </CartItemTotal>
-                  
-                  <CartItemRemove $flex="0.5">
-                    <RemoveButton onClick={() => removeFromCart(item.id)}>
-                      <FaTrash />
-                    </RemoveButton>
-                  </CartItemRemove>
-                </CartItemRow>
-              );
-            })}
+                  {group.items.map(item => {
+                    const { price = 0, discount = 0, quantity = 1 } = item;
+                    const itemTotal = price * (1 - discount / 100) * quantity;
+                    
+                    return (
+                      <CartItemRow key={item.id}>
+                        <CartItemInfo $flex="3">
+                          <CartItemImage src={item.image} alt={item.name} />
+                          <CartItemDetails>
+                            <CartItemName to={`/products/${item.id}`}>{item.name}</CartItemName>
+                            {item.discount > 0 && (
+                              <DiscountBadge>{item.discount}% OFF</DiscountBadge>
+                            )}
+                          </CartItemDetails>
+                        </CartItemInfo>
+                        
+                        <CartItemPrice $flex="1">
+                          ₱{(price * (1 - discount / 100)).toFixed(2)}
+                          {discount > 0 && (
+                            <OriginalPrice>₱{price.toFixed(2)}</OriginalPrice>
+                          )}
+                        </CartItemPrice>
+                        
+                        <CartItemQuantity $flex="1">
+                          <QuantityControl>
+                            <QuantityButton 
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              disabled={item.quantity <= 1}
+                            >
+                              -
+                            </QuantityButton>
+                            <QuantityValue>{item.quantity}</QuantityValue>
+                            <QuantityButton 
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            >
+                              +
+                            </QuantityButton>
+                          </QuantityControl>
+                        </CartItemQuantity>
+                        
+                        <CartItemTotal $flex="1">
+                          ₱{itemTotal.toFixed(2)}
+                        </CartItemTotal>
+                        
+                        <CartItemRemove $flex="0.5">
+                          <RemoveButton onClick={() => removeFromCart(item.id)}>
+                            <FaTrash />
+                          </RemoveButton>
+                        </CartItemRemove>
+                      </CartItemRow>
+                    );
+                  })}
+              </StoreGroup>
+            ))}
             
             <CartActions>
               <ClearCartButton onClick={clearCart}>Clear Cart</ClearCartButton>
@@ -295,13 +315,18 @@ const Cart = () => {
             <OrderSummary>
               <SummaryTitle>Order Summary</SummaryTitle>
               <SummaryItems>
-                {cartItems.map(item => (
-                  <SummaryItem key={item.id}>
-                    <SummaryItemName>{item.name} × {item.quantity}</SummaryItemName>
-                    <SummaryItemPrice>
-                      ₱{(item.price * (1 - item.discount / 100) * item.quantity).toFixed(2)}
-                    </SummaryItemPrice>
-                  </SummaryItem>
+                {Object.entries(groupedCart).map(([storeId, group]) => (
+                  <SummaryStoreGroup key={storeId}>
+                    <SummaryStoreName>{group.storeName}</SummaryStoreName>
+                    {group.items.map(item => (
+                      <SummaryItem key={item.id}>
+                        <SummaryItemName>{item.name} × {item.quantity}</SummaryItemName>
+                        <SummaryItemPrice>
+                          ₱{(item.price * (1 - item.discount / 100) * item.quantity).toFixed(2)}
+                        </SummaryItemPrice>
+                      </SummaryItem>
+                    ))}
+                  </SummaryStoreGroup>
                 ))}
               </SummaryItems>
               
@@ -309,12 +334,12 @@ const Cart = () => {
               
               <SummaryRow>
                 <SummaryLabel>Subtotal:</SummaryLabel>
-                <SummaryValue>${cartTotal.toFixed(2)}</SummaryValue>
+                <SummaryValue>₱{(cartTotal || 0).toFixed(2)}</SummaryValue>
               </SummaryRow>
               
               <SummaryRow>
                 <SummaryLabel>Tax (10%):</SummaryLabel>
-                <SummaryValue>${(cartTotal * 0.1).toFixed(2)}</SummaryValue>
+                <SummaryValue>₱{(cartTotal * 0.1).toFixed(2)}</SummaryValue>
               </SummaryRow>
               
               <SummaryRow $total>
@@ -385,6 +410,39 @@ const CartItemsSection = styled.div`
   border-radius: 12px;
   box-shadow: ${({ theme }) => theme.cardShadow};
   overflow: hidden;
+`;
+
+const StoreGroup = styled.div`
+  margin-bottom: 30px;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 8px;
+  padding: 20px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+`;
+
+const StoreName = styled.h2`
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: ${({ theme }) => theme.primary};
+  padding-bottom: 10px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const SummaryStoreGroup = styled.div`
+  margin-bottom: 15px;
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+`;
+
+const SummaryStoreName = styled.h4`
+  font-size: 1rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+  margin-bottom: 8px;
 `;
 
 const CartHeader = styled.div`

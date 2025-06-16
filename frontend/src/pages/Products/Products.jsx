@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
@@ -18,7 +18,18 @@ const Products = () => {
   // State for filters and sorting
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 100 });
+    const maxPrice = useMemo(() => {
+    if (products && products.length > 0) {
+      return Math.ceil(Math.max(...products.map(p => p.price)));
+    }
+    return 1000;
+  }, [products]);
+
+  const [priceRange, setPriceRange] = useState({ min: 0, max: maxPrice });
+
+  useEffect(() => {
+    setPriceRange(prev => ({ ...prev, max: maxPrice }));
+  }, [maxPrice]);
   const [sortOption, setSortOption] = useState('popularity');
   const [sortDirection, setSortDirection] = useState('desc');
   const [showFilters, setShowFilters] = useState(false);
@@ -45,9 +56,11 @@ const Products = () => {
     }
     
     // Filter by price range
-    result = result.filter(product => 
-      product.price >= priceRange.min && product.price <= priceRange.max
-    );
+    result = result.filter(product => {
+      const min = priceRange.min === '' || isNaN(priceRange.min) ? 0 : priceRange.min;
+      const max = priceRange.max === '' || isNaN(priceRange.max) ? Infinity : priceRange.max;
+      return product.price >= min && product.price <= max;
+    });
     
     // Filter by deals
     if (dealsParam) {
@@ -76,9 +89,9 @@ const Products = () => {
   }, [products, selectedCategory, searchQuery, priceRange, sortOption, sortDirection, dealsParam, loading, error]);
 
   // Handle price range change
-  const handlePriceChange = (e, type) => {
-    const value = parseFloat(e.target.value);
-    setPriceRange(prev => ({ ...prev, [type]: value }));
+    const handlePriceChange = (e, type) => {
+    const value = e.target.value;
+    setPriceRange(prev => ({ ...prev, [type]: value === '' ? '' : parseFloat(value) }));
   };
 
   // Toggle sort direction
@@ -265,6 +278,7 @@ const MobileFilterToggle = styled.button`
 const ProductsLayout = styled.div`
   display: flex;
   gap: 30px;
+  align-items: flex-start;
   
   @media (max-width: 768px) {
     flex-direction: column;
@@ -274,8 +288,12 @@ const ProductsLayout = styled.div`
 const FiltersPanel = styled.aside`
   width: 250px;
   flex-shrink: 0;
-  
+  position: sticky;
+  top: 80px;
+  align-self: flex-start;
+
   @media (max-width: 768px) {
+    position: static;
     width: 100%;
     display: ${props => props.$show ? 'block' : 'none'};
     margin-bottom: 20px;

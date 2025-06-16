@@ -13,9 +13,9 @@ const SignIn = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (email === 'client@store.com' && password === 'clientpassword') {
-      login({ email, role: 'client' });
-      navigate('/client/dashboard');
+    if (email === 'client@example.com' && password === 'password123') {
+      login('client');
+      navigate('/seller/dashboard');
     } else if (email === 'customer@store.com' && password === 'customerpassword') {
       login({ email, role: 'customer' });
       navigate('/');
