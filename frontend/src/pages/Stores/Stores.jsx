@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { StoreContext } from '../../context/StoreContext';
 import { motion } from 'framer-motion';
 
+
 const Stores = () => {
   const { stores, loading, error } = useContext(StoreContext);
 
@@ -21,8 +22,12 @@ const Stores = () => {
       <StoreGrid>
         {stores.map(store => (
           <StoreCard key={store.id} to={`/stores/${store.id}`}>
-            <StoreName>{store.name}</StoreName>
-            <StoreDescription>{store.description}</StoreDescription>
+            <StoreLogo src={store.logo} alt={`${store.name} logo`} />
+            <StoreContent>
+              <StoreName>{store.name}</StoreName>
+              <StoreDescription>{store.description}</StoreDescription>
+              <StoreLocation>{store.location}</StoreLocation>
+            </StoreContent>
           </StoreCard>
         ))}
       </StoreGrid>
@@ -52,7 +57,7 @@ const StoreGrid = styled.div`
 const StoreCard = styled(Link)`
   background: ${({ theme }) => theme.cardBg};
   border-radius: 8px;
-  padding: 25px;
+  padding: 15px;
   text-decoration: none;
   color: inherit;
   box-shadow: ${({ theme }) => theme.cardShadow};
@@ -64,15 +69,36 @@ const StoreCard = styled(Link)`
   }
 `;
 
+const StoreLogo = styled.img`
+  width: 100%;
+  height: 150px;
+  object-fit: contain;
+  margin-bottom: 15px;
+  border-radius: 4px;
+`;
+
+const StoreContent = styled.div`
+  padding: 15px;
+`;
+
 const StoreName = styled.h2`
   font-size: 1.5rem;
   color: ${({ theme }) => theme.primary};
   margin-bottom: 10px;
 `;
 
+
+
 const StoreDescription = styled.p`
   font-size: 1rem;
   color: ${({ theme }) => theme.textSecondary};
+  margin-bottom: 10px;
+`;
+
+const StoreLocation = styled.p`
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.textSecondary};
+  margin-bottom: 10px;
 `;
 
 export default Stores;

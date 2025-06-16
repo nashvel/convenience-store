@@ -24,6 +24,7 @@ import Notifications from './pages/Navbar/Notifications';
 import Stores from './pages/Stores/Stores';
 import StorePage from './pages/Stores/StorePage';
 import SellerDashboard from './seller/SellerDashboard';
+import Partners from './pages/Partners/Partners';
 
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
@@ -85,6 +86,7 @@ const AppContent = () => {
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/stores" element={<Stores />} />
               <Route path="/stores/:storeId" element={<StorePage />} />
+              <Route path="/partners" element={<Partners />} />
                             <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
             </Routes>
           </AnimatePresence>

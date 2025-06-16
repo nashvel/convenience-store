@@ -54,6 +54,33 @@ export const StoreProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const mockStores = [
+      {
+        id: 'store1',
+        name: 'Tech World',
+        description: 'Your one-stop shop for all things tech.',
+        logo: 'https://via.placeholder.com/150x150.png?text=Tech+World',
+        location: 'Downtown',
+        products: ['p1', 'p7']
+      },
+      {
+        id: 'store2',
+        name: 'Fashion Hub',
+        description: 'Latest fashion trends at great prices.',
+        logo: 'https://via.placeholder.com/150x150.png?text=Fashion+Hub',
+        location: 'Shopping District',
+        products: ['p4', 'p8']
+      },
+      {
+        id: 'store3',
+        name: 'Home Essentials',
+        description: 'Everything you need for your home.',
+        logo: 'https://via.placeholder.com/150x150.png?text=Home+Essentials',
+        location: 'Residential Area',
+        products: ['p5', 'p6', 'p9']
+      }
+    ];
+
     // Simulate API call
     setTimeout(() => {
       try {
