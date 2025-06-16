@@ -10,6 +10,25 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleMockLogin = (role) => {
+    // Mock data for client dashboard test
+    const mockToken = 'mock-client-token-123456';
+    const mockUser = {
+      id: 1,
+      email: 'client@example.com',
+      first_name: 'Test',
+      last_name: 'Client',
+      role: 'client'
+    };
+
+
+    localStorage.setItem('token', mockToken);
+    localStorage.setItem('user', JSON.stringify(mockUser));
+
+
+    navigate('/seller/dashboard');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -71,6 +90,9 @@ const SignIn = () => {
           {error && <Error>{error}</Error>}
           <Button type="submit" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
+          </Button>
+          <Button onClick={() => handleMockLogin('client')} style={{ marginTop: '10px' }}>
+            Mock Login as Client
           </Button>
         </Form>
         <Links>
