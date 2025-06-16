@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
 
-const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
+const ResetPassword = () => {
+  const { token } = useParams();
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,12 +18,24 @@ const ForgotPassword = () => {
     setError('');
     setSuccess('');
 
+    // Validate passwords
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await axios.post('http://localhost/api/auth/forgot-password', {
-        email
+      const response = await axios.post(`http://localhost/api/auth/reset-password/${token}`, {
+        password
       });
 
-      setSuccess('Reset link has been sent to your email. Please check your inbox.');
+      setSuccess('Password reset successful! You can now login with your new password.');
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        navigate('/signin');
+      }, 2000);
     } catch (error) {
       setError(error.response?.data?.message || 'An error occurred. Please try again.');
     } finally {
@@ -32,19 +46,26 @@ const ForgotPassword = () => {
   return (
     <Container>
       <FormWrapper>
-        <Title>Forgot Password</Title>
+        <Title>Reset Password</Title>
         <Form onSubmit={handleSubmit}>
           <Input 
-            type="email" 
-            placeholder="Email" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="password" 
+            placeholder="New Password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Input 
+            type="password" 
+            placeholder="Confirm Password" 
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
           {error && <Error>{error}</Error>}
           {success && <Success>{success}</Success>}
           <Button type="submit" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Reset Link'}
+            {loading ? 'Resetting...' : 'Reset Password'}
           </Button>
         </Form>
         <Links>
@@ -131,4 +152,4 @@ const Success = styled.div`
   background-color: #d4edda;
 `;
 
-export default ForgotPassword;
+export default ResetPassword;

@@ -1,26 +1,53 @@
-import React, { useState, useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import axios from 'axios';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
 
-
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email === 'client@example.com' && password === 'password123') {
-      login('client');
-      navigate('/seller/dashboard');
-    } else if (email === 'customer@store.com' && password === 'customerpassword') {
-      login({ email, role: 'customer' });
-      navigate('/');
-    } else {
-      alert('Invalid credentials');
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.post('http://localhost/api/auth/login', {
+        email,
+        password
+      });
+
+      const { token, user } = response.data;
+      
+      // Store token in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Redirect based on user role
+      switch (user.role) {
+        case 'customer':
+          navigate('/');
+          break;
+        case 'client':
+          navigate('/seller/dashboard');
+          break;
+        case 'rider':
+          navigate('/rider/dashboard');
+          break;
+        case 'admin':
+          navigate('/admin/dashboard');
+          break;
+        default:
+          throw new Error('Invalid user role');
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,7 +68,10 @@ const SignIn = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button type="submit">Sign In</Button>
+          {error && <Error>{error}</Error>}
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </Button>
         </Form>
         <Links>
           <StyledLink to="/signup">Don't have an account? Sign Up</StyledLink>
@@ -117,6 +147,14 @@ const StyledLink = styled(Link)`
   &:hover {
     text-decoration: underline;
   }
+`;
+
+const Error = styled.div`
+  color: #dc3545;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f8d7da;
 `;
 
 export default SignIn;

@@ -25,18 +25,27 @@
 # app_baseURL = ''
 # app.forceGlobalSecureRequests = false
 # app.CSPEnabled = false
+app_email_fromEmail = nacht.system@gmail.com
+app_email_fromName = Quick Mart
+app_email_SMTPHost = smtp.gmail.com
+app_email_SMTPPort = 587
+app_email_SMTPUser = nacht.system@gmail.com
+app_email_SMTPPass = nngl cwvj bapf zixr
+app_email_SMTPCrypto = tls
+app_email_emailCharset = UTF-8
 
 #--------------------------------------------------------------------
 # DATABASE
 #--------------------------------------------------------------------
 
-# database.default.hostname = localhost
-# database.default.database = ci4
-# database.default.username = root
-# database.default.password = root
-# database.default.DBDriver = MySQLi
-# database.default.DBPrefix =
-# database.default.port = 3306
+database.default.hostname = localhost
+database.default.database = convenience_store
+database.default.username = root
+database.default.password = 
+database.default.DBDriver = MySQLi
+database.default.DBPrefix =
+database.default.port = 3306
+
 
 # If you use MySQLi as tests, first update the values of Config\Database::$tests.
 # database.tests.hostname = localhost

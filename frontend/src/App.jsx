@@ -75,19 +75,26 @@ const AppContent = () => {
                     {!isSellerRoute && <Navbar />}
           <AnimatePresence mode="wait">
             <Routes>
+              {/* Client Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/cart" element={<Cart />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/my-orders" element={<MyOrders />} />
-              <Route path="/notifications" element={<Notifications />} />
               <Route path="/stores" element={<Stores />} />
               <Route path="/stores/:storeId" element={<StorePage />} />
               <Route path="/partners" element={<Partners />} />
-                            <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
+
+              {/* User Authentication Routes */}
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+
+              {/* User Profile Routes */}
+              <Route path="/my-orders" element={<MyOrders />} />
+              <Route path="/notifications" element={<Notifications />} />
+
+              {/* Seller Dashboard Routes */}
+              <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
             </Routes>
           </AnimatePresence>
                     {!isSellerRoute && <Footer />}
