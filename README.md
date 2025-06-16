@@ -4,13 +4,16 @@ This is a web application for browsing and ordering items from a convenience sto
 
 ## Features
 
-- **Home Page**: Displays featured products and special offers.
-- **Products Page**: Browse all available items with filtering and sorting options.
-- **Product Details**: View detailed information about a specific item, including price and description.
-- **Cart**: Add and remove items from the shopping cart and proceed to checkout.
-- **Order History**: View past orders.
-- **Favorites**: Keep a list of favorite items for easy reordering.
-- **Product Ratings & Comments**: Users can view and leave feedback on products.
+- 🏠 **Home Page**: Displays featured products and special offers.
+- 🛍️ **Products Page**: Browse all available items with filtering and sorting options.
+- 📄 **Product Details**: View detailed information about a specific item.
+- 🛒 **Cart**: Add and remove items from the shopping cart.
+- 📜 **Order History**: View past orders and track current ones.
+- ❤️ **Favorites**: Save items for easy reordering.
+- ⭐ **Product Ratings & Comments**: View and leave feedback on products.
+- 📱💻 **Modern & Responsive UI**: A clean interface that works on all devices.
+
+> **Note**: Some features are currently in development and will be available in future updates.
 
 ## Screenshots
 
