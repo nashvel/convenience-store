@@ -15,78 +15,32 @@ This is a web application for browsing and ordering items from a convenience sto
 
 <p align="center">
   <img src="./images/Homepage.png" alt="Homepage" width="32%">
-  <img src="./images/AllProducts.png" alt="All Products" width="32%">
   <img src="./images/Productpage.png" alt="Product Page" width="32%">
+  <img src="./images/AllProducts.png" alt="All Products" width="32%">
   <br>
   <img src="./images/Categories.png" alt="Category" width="32%">
   <img src="./images/NavbarUi.png" alt="Navbar" width="32%">
   <img src="./images/Footer.png" alt="Footer" width="32%">
 </p>
 
-## Technologies Used
+## Tech Stack
 
-- **React**: A JavaScript library for building user interfaces.
-- **React Router**: For declarative routing in the application.
-- **Axios**: A promise-based HTTP client for making API requests.
-- **Styled Components**: For styling React components.
+This project is built with a modern, multi-platform stack:
 
-## Getting Started
+<p align="center">
+  <a href="https://reactjs.org/" target="_blank">
+    <img src="https://img.shields.io/badge/-ReactJs-61DAFB?logo=react&logoColor=white&style=for-the-badge" alt="React.js">
+  </a>
+  <a href="https://codeigniter.com/" target="_blank">
+    <img src="https://img.shields.io/badge/-CodeIgniter-EF4223?logo=codeigniter&logoColor=white&style=for-the-badge" alt="CodeIgniter">
+  </a>
+  <a href="https://reactnative.dev/" target="_blank">
+    <img src="https://img.shields.io/badge/-React_Native-61DAFB?logo=react&logoColor=white&style=for-the-badge" alt="React Native">
+  </a>
+</p>
 
-To get a local copy up and running, follow these simple steps.
+- **Frontend**: A responsive web interface built with **React.js**.
+- **Backend**: A robust API powered by **CodeIgniter 4**.
+- **Mobile**: A cross-platform mobile app developed with **React Native**.
 
-### Prerequisites
-
-- npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
-### Installation
-
-1. Clone the repo
-   ```sh
-   git clone https://github.com/nashvel/convenience-store.git
-   ```
-2. Install NPM packages
-   ```sh
-   npm install
-   ```
-
-### Running the Application
-
-```sh
-npm start
-```
-
-This runs the app in development mode.
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+> **Database**: The database schema and integration are planned for a future update.
