@@ -1,4 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
+import techworld from '../assets/products/techworld.png';
+import homeessentials from '../assets/products/homeessentials.png';
+import fashionhub from '../assets/products/fashionhub.png';
 import mouse from '../assets/products/mouse.png';
 import keyboard from '../assets/products/keyboard.png';
 import summerdress from '../assets/products/summerdress.png';
@@ -68,7 +71,7 @@ export const StoreProvider = ({ children }) => {
         id: 'store1',
         name: 'Tech World',
         description: 'Your one-stop shop for all things tech.',
-        logo: keyboard,
+        logo: techworld,
         location: 'Downtown',
         products: ['p1', 'p7']
       },
@@ -76,7 +79,7 @@ export const StoreProvider = ({ children }) => {
         id: 'store2',
         name: 'Fashion Hub',
         description: 'Latest fashion trends at great prices.',
-        logo: summerdress,
+        logo: fashionhub,
         location: 'Shopping District',
         products: ['p3', 'p4', 'p9']
       },
@@ -84,7 +87,7 @@ export const StoreProvider = ({ children }) => {
         id: 'store3',
         name: 'Home Essentials',
         description: 'Everything you need for your home.',
-        logo: pillow,
+        logo: homeessentials,
         location: 'Residential Area',
         products: ['p5', 'p6', 'p9']
       }
