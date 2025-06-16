@@ -41,20 +41,28 @@ export const ProductProvider = ({ children }) => {
     loadInitialData();
   }, []);
 
-  const addToFavorites = (product) => {
-    const newFavorites = [...favorites, product];
-    setFavorites(newFavorites);
-    localStorage.setItem('productFavorites', JSON.stringify(newFavorites));
-  };
 
-  const removeFromFavorites = (productId) => {
-    const newFavorites = favorites.filter(product => product.id !== productId);
-    setFavorites(newFavorites);
-    localStorage.setItem('productFavorites', JSON.stringify(newFavorites));
-  };
 
   const isFavorite = (productId) => {
-    return favorites.some(product => product.id === productId);
+    return favorites.some(p => String(p.id) === String(productId));
+  };
+
+  const toggleFavorite = (productId) => {
+    const favoriteExists = favorites.some(p => String(p.id) === String(productId));
+    let newFavorites;
+
+    if (favoriteExists) {
+      newFavorites = favorites.filter(p => String(p.id) !== String(productId));
+    } else {
+      const productToAdd = products.find(p => String(p.id) === String(productId));
+      if (productToAdd) {
+        newFavorites = [...favorites, productToAdd];
+      } else {
+        newFavorites = favorites; // No change if product not found
+      }
+    }
+    setFavorites(newFavorites);
+    localStorage.setItem('productFavorites', JSON.stringify(newFavorites));
   };
 
   return (
@@ -66,9 +74,8 @@ export const ProductProvider = ({ children }) => {
         favorites,
         loading,
         error,
-        addToFavorites,
-        removeFromFavorites,
         isFavorite,
+        toggleFavorite,
       }}
     >
       {children}

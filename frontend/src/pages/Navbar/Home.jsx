@@ -2,9 +2,9 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { ProductContext } from '../context/ProductContext';
+import { ProductContext } from '../../context/ProductContext';
 import { FaStar, FaShoppingBag, FaArrowRight } from 'react-icons/fa';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../../components/ProductCard';
 
 const Home = () => {
   const { 

@@ -2,8 +2,8 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { ProductContext } from '../context/ProductContext';
-import ProductCard from '../components/ProductCard';
+import { ProductContext } from '../../context/ProductContext';
+import ProductCard from '../../components/ProductCard';
 import { FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp } from 'react-icons/fa';
 
 const Products = () => {

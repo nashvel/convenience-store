@@ -1,21 +1,50 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const SignIn = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  const handleClientLogin = () => {
+    setEmail('client@store.com');
+    setPassword('clientpassword');
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (email === 'client@store.com' && password === 'clientpassword') {
+      navigate('/client-dashboard');
+    } else {
+      alert('Invalid credentials');
+    }
+  };
+
   return (
     <Container>
       <FormWrapper>
         <Title>Sign In</Title>
-        <Form>
-          <Input type="email" placeholder="Email" />
-          <Input type="password" placeholder="Password" />
+        <Form onSubmit={handleSubmit}>
+          <Input 
+            type="email" 
+            placeholder="Email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input 
+            type="password" 
+            placeholder="Password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
           <Button type="submit">Sign In</Button>
         </Form>
         <Links>
           <StyledLink to="/signup">Don't have an account? Sign Up</StyledLink>
           <StyledLink to="/forgot-password">Forgot Password?</StyledLink>
         </Links>
+        <ClientButton onClick={handleClientLogin}>Log in as Client</ClientButton>
       </FormWrapper>
     </Container>
   );
@@ -66,6 +95,11 @@ const Button = styled.button`
   color: white;
   cursor: pointer;
   font-weight: bold;
+  margin-bottom: 10px;
+`;
+
+const ClientButton = styled(Button)`
+  background-color: ${({ theme }) => theme.secondary};
 `;
 
 const Links = styled.div`

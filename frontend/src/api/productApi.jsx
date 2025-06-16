@@ -171,13 +171,11 @@ export const fetchProductsByCategory = async (category) => {
   return mockProducts.filter(p => p.category === category);
 };
 
-
 export const fetchCategories = async () => {
 
   await new Promise(resolve => setTimeout(resolve, 300));
   return mockCategories;
 };
-
 
 export const searchProducts = async (query) => {
 
@@ -188,4 +186,17 @@ export const searchProducts = async (query) => {
     p.description.toLowerCase().includes(lowercaseQuery) ||
     p.category.toLowerCase().includes(lowercaseQuery)
   );
+};
+
+export const addProduct = async (productData) => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const newProduct = {
+    ...productData,
+    id: (mockProducts.length + 1).toString(), // Simple ID generation
+    inStock: true,
+    rating: 0, // New products start with no rating
+    featured: false,
+  };
+  mockProducts.push(newProduct);
+  return newProduct;
 };

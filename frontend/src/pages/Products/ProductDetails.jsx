@@ -1,43 +1,67 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { ProductContext } from '../context/ProductContext';
-import { CartContext } from '../context/CartContext';
 import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft } from 'react-icons/fa';
+import { ProductContext } from '../../context/ProductContext';
+import { CartContext } from '../../context/CartContext';
+import Reviews from '../../components/Reviews';
+import { fetchProductById } from '../../api/productApi';
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const { products, toggleFavorite, isFavorite } = useContext(ProductContext);
   const { addToCart } = useContext(CartContext);
-  
+  const { toggleFavorite, isFavorite } = useContext(ProductContext);
+
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  
-  // Find the product by ID
-  const product = products.find(p => p.id === id);
-  
-  if (!product) {
-    return (
-      <ErrorContainer>
-        <h2>Product not found</h2>
-        <BackButton to="/products">Back to Products</BackButton>
-      </ErrorContainer>
-    );
-  }
-  
+
+  useEffect(() => {
+    const getProduct = async () => {
+      try {
+        setLoading(true);
+        const fetchedProduct = await fetchProductById(id);
+        setProduct(fetchedProduct);
+      } catch (err) {
+        setError('Product not found');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getProduct();
+  }, [id]);
+
   const handleAddToCart = () => {
     addToCart(product, quantity);
   };
-  
+
   const handleQuantityChange = (e) => {
-    const value = parseInt(e.target.value);
+    const value = parseInt(e.target.value, 10);
     if (value > 0) {
       setQuantity(value);
     }
   };
-  
+
+  if (loading) {
+    return <ProductDetailsContainer><h2>Loading...</h2></ProductDetailsContainer>;
+  }
+
+  if (error || !product) {
+    return (
+      <ErrorContainer>
+        <h2>{error || 'Product not found'}</h2>
+        <BackButton to="/products">Back to Products</BackButton>
+      </ErrorContainer>
+    );
+  }
+
   const favorite = isFavorite(product.id);
-  
+
+
+
   return (
     <ProductDetailsContainer
       initial={{ opacity: 0 }}
@@ -65,15 +89,9 @@ const ProductDetails = () => {
           <ProductName>{product.name}</ProductName>
           
           <PriceContainer>
-            {product.discount > 0 && (
-              <OriginalPrice>₱{product.price.toFixed(2)}</OriginalPrice>
-            )}
             <CurrentPrice>
-              ₱{(product.price * (1 - product.discount / 100)).toFixed(2)}
+              ₱{product.price.toFixed(2)}
             </CurrentPrice>
-            {product.discount > 0 && (
-              <DiscountBadge>{product.discount}% OFF</DiscountBadge>
-            )}
           </PriceContainer>
           
           <RatingContainer>
@@ -128,35 +146,18 @@ const ProductDetails = () => {
               <MetaValue>{product.sku || `SKU-${product.id}`}</MetaValue>
             </MetaItem>
             <MetaItem>
-              <MetaLabel>Brand:</MetaLabel>
-              <MetaValue>{product.brand || 'Generic'}</MetaValue>
+              <MetaLabel>Category:</MetaLabel>
+              <MetaValue>{product.category}</MetaValue>
             </MetaItem>
           </ProductMeta>
         </ProductInfo>
       </ProductContent>
       
-      <RelatedProductsSection>
-        <SectionTitle>You might also like</SectionTitle>
-        <RelatedProductsGrid>
-          {products
-            .filter(p => p.category === product.category && p.id !== product.id)
-            .slice(0, 4)
-            .map(relatedProduct => (
-              <RelatedProductCard 
-                key={relatedProduct.id}
-                to={`/products/${relatedProduct.id}`}
-                whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              >
-                <RelatedProductImage src={relatedProduct.image} alt={relatedProduct.name} />
-                <RelatedProductName>{relatedProduct.name}</RelatedProductName>
-                <RelatedProductPrice>
-                  ${(relatedProduct.price * (1 - relatedProduct.discount / 100)).toFixed(2)}
-                </RelatedProductPrice>
-              </RelatedProductCard>
-            ))
-          }
-        </RelatedProductsGrid>
-      </RelatedProductsSection>
+      <Reviews />
+      
+      {/*
+        Removed the related products section as it relies on the global product list
+      */}
     </ProductDetailsContainer>
   );
 };
@@ -216,11 +217,14 @@ const ProductContent = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
-  margin-bottom: 60px;
-  
+  margin-top: 30px;
+
+  @media (max-width: 992px) {
+    gap: 30px;
+  }
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 30px;
   }
 `;
 
@@ -460,60 +464,6 @@ const MetaValue = styled.span`
   color: ${({ theme }) => theme.text};
 `;
 
-const RelatedProductsSection = styled.section`
-  margin-top: 60px;
-`;
 
-const SectionTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 25px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const RelatedProductsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 15px;
-  }
-`;
-
-const RelatedProductCard = styled(motion(Link))`
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  transition: transform 0.3s ease;
-`;
-
-const RelatedProductImage = styled.img`
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-`;
-
-const RelatedProductName = styled.h3`
-  font-size: 1rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.text};
-  margin: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const RelatedProductPrice = styled.div`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.primary};
-  margin: 0 10px 10px;
-`;
 
 export default ProductDetails;
