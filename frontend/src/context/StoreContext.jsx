@@ -21,12 +21,78 @@ const mockStores = [
 ];
 
 const mockProducts = [
-  { id: 'p1', name: 'Wireless Mouse', price: 25.99, category: 'Electronics', storeId: 'store1', popularity: 9, discount: 10, image: mouse },
-  { id: 'p2', name: 'Bluetooth Keyboard', price: 45.00, category: 'Electronics', storeId: 'store1', popularity: 8, discount: 0, image: keyboard },
-  { id: 'p3', name: 'Summer Dress', price: 35.50, category: 'Apparel', storeId: 'store2', popularity: 10, discount: 15, image: summerdress },
-  { id: 'p4', name: 'Leather Jacket', price: 150.00, category: 'Apparel', storeId: 'store2', popularity: 7, discount: 0, image: leatherjacket },
-  { id: 'p5', name: 'Throw Pillow', price: 15.00, category: 'Home Goods', storeId: 'store3', popularity: 6, discount: 5, image: pillow },
-  { id: 'p6', name: 'Scented Candle', price: 12.99, category: 'Home Goods', storeId: 'store3', popularity: 9, discount: 0, image: candles },
+  {
+    id: 'p1',
+    name: 'Wireless Mouse',
+    price: 49.99,
+    category: 'Electronics',
+    storeId: 'store1',
+    popularity: 10,
+    discount: 0,
+    image: mouse,
+    stock: 100,
+    rating: 4.5
+  },
+  {
+    id: 'p2',
+    name: 'Keyboard',
+    price: 69.99,
+    category: 'Electronics',
+    storeId: 'store1',
+    popularity: 8,
+    discount: 0,
+    image: keyboard,
+    stock: 50,
+    rating: 4.2
+  },
+  {
+    id: 'p3',
+    name: 'Summer Dress',
+    price: 39.99,
+    category: 'Fashion',
+    storeId: 'store2',
+    popularity: 9,
+    discount: 15,
+    image: summerdress,
+    stock: 30,
+    rating: 4.8
+  },
+  {
+    id: 'p4',
+    name: 'Leather Jacket',
+    price: 149.99,
+    category: 'Fashion',
+    storeId: 'store2',
+    popularity: 7,
+    discount: 20,
+    image: leatherjacket,
+    stock: 20,
+    rating: 4.6
+  },
+  {
+    id: 'p5',
+    name: 'Pillow',
+    price: 19.99,
+    category: 'Home',
+    storeId: 'store3',
+    popularity: 8,
+    discount: 0,
+    image: pillow,
+    stock: 75,
+    rating: 4.3
+  },
+  {
+    id: 'p6',
+    name: 'Scented Candles',
+    price: 24.99,
+    category: 'Home',
+    storeId: 'store3',
+    popularity: 9,
+    discount: 10,
+    image: candles,
+    stock: 45,
+    rating: 4.7
+  },
   {
     id: 'p7',
     name: 'The Great Gatsby',
@@ -36,6 +102,8 @@ const mockProducts = [
     popularity: 9,
     discount: 0,
     image: thegreatgatsby,
+    stock: 100,
+    rating: 4.9
   },
   {
     id: 'p8',
@@ -46,6 +114,8 @@ const mockProducts = [
     popularity: 8,
     discount: 0,
     image: basketball,
+    stock: 60,
+    rating: 4.1
   },
   {
     id: 'p9',
@@ -56,6 +126,8 @@ const mockProducts = [
     popularity: 9,
     discount: 10,
     image: umbrella,
+    stock: 50,
+    rating: 4.4
   }
 ];
 

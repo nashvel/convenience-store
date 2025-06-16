@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft } from 'react-icons/fa';
+import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes } from 'react-icons/fa';
 import { ProductContext } from '../../context/ProductContext';
 import { StoreContext } from '../../context/StoreContext';
 import { CartContext } from '../../context/CartContext';
@@ -93,6 +93,18 @@ const ProductDetails = () => {
             </CurrentPrice>
           </PriceContainer>
           
+          <StockStatus>
+            {product.stock > 0 ? (
+              <InStock>
+                <FaCheck /> In Stock ({product.stock} available)
+              </InStock>
+            ) : (
+              <OutOfStock>
+                <FaTimes /> Out of Stock
+              </OutOfStock>
+            )}
+          </StockStatus>
+          
           <RatingContainer>
             {[...Array(5)].map((_, i) => (
               <StarIcon key={i} $filled={i < Math.floor(product.rating)}>
@@ -105,13 +117,6 @@ const ProductDetails = () => {
           <Divider />
           
           <ProductDescription>{product.description}</ProductDescription>
-          
-          {product.inStock ? (
-            <StockInfo $inStock={true}>In Stock</StockInfo>
-          ) : (
-            <StockInfo $inStock={false}>Out of Stock</StockInfo>
-          )}
-          
           <AddToCartSection>
             <QuantityControl>
               <QuantityButton 
@@ -300,6 +305,28 @@ const ProductTitle = styled.h1`
   @media (max-width: 768px) {
     font-size: 1.8rem;
   }
+`;
+
+const StockStatus = styled.div`
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+`;
+
+const InStock = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: ${({ theme }) => theme.success};
+  font-weight: 600;
+`;
+
+const OutOfStock = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: ${({ theme }) => theme.error};
+  font-weight: 600;
 `;
 
 const PriceContainer = styled.div`

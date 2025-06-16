@@ -26,7 +26,7 @@ const ProductCard = ({ product }) => {
     >
       <ImageContainer>
         <ProductImage src={product.image} alt={product.name} />
-        {product.inStock ? (
+        {product.stock > 0 ? (
           <AddToCartButton 
             onClick={handleAddToCart}
             whileHover={{ scale: 1.1 }}
