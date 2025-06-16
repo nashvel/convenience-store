@@ -10,18 +10,50 @@ This is a web application for browsing and ordering items from a convenience sto
 - **Cart**: Add and remove items from the shopping cart and proceed to checkout.
 - **Order History**: View past orders.
 - **Favorites**: Keep a list of favorite items for easy reordering.
+- **Product Ratings & Comments**: Users can view and leave feedback on products.
 
 ## Screenshots
 
-<p align="center">
-  <img src="./images/Homepage.png" alt="Homepage" width="32%">
-  <img src="./images/Productpage.png" alt="Product Page" width="32%">
-  <img src="./images/AllProducts.png" alt="All Products" width="32%">
-  <br>
-  <img src="./images/Categories.png" alt="Category" width="32%">
-  <img src="./images/NavbarUi.png" alt="Navbar" width="32%">
-  <img src="./images/Footer.png" alt="Footer" width="32%">
-</p>
+<div align="center">
+
+<table width="100%">
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <img src="./images/Homepage.png" alt="Homepage" width="100%">
+      <br>
+      <b>Home Page</b>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="./images/Productpage.png" alt="Product Page" width="100%">
+      <br>
+      <b>Product Page</b>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="./images/AllProducts.png" alt="All Products" width="100%">
+      <br>
+      <b>All Products</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <img src="./images/Categories.png" alt="Categories" width="100%">
+      <br>
+      <b>Categories</b>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="./images/NavbarUi.png" alt="Navbar" width="100%">
+      <br>
+      <b>Navbar</b>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="./images/Footer.png" alt="Footer" width="100%">
+      <br>
+      <b>Footer</b>
+    </td>
+  </tr>
+</table>
+
+</div>
 
 ## Tech Stack
 
