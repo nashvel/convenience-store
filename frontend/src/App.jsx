@@ -12,6 +12,9 @@ import Cart from './pages/Cart';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import ForgotPassword from './pages/ForgotPassword';
+import MyOrders from './pages/MyOrders';
+import Notifications from './pages/Notifications';
+import Footer from './components/Footer';
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
 
@@ -31,9 +34,12 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
+                                <Route path="/forgot-password" element={<ForgotPassword />} />
+                                <Route path="/my-orders" element={<MyOrders />} />
+                <Route path="/notifications" element={<Notifications />} />
               </Routes>
-            </AnimatePresence>
+                        </AnimatePresence>
+            <Footer />
           </Router>
         </CartProvider>
       </ProductProvider>

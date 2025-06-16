@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaShoppingBag, FaBell } from 'react-icons/fa';
 import { CartContext } from '../context/CartContext';
 
 const Navbar = () => {
@@ -11,7 +11,8 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
-  const { totalItems } = useContext(CartContext);
+    const { totalItems } = useContext(CartContext);
+  const [notificationCount, setNotificationCount] = useState(2); // Placeholder for notification count
 
   useEffect(() => {
     const handleScroll = () => {
@@ -71,7 +72,7 @@ const Navbar = () => {
             <DropdownMenu>
               <DropdownItem to="/signin">Sign In</DropdownItem>
               <DropdownItem to="/signup">Sign Up</DropdownItem>
-              <DropdownItem to="/forgot-password">Forgot Password</DropdownItem>
+                            <DropdownItem to="/forgot-password">Forgot Password</DropdownItem>
             </DropdownMenu>
           </DropdownContainer>
         </NavLinks>
@@ -84,6 +85,13 @@ const Navbar = () => {
           >
             <FaSearch />
           </IconButton>
+                    <CartButton to="/my-orders" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <FaShoppingBag />
+          </CartButton>
+          <CartButton to="/notifications" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <FaBell />
+            {notificationCount > 0 && <CartBadge>{notificationCount}</CartBadge>}
+          </CartButton>
           <CartButton 
             to="/cart"
             whileHover={{ scale: 1.1 }}
