@@ -76,6 +76,7 @@ class Filters extends BaseFilters
             // 'csrf'
         ],
         'after' => [
+            'cors' => ['except' => []], // Apply CORS to all responses
             'toolbar' => ['except' => ['/auth/*']],
             'honeypot' => ['except' => ['/auth/*']],
             'secureheaders' => ['except' => ['/auth/*']],

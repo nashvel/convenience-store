@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
@@ -8,6 +8,7 @@ import { FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp } from 'react-icon
 
 const Products = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { allProducts: products, loading, error, categories } = useContext(StoreContext);
 
   // Get query parameters
@@ -33,6 +34,10 @@ const Products = () => {
   const [sortOption, setSortOption] = useState('popularity');
   const [sortDirection, setSortDirection] = useState('desc');
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    setSelectedCategory(categoryParam || 'all');
+  }, [categoryParam]);
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   // Apply filters and sorting
@@ -43,7 +48,7 @@ const Products = () => {
     
     // Filter by category
     if (selectedCategory !== 'all') {
-      result = result.filter(product => product.category === selectedCategory);
+      result = result.filter(product => product.category_name === selectedCategory);
     }
     
     // Filter by search query
@@ -94,6 +99,16 @@ const Products = () => {
     setPriceRange(prev => ({ ...prev, [type]: value === '' ? '' : parseFloat(value) }));
   };
 
+    const handleCategoryChange = (category) => {
+    const params = new URLSearchParams(location.search);
+    if (category === 'all') {
+      params.delete('category');
+    } else {
+      params.set('category', category);
+    }
+    navigate({ search: params.toString() });
+  };
+
   // Toggle sort direction
   const toggleSortDirection = () => {
     setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -128,7 +143,7 @@ const Products = () => {
             <CategoryList>
               <CategoryItem 
                 $active={selectedCategory === 'all'}
-                onClick={() => setSelectedCategory('all')}
+                onClick={() => handleCategoryChange('all')}
               >
                 All Products
               </CategoryItem>
@@ -136,7 +151,7 @@ const Products = () => {
                 <CategoryItem 
                   key={category.id}
                   $active={selectedCategory === category.name}
-                  onClick={() => setSelectedCategory(category.name)}
+                  onClick={() => handleCategoryChange(category.name)}
                 >
                   {category.name}
                 </CategoryItem>

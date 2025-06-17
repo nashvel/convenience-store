@@ -47,7 +47,7 @@ const Home = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
           >
-            <PrimaryButton to="/products">
+            <PrimaryButton to={categories.length > 0 ? `/products?category=${categories[0].name}` : '/products'}>
               Shop Now <FaArrowRight />
             </PrimaryButton>
           </HeroButtons>
