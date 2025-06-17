@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FaTrash, FaArrowLeft, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
 import { CartContext } from '../../context/CartContext';
 import { StoreContext } from '../../context/StoreContext';
+import { ASSET_BASE_URL } from '../../config';
 
 const Cart = () => {
   const { 
@@ -111,7 +112,7 @@ const Cart = () => {
                     return (
                       <CartItemRow key={item.id}>
                         <CartItemInfo $flex="3">
-                          <CartItemImage src={item.image} alt={item.name} />
+                          <CartItemImage src={`${ASSET_BASE_URL}/products/${item.image}`} alt={item.name} />
                           <CartItemDetails>
                             <CartItemName to={`/products/${item.id}`}>{item.name}</CartItemName>
                             {item.discount > 0 && (
