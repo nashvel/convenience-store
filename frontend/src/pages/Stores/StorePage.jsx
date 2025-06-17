@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import { motion } from 'framer-motion';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaMapMarkerAlt, FaDirections } from 'react-icons/fa';
 import { LOGO_ASSET_URL } from '../../config';
 
 const StorePage = () => {
@@ -69,6 +69,19 @@ const StorePage = () => {
         <StoreDescription>{store.description}</StoreDescription>
       </StoreHeader>
       
+      <StoreInfoBar>
+        <StoreAddress>
+          <FaMapMarkerAlt /> {store.address}
+        </StoreAddress>
+        <DirectionsButton 
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`}
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
+          <FaDirections /> Get Directions
+        </DirectionsButton>
+      </StoreInfoBar>
+
       <SectionTitle>Products from this store</SectionTitle>
 
       <ToolbarContainer>
@@ -148,6 +161,45 @@ const StoreDescription = styled.p`
   color: #f0f0f0;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
   position: relative;
+`;
+
+const StoreInfoBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: ${({ theme }) => theme.cardBg};
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  box-shadow: ${({ theme }) => theme.cardShadow};
+  flex-wrap: wrap;
+  gap: 15px;
+`;
+
+const StoreAddress = styled.div`
+  font-size: 1rem;
+  color: ${({ theme }) => theme.text};
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-grow: 1;
+`;
+
+const DirectionsButton = styled.a`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: ${({ theme }) => theme.primary};
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.primaryHover};
+  }
 `;
 
 const SectionTitle = styled.h2`
