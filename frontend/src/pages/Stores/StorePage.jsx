@@ -4,7 +4,8 @@ import styled from 'styled-components';
 import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import { motion } from 'framer-motion';
-import { FaSearch, FaMapMarkerAlt, FaDirections } from 'react-icons/fa';
+import { FaSearch, FaMapMarkerAlt, FaDirections, FaShareAlt } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import { LOGO_ASSET_URL } from '../../config';
 
 const StorePage = () => {
@@ -45,6 +46,16 @@ const StorePage = () => {
     return sorted;
   }, [products, storeId, searchQuery, sortOption]);
 
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copied to clipboard!');
+    } catch (err) {
+      toast.error('Failed to copy link.');
+      console.error('Failed to copy: ', err);
+    }
+  };
+
   if (loading) {
     return <PageContainer>Loading store...</PageContainer>;
   }
@@ -73,13 +84,18 @@ const StorePage = () => {
         <StoreAddress>
           <FaMapMarkerAlt /> {store.address}
         </StoreAddress>
-        <DirectionsButton 
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`}
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          <FaDirections /> Get Directions
-        </DirectionsButton>
+        <ActionButtons>
+          <ShareButton onClick={handleShare} title="Copy link">
+            <FaShareAlt />
+          </ShareButton>
+          <DirectionsButton 
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`}
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            <FaDirections /> Get Directions
+          </DirectionsButton>
+        </ActionButtons>
       </StoreInfoBar>
 
       <SectionTitle>Products from this store</SectionTitle>
@@ -174,6 +190,32 @@ const StoreInfoBar = styled.div`
   box-shadow: ${({ theme }) => theme.cardShadow};
   flex-wrap: wrap;
   gap: 15px;
+`;
+
+const ActionButtons = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const ShareButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ theme }) => theme.secondary};
+  color: #fff;
+  height: 40px;
+  width: 40px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+
+  &:hover {
+    filter: brightness(1.15);
+    transform: scale(1.05);
+  }
 `;
 
 const StoreAddress = styled.div`

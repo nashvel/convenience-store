@@ -9,7 +9,8 @@ const SignUp = () => {
     password: '',
     firstName: '',
     lastName: '',
-    phone: ''
+    phone: '',
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +42,6 @@ const SignUp = () => {
           'Accept': 'application/json'
         },
         withCredentials: true,
-        credentials: 'include',
         timeout: 10000
       });
 
@@ -52,7 +52,7 @@ const SignUp = () => {
         localStorage.setItem('user', JSON.stringify(response.data.user));
         
         // Show success message
-        setError('Registration successful! Please log in.');
+        setError('Verification email sent! Please check your email for verification.');
         
         // Redirect to login page after a short delay
         setTimeout(() => {

@@ -6,23 +6,27 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');
-$routes->resource('api/categories', ['controller' => 'CategoryController']);
-
 // API Routes
-$routes->group('api', function ($routes) {
+$routes->group('api', ['filter' => 'cors'], function ($routes) {
+    $routes->resource('categories', ['controller' => 'CategoryController']);
     $routes->resource('stores', ['controller' => 'StoreController']);
     $routes->resource('products', ['controller' => 'ProductController']);
+
+    // Authentication API routes
+    $routes->group('auth', function ($routes) {
+        $routes->post('login', 'AuthController::login');
+        $routes->post('signup', 'AuthController::signup');
+        $routes->post('resend-verification', 'AuthController::resendVerification');
+        $routes->post('forgot-password', 'AuthController::forgotPassword');
+        $routes->post('reset-password/(:segment)', 'AuthController::resetPassword/$1');
+        $routes->get('verify-email/(:segment)', 'AuthController::verifyEmail/$1');
+    });
 });
 
-// Authentication API routes
-$routes->post('/api/auth/login', 'AuthController::login');
-$routes->post('/api/auth/signup', 'AuthController::signup');
-$routes->post('/api/auth/forgot-password', 'AuthController::forgotPassword');
-$routes->post('/api/auth/reset-password/(:segment)', 'AuthController::resetPassword/$1');
-$routes->get('/api/auth/verify-email/(:segment)', 'AuthController::verifyEmail/$1');
-
 // Basic route configuration
-$routes->setAutoRoute(true);
+// Disabling auto-routing is a security best practice.
+// All routes should be defined explicitly.
+$routes->setAutoRoute(false);
 $routes->setDefaultNamespace('App\Controllers');
 $routes->setDefaultController('Home');
 $routes->setDefaultMethod('index');

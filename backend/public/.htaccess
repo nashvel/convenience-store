@@ -1,3 +1,12 @@
+Header always set Access-Control-Allow-Origin "http://localhost:3000"
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header always set Access-Control-Allow-Headers "X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method, Authorization"
+Header always set Access-Control-Allow-Credentials "true"
+
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=204,L]
+
 # Disable directory browsing
 Options -Indexes
 

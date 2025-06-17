@@ -8,45 +8,42 @@ const SignIn = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showResend, setShowResend] = useState(false);
   const navigate = useNavigate();
 
-  const handleMockLogin = (role) => {
-    // Mock data for client dashboard test
-    const mockToken = 'mock-client-token-123456';
-    const mockUser = {
-      id: 1,
-      email: 'client@example.com',
-      first_name: 'Test',
-      last_name: 'Client',
-      role: 'client'
-    };
-
-
-    localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-
-
-    navigate('/seller/dashboard');
+  const handleResendVerification = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await axios.post('http://localhost:8080/api/auth/resend-verification', { email });
+      setError('A new verification email has been sent. Please check your inbox.');
+      setShowResend(false);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to resend verification email.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setShowResend(false);
 
     try {
-      const response = await axios.post('http://localhost/api/auth/login', {
+      const response = await axios.post('http://localhost:8080/api/auth/login', {
         email,
         password
+      }, {
+        withCredentials: true,
       });
 
       const { token, user } = response.data;
       
-      // Store token in localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
-      // Redirect based on user role
       switch (user.role) {
         case 'customer':
           navigate('/');
@@ -61,10 +58,15 @@ const SignIn = () => {
           navigate('/admin/dashboard');
           break;
         default:
-          throw new Error('Invalid user role');
+          navigate('/');
       }
-    } catch (error) {
-      setError(error.response?.data?.message || 'An error occurred. Please try again.');
+    } catch (err) {
+      if (err.response?.status === 403 && err.response?.data?.error === 'not_verified') {
+        setError('Email not verified. Resend verification email?');
+        setShowResend(true);
+      } else {
+        setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -80,26 +82,34 @@ const SignIn = () => {
             placeholder="Email" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
           <Input 
             type="password" 
             placeholder="Password" 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
           {error && <Error>{error}</Error>}
           <Button type="submit" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
-          <Button onClick={() => handleMockLogin('client')} style={{ marginTop: '10px' }}>
-            Mock Login as Client
-          </Button>
+          {showResend && (
+            <Button 
+              type="button" 
+              onClick={handleResendVerification} 
+              disabled={loading}
+              style={{ marginTop: '10px', backgroundColor: '#ffc107' }}
+            >
+              {loading ? 'Sending...' : 'Resend Verification Email'}
+            </Button>
+          )}
         </Form>
         <Links>
           <StyledLink to="/signup">Don't have an account? Sign Up</StyledLink>
           <StyledLink to="/forgot-password">Forgot Password?</StyledLink>
         </Links>
-
       </FormWrapper>
     </Container>
   );

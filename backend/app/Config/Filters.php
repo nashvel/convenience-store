@@ -28,7 +28,7 @@ class Filters extends BaseFilters
         'csrf'          => CSRF::class,
         'toolbar'       => DebugToolbar::class,
         'honeypot'      => Honeypot::class,
-        'cors'          => \App\Middleware\CORS::class,
+        'cors'          => \CodeIgniter\Filters\Cors::class,
         'auth'          => \App\Middleware\AuthMiddleware::class,
         'invalidchars'  => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
@@ -71,15 +71,13 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            'cors' => ['except' => []], // Apply CORS to all routes
-            // 'honeypot'
-            // 'csrf'
+            // 'honeypot',
+            // 'csrf',
         ],
         'after' => [
-            'cors' => ['except' => []], // Apply CORS to all responses
-            'toolbar' => ['except' => ['/auth/*']],
-            'honeypot' => ['except' => ['/auth/*']],
-            'secureheaders' => ['except' => ['/auth/*']],
+            'toolbar',
+            'honeypot',
+            'secureheaders',
         ],
     ];
 
