@@ -49,6 +49,16 @@ const StyledToastContainer = styled(ToastContainer)`
   }
 `;
 
+const AppWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+`;
+
+const MainContent = styled.main`
+  flex: 1;
+`;
+
 const AppContent = () => {
   const location = useLocation();
   const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
@@ -59,44 +69,48 @@ const AppContent = () => {
       <CartProvider>
         <StoreProvider>
           <ThemeProvider theme={theme}>
-            <GlobalStyle />
-            <StyledToastContainer
-              position="bottom-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-            />
-            {!isSellerRoute && <Navbar />}
-            <AnimatePresence mode="wait">
-              <Routes>
-                {/* Client Routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/product/:id" element={<ProductDetails />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/stores" element={<StoresListPage />} />
-                <Route path="/stores/:storeId" element={<StorePage />} />
-                <Route path="/partners" element={<Partners />} />
+            <AppWrapper>
+              <GlobalStyle />
+              <StyledToastContainer
+                position="bottom-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+              />
+              {!isSellerRoute && <Navbar />}
+              <MainContent>
+                <AnimatePresence mode="wait">
+                  <Routes>
+                    {/* Client Routes */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/product/:id" element={<ProductDetails />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/stores" element={<StoresListPage />} />
+                    <Route path="/stores/:storeId" element={<StorePage />} />
+                    <Route path="/partners" element={<Partners />} />
 
-                {/* User Authentication Routes */}
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
+                    {/* User Authentication Routes */}
+                    <Route path="/signin" element={<SignIn />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
 
-                {/* User Profile Routes */}
-                <Route path="/my-orders" element={<MyOrders />} />
-                <Route path="/notifications" element={<Notifications />} />
+                    {/* User Profile Routes */}
+                    <Route path="/my-orders" element={<MyOrders />} />
+                    <Route path="/notifications" element={<Notifications />} />
 
-                {/* Seller Dashboard Routes */}
-                <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
-              </Routes>
-            </AnimatePresence>
-            {!isSellerRoute && <Footer />}
+                    {/* Seller Dashboard Routes */}
+                    <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
+                  </Routes>
+                </AnimatePresence>
+              </MainContent>
+              {!isSellerRoute && <Footer />}
+            </AppWrapper>
           </ThemeProvider>
         </StoreProvider>
       </CartProvider>
