@@ -2,12 +2,15 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { CartContext } from './CartContext';
 import { fetchStores } from '../api/storeApi';
 import { fetchAllProducts } from '../api/productApi';
+import { fetchCategories } from '../api';
+
 
 export const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
   const [stores, setStores] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [favorites, setFavorites] = useState(() => {
     try {
       const savedFavorites = localStorage.getItem('favorites');
@@ -26,12 +29,14 @@ export const StoreProvider = ({ children }) => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [storesRes, productsRes] = await Promise.all([
+        const [storesRes, productsRes, categoriesRes] = await Promise.all([
           fetchStores(),
           fetchAllProducts(),
+          fetchCategories(),
         ]);
         setStores(storesRes.data);
         setAllProducts(productsRes.data);
+        setCategories(categoriesRes);
       } catch (error) {
         console.error('Failed to fetch data', error);
         setError('Failed to load store data.');
@@ -82,7 +87,8 @@ export const StoreProvider = ({ children }) => {
     toggleFavorite,
     isFavorite,
     ...cartContext,
-    addToCart: handleAddToCart
+    addToCart: handleAddToCart,
+    categories
   };
 
   return (

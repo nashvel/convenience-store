@@ -6,6 +6,7 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');
+$routes->resource('api/categories', ['controller' => 'CategoryController']);
 
 // API Routes
 $routes->group('api', function ($routes) {

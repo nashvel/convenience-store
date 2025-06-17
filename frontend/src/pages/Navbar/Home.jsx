@@ -7,19 +7,9 @@ import { FaStar, FaShoppingBag, FaArrowRight } from 'react-icons/fa';
 import ProductCard from '../../components/ProductCard';
 
 const Home = () => {
-  const { 
-    allProducts: products, 
-    loading, 
-    error 
-  } = useContext(StoreContext);
+  const { allProducts, stores, loading, error, categories } = useContext(StoreContext);
 
-  const featuredProducts = [...products].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)).slice(0, 4);
-  const categories = [
-    { id: 1, name: 'Snacks', icon: 'fa-cookie-bite' },
-    { id: 2, name: 'Drinks', icon: 'fa-wine-bottle' },
-    { id: 3, name: 'Groceries', icon: 'fa-carrot' },
-    { id: 4, name: 'Household', icon: 'fa-home' },
-  ];
+  const featuredProducts = [...allProducts].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)).slice(0, 4);
 
   if (loading) {
     return <LoadingContainer>Loading products...</LoadingContainer>;

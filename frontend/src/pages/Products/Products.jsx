@@ -8,24 +8,17 @@ import { FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp } from 'react-icon
 
 const Products = () => {
   const location = useLocation();
-  const { allProducts: products, loading, error } = useContext(StoreContext);
+  const { allProducts: products, loading, error, categories } = useContext(StoreContext);
 
-  const categories = [
-    { id: 1, name: 'Snacks' },
-    { id: 2, name: 'Drinks' },
-    { id: 3, name: 'Groceries' },
-    { id: 4, name: 'Household' },
-  ];
-  
   // Get query parameters
   const queryParams = new URLSearchParams(location.search);
   const categoryParam = queryParams.get('category');
   const dealsParam = queryParams.get('deals') === 'true';
-  
+
   // State for filters and sorting
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
   const [searchQuery, setSearchQuery] = useState('');
-    const maxPrice = useMemo(() => {
+  const maxPrice = useMemo(() => {
     if (products && products.length > 0) {
       return Math.ceil(Math.max(...products.map(p => p.price)));
     }
