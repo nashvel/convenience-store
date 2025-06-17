@@ -6,6 +6,7 @@ import { FaStar, FaShoppingCart } from 'react-icons/fa';
 import { CartContext } from '../context/CartContext';
 import { StoreContext } from '../context/StoreContext';
 import { PRODUCT_ASSET_URL } from '../config';
+import slugify from '../utils/slugify';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useContext(CartContext);
@@ -21,7 +22,7 @@ const ProductCard = ({ product }) => {
 
   return (
     <CardContainer 
-      to={`/product/${product.id}`}
+      to={`/product/${product.id}/${slugify(product.name)}`}
       whileHover={{ y: -10 }}
       transition={{ duration: 0.3 }}
     >

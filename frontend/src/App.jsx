@@ -89,10 +89,10 @@ const AppContent = () => {
                     {/* Client Routes */}
                     <Route path="/" element={<Home />} />
                     <Route path="/products" element={<Products />} />
-                    <Route path="/product/:id" element={<ProductDetails />} />
+                    <Route path="/product/:id/:productName" element={<ProductDetails />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/stores" element={<StoresListPage />} />
-                    <Route path="/stores/:storeId" element={<StorePage />} />
+                    <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
                     <Route path="/partners" element={<Partners />} />
 
                     {/* User Authentication Routes */}

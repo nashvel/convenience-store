@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
 import { LOGO_ASSET_URL } from '../../config';
 import { FaSearch } from 'react-icons/fa';
+import slugify from '../../utils/slugify';
 
 const StoresListPage = () => {
   const { stores, loading, error } = useContext(StoreContext);
@@ -51,7 +52,7 @@ const StoresListPage = () => {
           {filteredStores.map((store) => (
           <StoreCard 
             key={store.id} 
-            to={`/stores/${store.id}`}
+            to={`/stores/${store.id}/${slugify(store.name)}`}
             whileHover={{ y: -10, transition: { duration: 0.3 } }}
           >
             <StoreLogo src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} />

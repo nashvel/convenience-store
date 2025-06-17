@@ -7,6 +7,7 @@ import { FaStar, FaShoppingBag, FaArrowRight, FaStore, FaMobileAlt, FaDownload }
 import ProductCard from '../../components/ProductCard';
 import { LOGO_ASSET_URL } from '../../config';
 import NashSvg from '../../assets/nash.svg';
+import slugify from '../../utils/slugify';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -116,7 +117,7 @@ const Home = () => {
             {stores.slice(0, 4).map((store) => (
               <StoreCard 
                 key={store.id} 
-                to={`/stores/${store.id}`}
+                to={`/stores/${store.id}/${slugify(store.name)}`}
                 whileHover={{ y: -10, transition: { duration: 0.3 } }}
               >
                 <StoreLogo src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} />
