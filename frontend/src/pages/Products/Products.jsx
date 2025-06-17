@@ -2,13 +2,20 @@ import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { ProductContext } from '../../context/ProductContext';
+import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import { FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp } from 'react-icons/fa';
 
 const Products = () => {
   const location = useLocation();
-  const { products, categories, loading, error } = useContext(ProductContext);
+  const { allProducts: products, loading, error } = useContext(StoreContext);
+
+  const categories = [
+    { id: 1, name: 'Snacks' },
+    { id: 2, name: 'Drinks' },
+    { id: 3, name: 'Groceries' },
+    { id: 4, name: 'Household' },
+  ];
   
   // Get query parameters
   const queryParams = new URLSearchParams(location.search);

@@ -2,17 +2,24 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { ProductContext } from '../../context/ProductContext';
+import { StoreContext } from '../../context/StoreContext';
 import { FaStar, FaShoppingBag, FaArrowRight } from 'react-icons/fa';
 import ProductCard from '../../components/ProductCard';
 
 const Home = () => {
   const { 
-    featuredProducts, 
-    categories,
+    allProducts: products, 
     loading, 
     error 
-  } = useContext(ProductContext);
+  } = useContext(StoreContext);
+
+  const featuredProducts = [...products].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)).slice(0, 4);
+  const categories = [
+    { id: 1, name: 'Snacks', icon: 'fa-cookie-bite' },
+    { id: 2, name: 'Drinks', icon: 'fa-wine-bottle' },
+    { id: 3, name: 'Groceries', icon: 'fa-carrot' },
+    { id: 4, name: 'Household', icon: 'fa-home' },
+  ];
 
   if (loading) {
     return <LoadingContainer>Loading products...</LoadingContainer>;

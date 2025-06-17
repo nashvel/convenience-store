@@ -5,12 +5,13 @@ import { motion } from 'framer-motion';
 import { FaStar, FaShoppingCart } from 'react-icons/fa';
 import { CartContext } from '../context/CartContext';
 import { StoreContext } from '../context/StoreContext';
+import { ASSET_BASE_URL } from '../config';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useContext(CartContext);
   const { stores } = useContext(StoreContext);
 
-  const store = stores.find(s => s.id === product.storeId);
+  const store = stores.find(s => s.id === product.store_id);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -25,7 +26,7 @@ const ProductCard = ({ product }) => {
       transition={{ duration: 0.3 }}
     >
       <ImageContainer>
-        <ProductImage src={product.image} alt={product.name} />
+        <ProductImage src={`${ASSET_BASE_URL}/products/${product.image}`} alt={product.name} />
         {product.stock > 0 ? (
           <AddToCartButton 
             onClick={handleAddToCart}
@@ -44,7 +45,7 @@ const ProductCard = ({ product }) => {
         <ProductName>{product.name}</ProductName>
         
         <PriceRatingContainer>
-          <Price>₱{product.price.toFixed(2)}</Price>
+          <Price>₱{Number(product.price).toFixed(2)}</Price>
           <Rating>
             <FaStar /> {product.rating}
           </Rating>

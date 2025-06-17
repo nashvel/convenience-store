@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { StoreContext } from '../../context/StoreContext';
+import { ASSET_BASE_URL } from '../../config';
 import { motion } from 'framer-motion';
 
 
@@ -22,7 +23,7 @@ const Stores = () => {
       <StoreGrid>
         {stores.map(store => (
           <StoreCard key={store.id} to={`/stores/${store.id}`}>
-            <StoreLogo src={store.logo} alt={`${store.name} logo`} />
+            <StoreLogo src={`${ASSET_BASE_URL}/logos/${store.logo}`} alt={`${store.name} logo`} />
             <StoreContent>
               <StoreName>{store.name}</StoreName>
               <StoreDescription>{store.description}</StoreDescription>

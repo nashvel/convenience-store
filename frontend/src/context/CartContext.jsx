@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 export const CartContext = createContext();
 
@@ -35,23 +36,27 @@ export const CartProvider = ({ children }) => {
   
   // Add item to cart
   const addToCart = (product, quantity = 1) => {
+    if (!product || !product.id) {
+      console.error("addToCart called with invalid product", product);
+      return;
+    }
+
     setCartItems(prevItems => {
-      // Check if item already exists in cart
-      const existingItemIndex = prevItems.findIndex(item => item.id === product.id);
-      
-      if (existingItemIndex >= 0) {
-        // Item exists, update quantity
-        const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + quantity
-        };
-        return updatedItems;
+      const existingItem = prevItems.find(item => item.id === product.id);
+
+      if (existingItem) {
+        // If item exists, update its quantity
+        return prevItems.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
       } else {
-        // Item doesn't exist, add new item
+        // If item doesn't exist, add it to the cart
         return [...prevItems, { ...product, quantity }];
       }
     });
+    toast.success(`${product.name} added to cart!`);
   };
   
   // Remove item from cart

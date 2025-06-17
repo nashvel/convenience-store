@@ -1,6 +1,12 @@
 import axios from 'axios';
 
 
+const API_URL = 'http://localhost:8080/api'; // Your CodeIgniter backend URL
+
+const apiClient = axios.create({
+  baseURL: API_URL,
+});
+
 const mockProducts = [
   {
     id: '1',
@@ -145,10 +151,8 @@ const mockCategories = [
   { id: '6', name: 'Health', icon: 'medkit' },
 ];
 
-export const fetchAllProducts = async () => {
-
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return mockProducts;
+export const fetchAllProducts = () => {
+  return apiClient.get('/products');
 };
 
 export const fetchFeaturedProducts = async () => {
@@ -156,13 +160,8 @@ export const fetchFeaturedProducts = async () => {
   return mockProducts.filter(product => product.featured);
 };
 
-export const fetchProductById = async (id) => {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  const product = mockProducts.find(p => p.id === id);
-  if (!product) {
-    throw new Error('Product not found');
-  }
-  return product;
+export const fetchProductById = (id) => {
+  return apiClient.get(`/products/${id}`);
 };
 
 export const fetchProductsByCategory = async (category) => {

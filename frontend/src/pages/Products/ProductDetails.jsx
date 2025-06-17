@@ -3,21 +3,19 @@ import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes } from 'react-icons/fa';
-import { ProductContext } from '../../context/ProductContext';
 import { StoreContext } from '../../context/StoreContext';
-import { CartContext } from '../../context/CartContext';
+
 import Reviews from '../../components/Reviews';
+import { ASSET_BASE_URL } from '../../config';
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const { addToCart } = useContext(CartContext);
-  const { products, loading, error, isFavorite, toggleFavorite } = useContext(ProductContext);
-  const { stores } = useContext(StoreContext);
+  const { allProducts, stores, loading, error, isFavorite, toggleFavorite, addToCart } = useContext(StoreContext);
 
   const [quantity, setQuantity] = useState(1);
 
-  const product = !loading && products.length > 0 ? products.find(p => String(p.id) === id) : null;
-  const store = product ? stores.find(s => s.id === product.storeId) : null;
+  const product = !loading && allProducts.length > 0 ? allProducts.find(p => String(p.id) === id) : null;
+  const store = product ? stores.find(s => s.id === product.store_id) : null;
 
   const handleAddToCart = () => {
     if (product) {
@@ -55,6 +53,7 @@ const ProductDetails = () => {
   }
 
   const favorite = isFavorite(product.id);
+  const isOutOfStock = !product || Number(product.stock) <= 0;
 
   return (
     <ProductDetailsContainer
@@ -69,7 +68,7 @@ const ProductDetails = () => {
       
       <ProductContent>
         <ProductImageSection>
-          <ProductImage src={product.image} alt={product.name} />
+          <ProductImage src={`${ASSET_BASE_URL}/products/${product.image}`} alt={product.name} />
           <FavoriteButton 
             onClick={() => toggleFavorite(product.id)}
             $isFavorite={favorite}
@@ -89,19 +88,19 @@ const ProductDetails = () => {
           
           <PriceContainer>
             <CurrentPrice>
-              ₱{product && product.price ? product.price.toFixed(2) : '0.00'}
+              ₱{product && product.price ? Number(product.price).toFixed(2) : '0.00'}
             </CurrentPrice>
           </PriceContainer>
           
           <StockStatus>
-            {product.stock > 0 ? (
-              <InStock>
-                <FaCheck /> In Stock ({product.stock} available)
-              </InStock>
-            ) : (
+            {isOutOfStock ? (
               <OutOfStock>
                 <FaTimes /> Out of Stock
               </OutOfStock>
+            ) : (
+              <InStock>
+                <FaCheck /> In Stock ({product.stock} available)
+              </InStock>
             )}
           </StockStatus>
           
@@ -117,6 +116,7 @@ const ProductDetails = () => {
           <Divider />
           
           <ProductDescription>{product.description}</ProductDescription>
+
           <AddToCartSection>
             <QuantityControl>
               <QuantityButton 
@@ -138,7 +138,7 @@ const ProductDetails = () => {
             
             <AddToCartButton 
               onClick={handleAddToCart}
-              disabled={!product.inStock}
+              disabled={isOutOfStock}
             >
               <FaShoppingCart /> Add to Cart
             </AddToCartButton>

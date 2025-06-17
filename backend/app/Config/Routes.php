@@ -7,6 +7,12 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
+// API Routes
+$routes->group('api', function ($routes) {
+    $routes->resource('stores', ['controller' => 'StoreController']);
+    $routes->resource('products', ['controller' => 'ProductController']);
+});
+
 // Authentication API routes
 $routes->post('/api/auth/login', 'AuthController::login');
 $routes->post('/api/auth/signup', 'AuthController::signup');

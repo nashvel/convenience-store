@@ -20,7 +20,7 @@ const Cart = () => {
   const { user } = useAuth();
 
   const groupedCart = cartItems.reduce((acc, item) => {
-    const storeId = item.product.storeId;
+    const storeId = item.store_id;
     if (!acc[storeId]) {
       const store = stores.find(s => s.id === storeId);
       acc[storeId] = {

@@ -26,7 +26,7 @@ import StorePage from './pages/Stores/StorePage';
 import SellerDashboard from './seller/SellerDashboard';
 import Partners from './pages/Partners/Partners';
 
-import { ProductProvider } from './context/ProductContext';
+
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { StoreProvider } from './context/StoreContext';
@@ -51,58 +51,56 @@ const StyledToastContainer = styled(ToastContainer)`
 
 const AppContent = () => {
   const location = useLocation();
-    const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
-    const theme = isSellerRoute ? neumorphicTheme : customerTheme;
+  const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
+  const theme = isSellerRoute ? neumorphicTheme : customerTheme;
 
   return (
-    <StoreProvider>
-      <ThemeProvider theme={theme}>
-        <AuthProvider>
-          <ProductProvider>
-            <CartProvider>
-          <GlobalStyle />
-          <StyledToastContainer
-            position="bottom-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
-                    {!isSellerRoute && <Navbar />}
-          <AnimatePresence mode="wait">
-            <Routes>
-              {/* Client Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/product/:id" element={<ProductDetails />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/stores" element={<Stores />} />
-              <Route path="/stores/:storeId" element={<StorePage />} />
-              <Route path="/partners" element={<Partners />} />
+    <AuthProvider>
+      <CartProvider>
+        <StoreProvider>
+          <ThemeProvider theme={theme}>
+            <GlobalStyle />
+            <StyledToastContainer
+              position="bottom-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+            />
+            {!isSellerRoute && <Navbar />}
+            <AnimatePresence mode="wait">
+              <Routes>
+                {/* Client Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetails />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/stores" element={<Stores />} />
+                <Route path="/stores/:storeId" element={<StorePage />} />
+                <Route path="/partners" element={<Partners />} />
 
-              {/* User Authentication Routes */}
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+                {/* User Authentication Routes */}
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* User Profile Routes */}
-              <Route path="/my-orders" element={<MyOrders />} />
-              <Route path="/notifications" element={<Notifications />} />
+                {/* User Profile Routes */}
+                <Route path="/my-orders" element={<MyOrders />} />
+                <Route path="/notifications" element={<Notifications />} />
 
-              {/* Seller Dashboard Routes */}
-              <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
-            </Routes>
-          </AnimatePresence>
-                    {!isSellerRoute && <Footer />}
-            </CartProvider>
-          </ProductProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </StoreProvider>
+                {/* Seller Dashboard Routes */}
+                <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
+              </Routes>
+            </AnimatePresence>
+            {!isSellerRoute && <Footer />}
+          </ThemeProvider>
+        </StoreProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 };
 
