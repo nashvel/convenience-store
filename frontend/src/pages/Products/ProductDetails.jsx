@@ -6,7 +6,7 @@ import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTi
 import { StoreContext } from '../../context/StoreContext';
 
 import Reviews from '../../components/Reviews';
-import { ASSET_BASE_URL } from '../../config';
+import { PRODUCT_ASSET_URL } from '../../config';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -68,7 +68,7 @@ const ProductDetails = () => {
       
       <ProductContent>
         <ProductImageSection>
-          <ProductImage src={`${ASSET_BASE_URL}/products/${product.image}`} alt={product.name} />
+          <ProductImage src={`${PRODUCT_ASSET_URL}/${product.image}`} alt={product.name} />
           <FavoriteButton 
             onClick={() => toggleFavorite(product.id)}
             $isFavorite={favorite}

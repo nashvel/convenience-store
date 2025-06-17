@@ -32,8 +32,7 @@ const Products = () => {
   useEffect(() => {
     setPriceRange(prev => ({ ...prev, max: maxPrice }));
   }, [maxPrice]);
-  const [sortOption, setSortOption] = useState('popularity');
-  const [sortDirection, setSortDirection] = useState('desc');
+  const [sortOption, setSortOption] = useState(queryParams.get('sort') || 'best-sellers');
   const [showFilters, setShowFilters] = useState(false);
 
   
@@ -84,30 +83,40 @@ const Products = () => {
     
     // Apply sorting
     switch (sortOption) {
-      case 'price':
-        result.sort((a, b) => sortDirection === 'asc' ? a.price - b.price : b.price - a.price);
+      case 'price-asc':
+        result.sort((a, b) => a.price - b.price);
         break;
-      case 'name':
-        result.sort((a, b) => {
-          return sortDirection === 'asc' 
-            ? a.name.localeCompare(b.name) 
-            : b.name.localeCompare(a.name);
-        });
+      case 'price-desc':
+        result.sort((a, b) => b.price - a.price);
         break;
-      case 'popularity':
+      case 'name-asc':
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name-desc':
+        result.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'best-sellers':
       default:
-        result.sort((a, b) => sortDirection === 'asc' ? a.popularity - b.popularity : b.popularity - a.popularity);
+        result.sort((a, b) => b.rating - a.rating);
         break;
     }
     
     console.log(`Final filtered product count: ${result.length}`);
     setFilteredProducts(result);
-  }, [products, categoryParam, searchParam, priceRange, sortOption, sortDirection, dealsParam, loading, error]);
+  }, [products, categoryParam, searchParam, priceRange, sortOption, dealsParam, loading, error]);
 
   // Handle price range change
     const handlePriceChange = (e, type) => {
     const value = e.target.value;
     setPriceRange(prev => ({ ...prev, [type]: value === '' ? '' : parseFloat(value) }));
+  };
+
+  const handleSortChange = (e) => {
+    const newSortOption = e.target.value;
+    setSortOption(newSortOption);
+    const newParams = new URLSearchParams(location.search);
+    newParams.set('sort', newSortOption);
+    navigate(`${location.pathname}?${newParams.toString()}`, { replace: true });
   };
 
     const handleCategoryChange = (category) => {
@@ -118,11 +127,6 @@ const Products = () => {
       params.set('category', category);
     }
     navigate({ search: params.toString() });
-  };
-
-  // Toggle sort direction
-  const toggleSortDirection = () => {
-    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
   const handleSearchChange = (e) => {
@@ -221,17 +225,14 @@ const Products = () => {
             </SearchContainer>
             
             <SortContainer>
-              <SortSelect 
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-              >
-                <option value="popularity">Popularity</option>
-                <option value="price">Price</option>
-                <option value="name">Name</option>
+              <SortSelect value={sortOption} onChange={handleSortChange}>
+                <option value="best-sellers">Best Sellers</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="name-asc">Alphabetical (A-Z)</option>
+                <option value="name-desc">Alphabetical (Z-A)</option>
               </SortSelect>
-              <SortDirectionButton onClick={toggleSortDirection}>
-                {sortDirection === 'asc' ? <FaSortAmountUp /> : <FaSortAmountDown />}
-              </SortDirectionButton>
+              
             </SortContainer>
           </ProductsToolbar>
 

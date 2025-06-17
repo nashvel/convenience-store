@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
-import { FaStar, FaShoppingBag, FaArrowRight } from 'react-icons/fa';
+import { FaStar, FaShoppingBag, FaArrowRight, FaStore } from 'react-icons/fa';
 import ProductCard from '../../components/ProductCard';
+import { LOGO_ASSET_URL } from '../../config';
 
 const Home = () => {
   const { allProducts, stores, loading, error, categories } = useContext(StoreContext);
@@ -90,6 +91,27 @@ const Home = () => {
           ))}
         </CategoryGrid>
       </Section>
+
+      {stores && stores.length > 0 && (
+        <Section>
+          <SectionHeader>
+            <SectionTitle><FaStore /> Shop by Store</SectionTitle>
+            <ViewAllLink to="/stores">View All</ViewAllLink>
+          </SectionHeader>
+          <StoreGrid>
+            {stores.slice(0, 4).map((store) => (
+              <StoreCard 
+                key={store.id} 
+                to={`/stores/${store.id}`}
+                whileHover={{ y: -10, transition: { duration: 0.3 } }}
+              >
+                <StoreLogo src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} />
+                <StoreName>{store.name}</StoreName>
+              </StoreCard>
+            ))}
+          </StoreGrid>
+        </Section>
+      )}
 
       <PromoSection>
         <PromoCard $bgColor="#FFF3E0">
@@ -309,6 +331,43 @@ const CategoryIcon = styled.i`
 `;
 
 const CategoryName = styled.h3`
+  font-size: 1rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text};
+  text-align: center;
+`;
+
+const StoreGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+`;
+
+const StoreCard = styled(motion(Link))`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ theme }) => theme.cardBg};
+  border-radius: 8px;
+  padding: 20px;
+  text-decoration: none;
+  box-shadow: ${({ theme }) => theme.cardShadow};
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+`;
+
+const StoreLogo = styled.img`
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 15px;
+`;
+
+const StoreName = styled.h3`
   font-size: 1rem;
   font-weight: 500;
   color: ${({ theme }) => theme.text};

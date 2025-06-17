@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { FaStar, FaShoppingCart } from 'react-icons/fa';
 import { CartContext } from '../context/CartContext';
 import { StoreContext } from '../context/StoreContext';
-import { ASSET_BASE_URL } from '../config';
+import { PRODUCT_ASSET_URL } from '../config';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useContext(CartContext);
@@ -26,7 +26,7 @@ const ProductCard = ({ product }) => {
       transition={{ duration: 0.3 }}
     >
       <ImageContainer>
-        <ProductImage src={`${ASSET_BASE_URL}/products/${product.image}`} alt={product.name} />
+        <ProductImage src={`${PRODUCT_ASSET_URL}/${product.image}`} alt={product.name} />
         {product.stock > 0 ? (
           <AddToCartButton 
             onClick={handleAddToCart}

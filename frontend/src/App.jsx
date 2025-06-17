@@ -21,7 +21,7 @@ import SignUp from './pages/Auth/SignUp';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import MyOrders from './pages/Navbar/MyOrders';
 import Notifications from './pages/Navbar/Notifications';
-import Stores from './pages/Stores/Stores';
+import StoresListPage from './pages/Stores/StoresListPage';
 import StorePage from './pages/Stores/StorePage';
 import SellerDashboard from './seller/SellerDashboard';
 import Partners from './pages/Partners/Partners';
@@ -79,7 +79,7 @@ const AppContent = () => {
                 <Route path="/products" element={<Products />} />
                 <Route path="/product/:id" element={<ProductDetails />} />
                 <Route path="/cart" element={<Cart />} />
-                <Route path="/stores" element={<Stores />} />
+                <Route path="/stores" element={<StoresListPage />} />
                 <Route path="/stores/:storeId" element={<StorePage />} />
                 <Route path="/partners" element={<Partners />} />
 

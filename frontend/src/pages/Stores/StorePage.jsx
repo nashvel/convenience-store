@@ -5,13 +5,16 @@ import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import { motion } from 'framer-motion';
 import { FaSearch } from 'react-icons/fa';
+import { LOGO_ASSET_URL } from '../../config';
 
 const StorePage = () => {
   const { storeId } = useParams();
   const { stores, allProducts: products, loading, error } = useContext(StoreContext);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOption, setSortOption] = useState('best-sellers');
 
   const store = useMemo(() => (stores || []).find(s => s.id == storeId), [stores, storeId]);
+  
   const storeProducts = useMemo(() => {
     let filtered = (products || []).filter(p => p.store_id == storeId);
     if (searchQuery) {
@@ -21,8 +24,26 @@ const StorePage = () => {
         (p.description && p.description.toLowerCase().includes(lowercasedQuery))
       );
     }
-    return filtered;
-  }, [products, storeId, searchQuery]);
+
+    const sorted = [...filtered];
+    switch (sortOption) {
+      case 'price-asc':
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case 'name-asc':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'best-sellers':
+      default:
+        sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+    }
+
+    return sorted;
+  }, [products, storeId, searchQuery, sortOption]);
 
   if (loading) {
     return <PageContainer>Loading store...</PageContainer>;
@@ -43,22 +64,32 @@ const StorePage = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <StoreHeader>
+      <StoreHeader logoUrl={store.logo ? `${LOGO_ASSET_URL}/${store.logo}` : ''}>
         <StoreName>{store.name}</StoreName>
         <StoreDescription>{store.description}</StoreDescription>
       </StoreHeader>
       
       <SectionTitle>Products from this store</SectionTitle>
 
-      <SearchContainer>
-        <SearchInput
-          type="text"
-          placeholder="Search products in this store..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <SearchIcon><FaSearch /></SearchIcon>
-      </SearchContainer>
+      <ToolbarContainer>
+        <SearchContainer>
+          <SearchInput
+            type="text"
+            placeholder="Search products in this store..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <SearchIcon><FaSearch /></SearchIcon>
+        </SearchContainer>
+        <SortContainer>
+          <SortSelect value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
+            <option value="best-sellers">Best Sellers</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name-asc">Alphabetical (A-Z)</option>
+          </SortSelect>
+        </SortContainer>
+      </ToolbarContainer>
       
       <ProductsGrid>
         {storeProducts.length > 0 ? (
@@ -80,22 +111,43 @@ const PageContainer = styled(motion.div)`
 `;
 
 const StoreHeader = styled.div`
+  position: relative;
   text-align: center;
   margin-bottom: 40px;
-  padding: 30px;
-  background: ${({ theme }) => theme.cardBg};
+  padding: 60px 30px;
   border-radius: 8px;
+  overflow: hidden;
+  z-index: 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${({ logoUrl }) => (logoUrl ? `url(${logoUrl})` : 'none')};
+    background-size: cover;
+    background-position: center;
+    filter: blur(5px) brightness(0.6);
+    transform: scale(1.1);
+    z-index: -1;
+  }
 `;
 
 const StoreName = styled.h1`
-  font-size: 2.5rem;
-  color: ${({ theme }) => theme.primary};
+  font-size: 3rem;
+  color: #fff;
   margin-bottom: 10px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+  position: relative;
 `;
 
 const StoreDescription = styled.p`
   font-size: 1.2rem;
-  color: ${({ theme }) => theme.textSecondary};
+  color: #f0f0f0;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+  position: relative;
 `;
 
 const SectionTitle = styled.h2`
@@ -112,11 +164,40 @@ const ProductsGrid = styled.div`
   gap: 25px;
 `;
 
+const ToolbarContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 20px;
+`;
+
 const SearchContainer = styled.div`
   position: relative;
   width: 100%;
   max-width: 400px;
-  margin-bottom: 25px;
+`;
+
+const SortContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const SortSelect = styled.select`
+  padding: 10px;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 6px;
+  background: ${({ theme }) => theme.inputBg};
+  color: ${({ theme }) => theme.text};
+  cursor: pointer;
+  font-size: 1rem;
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.primary};
+  }
 `;
 
 const SearchInput = styled.input`
