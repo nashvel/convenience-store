@@ -1,20 +1,40 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import { motion } from 'framer-motion';
+import { FaSearch } from 'react-icons/fa';
 
 const StorePage = () => {
   const { storeId } = useParams();
-  const { stores, products, loading, error } = useContext(StoreContext);
+  const { stores, allProducts: products, loading, error } = useContext(StoreContext);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const store = useMemo(() => stores.find(s => s.id === storeId), [stores, storeId]);
-  const storeProducts = useMemo(() => products.filter(p => p.storeId === storeId), [products, storeId]);
+  const store = useMemo(() => (stores || []).find(s => s.id == storeId), [stores, storeId]);
+  const storeProducts = useMemo(() => {
+    let filtered = (products || []).filter(p => p.store_id == storeId);
+    if (searchQuery) {
+      const lowercasedQuery = searchQuery.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.name.toLowerCase().includes(lowercasedQuery) ||
+        (p.description && p.description.toLowerCase().includes(lowercasedQuery))
+      );
+    }
+    return filtered;
+  }, [products, storeId, searchQuery]);
 
-  if (loading) return <PageContainer>Loading store...</PageContainer>;
-  if (error) return <PageContainer>Error: {error}</PageContainer>;
-  if (!store) return <PageContainer>Store not found.</PageContainer>;
+  if (loading) {
+    return <PageContainer>Loading store...</PageContainer>;
+  }
+
+  if (error) {
+    return <PageContainer>Error: {error}</PageContainer>;
+  }
+
+  if (!store) {
+    return <PageContainer>Store not found.</PageContainer>;
+  }
 
   return (
     <PageContainer
@@ -29,6 +49,16 @@ const StorePage = () => {
       </StoreHeader>
       
       <SectionTitle>Products from this store</SectionTitle>
+
+      <SearchContainer>
+        <SearchInput
+          type="text"
+          placeholder="Search products in this store..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <SearchIcon><FaSearch /></SearchIcon>
+      </SearchContainer>
       
       <ProductsGrid>
         {storeProducts.length > 0 ? (
@@ -80,6 +110,36 @@ const ProductsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 25px;
+`;
+
+const SearchContainer = styled.div`
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 25px;
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 6px;
+  background: ${({ theme }) => theme.inputBg};
+  color: ${({ theme }) => theme.text};
+  font-size: 1rem;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.primary};
+  }
+`;
+
+const SearchIcon = styled.span`
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: ${({ theme }) => theme.textSecondary};
 `;
 
 export default StorePage;
