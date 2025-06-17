@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 import styled from 'styled-components';
 import axios from 'axios';
 
@@ -10,6 +11,7 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleResendVerification = async () => {
     setLoading(true);
@@ -39,10 +41,16 @@ const SignIn = () => {
         withCredentials: true,
       });
 
-      const { token, user } = response.data;
+            const { token, user } = response.data;
       
+      login(user); // Update the user in the context
+
+      // Keep token and user info in local storage for session persistence
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      if (user) {
+        localStorage.setItem('firstName', user.first_name || '');
+        localStorage.setItem('lastName', user.last_name || '');
+      }
 
       switch (user.role) {
         case 'customer':

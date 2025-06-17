@@ -1,12 +1,15 @@
-import React, { useContext, useState } from 'react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
+import React, { useContext, useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { FaTrash, FaArrowLeft, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
+import eventEmitter from '../../utils/event-emitter';
+import { FaTrash, FaArrowLeft, FaShoppingCart, FaCreditCard, FaMapMarkerAlt } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import { CartContext } from '../../context/CartContext';
 import { StoreContext } from '../../context/StoreContext';
 import { PRODUCT_ASSET_URL } from '../../config';
+import axios from 'axios';
+import './Cart.css';
 
 const Cart = () => {
   const { 
@@ -14,11 +17,49 @@ const Cart = () => {
     removeFromCart, 
     updateQuantity, 
     clearCart, 
-    cartTotal = 0,
-    cartCount 
+    subtotal,
+    tax,
+    total,
+    totalItems: cartCount 
   } = useContext(CartContext);
+
+  // Helper to ensure price is a number and format it
+  const formatPrice = (price) => {
+    const numericPrice = Number(price) || 0;
+    return numericPrice.toFixed(2);
+  };
+
   const { stores } = useContext(StoreContext);
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+    const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    address: '',
+    city: '',
+    zipCode: '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvv: ''
+  });
+
+  // Effect to pre-fill form when user is logged in
+  useEffect(() => {
+    if (user) {
+      const firstName = localStorage.getItem('firstName') || '';
+      const lastName = localStorage.getItem('lastName') || '';
+      const fullName = `${firstName} ${lastName}`.trim();
+
+      setFormData(prev => ({
+        ...prev,
+        name: fullName || user.name || '',
+        email: user.email || ''
+      }));
+    }
+  }, [user]);
 
   const groupedCart = cartItems.reduce((acc, item) => {
     const storeId = item.store_id;
@@ -32,877 +73,336 @@ const Cart = () => {
     acc[storeId].items.push(item);
     return acc;
   }, {});
-  
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    address: '',
-    city: '',
-    zipCode: '',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvv: ''
-  });
-  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleCheckout = (e) => {
+      const handleCheckout = async (e) => {
     e.preventDefault();
-    // In a real app, this would process the payment and create an order
-    alert('Order placed successfully! Thank you for your purchase.');
-    clearCart();
-    setIsCheckingOut(false);
+
+    if (!user) {
+      toast.error('You must be logged in to place an order.');
+      return;
+    }
+
+    setIsCheckingOut(true);
+
+    const orderData = {
+      userId: user.id, 
+      cartItems: cartItems,
+      shippingInfo: formData,
+      subtotal: subtotal,
+      tax: tax,
+      total: total
+    };
+
+    try {
+      const response = await axios.post('http://localhost:8080/api/orders', orderData);
+
+      if (response.data.success) {
+        toast.success('Order placed successfully! Thank you for your purchase.');
+        clearCart();
+        eventEmitter.dispatch('newNotification');
+        navigate('/my-orders');
+      } else {
+        toast.error(response.data.message || 'An error occurred while placing your order.');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error(error.response?.data?.message || 'An error occurred while placing your order.');
+    } finally {
+      setIsCheckingOut(false);
+    }
   };
-  
+
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setIsLocating(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const data = await response.json();
+          
+          if (data && data.address) {
+                        const { quarter, town, state, postcode } = data.address;
+            const street = quarter || '';
+            const cityValue = town || state || '';
+            
+            setFormData(prev => ({
+              ...prev,
+              address: street,
+              city: cityValue,
+              zipCode: postcode || ''
+            }));
+            toast.success("Address located successfully!");
+          } else {
+            toast.error("Could not find address details for your location.");
+          }
+        } catch (error) {
+          console.error("Error fetching address:", error);
+          toast.error("An error occurred while fetching your address.");
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        toast.error("Unable to retrieve your location. Please check your browser permissions.");
+        setIsLocating(false);
+      }
+    );
+  };
+
   if (cartItems.length === 0) {
     return (
-      <CartContainer
+      <motion.div 
+        className="cart-container"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <PageTitle>Your Cart</PageTitle>
-        <EmptyCartContainer>
-          <EmptyCartIcon>
+        <h1 className="page-title">Your Cart</h1>
+        <div className="empty-cart-container">
+          <div className="empty-cart-icon">
             <FaShoppingCart />
-          </EmptyCartIcon>
-          <EmptyCartMessage>Your cart is empty</EmptyCartMessage>
-          <EmptyCartSubtext>Looks like you haven't added any products to your cart yet.</EmptyCartSubtext>
-          <ShopNowButton to="/products">Continue Shopping</ShopNowButton>
-        </EmptyCartContainer>
-      </CartContainer>
+          </div>
+          <h2 className="empty-cart-message">Your cart is empty</h2>
+          <p className="empty-cart-subtext">Looks like you haven't added any products to your cart yet.</p>
+          <Link to="/products" className="shop-now-button">Continue Shopping</Link>
+        </div>
+      </motion.div>
     );
   }
-  
+
   return (
-    <CartContainer
+    <motion.div 
+      className="cart-container"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <PageTitle>Your Cart</PageTitle>
-      <BackLink to="/products">
-        <FaArrowLeft /> Continue Shopping
-      </BackLink>
+      <h1 className="page-title">Your Cart</h1>
       
       {!isCheckingOut ? (
-        <CartContent>
-          <CartItemsSection>
-            {Object.entries(groupedCart).map(([storeId, group]) => (
-              <StoreGroup key={storeId}>
-                <StoreName>{group.storeName}</StoreName>
-                  <CartHeader>
-                    <HeaderItem $flex="3">Product</HeaderItem>
-                    <HeaderItem $flex="1">Price</HeaderItem>
-                    <HeaderItem $flex="1">Quantity</HeaderItem>
-                    <HeaderItem $flex="1">Total</HeaderItem>
-                    <HeaderItem $flex="0.5"></HeaderItem>
-                  </CartHeader>
-                  
+        <>
+          <Link to="/products" className="back-link">
+            <FaArrowLeft /> Continue Shopping
+          </Link>
+          <div className="cart-content">
+            <div className="cart-items-section">
+              {Object.entries(groupedCart).map(([storeId, group]) => (
+                <div key={storeId} className="store-group">
+                  <h2 className="store-name">{group.storeName}</h2>
+                  <div className="cart-header">
+                    <div className="header-product">Product</div>
+                    <div className="header-price">Price</div>
+                    <div className="header-quantity">Quantity</div>
+                    <div className="header-total">Total</div>
+                    <div className="header-remove"></div>
+                  </div>
                   {group.items.map(item => {
-                    const { price = 0, discount = 0, quantity = 1 } = item;
-                    const itemTotal = price * (1 - discount / 100) * quantity;
-                    
+                    const basePrice = parseFloat(item.price) || 0;
+                    const discount = parseFloat(item.discount) || 0;
+                    const finalPrice = (discount > 0 && discount < 100) ? basePrice * (1 - discount / 100) : basePrice;
+                    const itemTotal = finalPrice * item.quantity;
+
                     return (
-                      <CartItemRow key={item.id}>
-                        <CartItemInfo $flex="3">
-                          <CartItemImage src={`${PRODUCT_ASSET_URL}/${item.image}`} alt={item.name} />
-                          <CartItemDetails>
-                            <CartItemName to={`/products/${item.id}`}>{item.name}</CartItemName>
-                            {item.discount > 0 && (
-                              <DiscountBadge>{item.discount}% OFF</DiscountBadge>
+                      <div key={item.id} className="cart-item-row">
+                        <div className="cart-item-info">
+                          <img src={`${PRODUCT_ASSET_URL}/${item.image}`} alt={item.name} className="cart-item-image" />
+                          <div className="cart-item-details">
+                            <Link to={`/products/${item.id}`} className="cart-item-name">{item.name}</Link>
+                            {discount > 0 && (
+                              <span className="discount-badge">{discount}% OFF</span>
                             )}
-                          </CartItemDetails>
-                        </CartItemInfo>
-                        
-                        <CartItemPrice $flex="1">
-                          ₱{(price * (1 - discount / 100)).toFixed(2)}
-                          {discount > 0 && (
-                            <OriginalPrice>₱{price.toFixed(2)}</OriginalPrice>
+                          </div>
+                        </div>
+                        <div className="cart-item-price">
+                          {discount > 0 ? (
+                            <>
+                              <span>₱{formatPrice(finalPrice)}</span>
+                              <span className="original-price">₱{formatPrice(basePrice)}</span>
+                            </>
+                          ) : (
+                            <span>₱{formatPrice(basePrice)}</span>
                           )}
-                        </CartItemPrice>
-                        
-                        <CartItemQuantity $flex="1">
-                          <QuantityControl>
-                            <QuantityButton 
+                        </div>
+                        <div className="cart-item-quantity">
+                          <div className="quantity-control">
+                            <button 
+                              className="quantity-button"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
                               disabled={item.quantity <= 1}
                             >
                               -
-                            </QuantityButton>
-                            <QuantityValue>{item.quantity}</QuantityValue>
-                            <QuantityButton 
+                            </button>
+                            <span className="quantity-value">{item.quantity}</span>
+                            <button 
+                              className="quantity-button"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             >
                               +
-                            </QuantityButton>
-                          </QuantityControl>
-                        </CartItemQuantity>
-                        
-                        <CartItemTotal $flex="1">
-                          ₱{itemTotal.toFixed(2)}
-                        </CartItemTotal>
-                        
-                        <CartItemRemove $flex="0.5">
-                          <RemoveButton onClick={() => removeFromCart(item.id)}>
+                            </button>
+                          </div>
+                        </div>
+                        <div className="cart-item-total">
+                          <strong>₱{formatPrice(itemTotal)}</strong>
+                        </div>
+                        <div className="cart-item-remove">
+                          <button onClick={() => removeFromCart(item.id)} className="remove-button">
                             <FaTrash />
-                          </RemoveButton>
-                        </CartItemRemove>
-                      </CartItemRow>
+                          </button>
+                        </div>
+                      </div>
                     );
                   })}
-              </StoreGroup>
-            ))}
+                </div>
+              ))}
+              <div className="cart-actions">
+                <button onClick={clearCart} className="clear-cart-button">
+                  <FaTrash /> Clear Cart
+                </button>
+              </div>
+            </div>
             
-            <CartActions>
-              <ClearCartButton onClick={clearCart}>Clear Cart</ClearCartButton>
-            </CartActions>
-          </CartItemsSection>
-          
-          <CartSummarySection>
-            <SummaryCard>
-              <SummaryTitle>Order Summary</SummaryTitle>
-              
-              <SummaryRow>
-                <SummaryLabel>Items ({cartCount}):</SummaryLabel>
-                <SummaryValue>₱{(cartTotal || 0).toFixed(2)}</SummaryValue>
-              </SummaryRow>
-              
-              <SummaryRow>
-                <SummaryLabel>Shipping:</SummaryLabel>
-                <SummaryValue>Free</SummaryValue>
-              </SummaryRow>
-              
-              <SummaryRow>
-                <SummaryLabel>Tax:</SummaryLabel>
-                <SummaryValue>₱{(cartTotal * 0.1).toFixed(2)}</SummaryValue>
-              </SummaryRow>
-              
-              <Divider />
-              
-              <SummaryRow $total>
-                <SummaryLabel>Total:</SummaryLabel>
-                <SummaryValue>₱{(cartTotal * 1.1).toFixed(2)}</SummaryValue>
-              </SummaryRow>
-              
-              {user ? (
-                <CheckoutButton onClick={() => setIsCheckingOut(true)}>
-                  <FaCreditCard /> Proceed to Checkout
-                </CheckoutButton>
-              ) : (
-                <LoginPrompt>
-                  Please <Link to="/signin">log in</Link> to proceed to checkout.
-                </LoginPrompt>
-              )}
-            </SummaryCard>
-          </CartSummarySection>
-        </CartContent>
+            <div className="cart-summary-section">
+              <div className="summary-card">
+                <h2 className="summary-title">Order Summary</h2>
+                <div className="summary-row">
+                  <span>Subtotal ({cartCount} items)</span>
+                  <span className="summary-value">₱{formatPrice(subtotal)}</span>
+                </div>
+                <div className="summary-row">
+                  <span>Shipping</span>
+                  <span className="summary-value">Free</span>
+                </div>
+                <div className="summary-row">
+                  <span>Tax (10%)</span>
+                  <span className="summary-value">₱{formatPrice(tax)}</span>
+                </div>
+                <hr className="divider" />
+                <div className="summary-row total-row">
+                  <span>Total</span>
+                  <span className="summary-value">₱{formatPrice(total)}</span>
+                </div>
+                {user ? (
+                  <button onClick={() => setIsCheckingOut(true)} className="checkout-button">
+                    <FaCreditCard /> Proceed to Checkout
+                  </button>
+                ) : (
+                  <p className="login-prompt">
+                    Please <Link to="/signin">log in</Link> to proceed to checkout.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
       ) : (
-        <CheckoutContainer>
-          <CheckoutForm onSubmit={handleCheckout}>
-            <FormSection>
-              <SectionTitle>Shipping Information</SectionTitle>
-              <FormRow>
-                <FormGroup>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormInput 
-                    type="text" 
-                    name="name" 
-                    value={formData.name} 
-                    onChange={handleInputChange} 
-                    required 
-                  />
-                </FormGroup>
-              </FormRow>
-              
-              <FormRow>
-                <FormGroup>
-                  <FormLabel>Email</FormLabel>
-                  <FormInput 
-                    type="email" 
-                    name="email" 
-                    value={formData.email} 
-                    onChange={handleInputChange} 
-                    required 
-                  />
-                </FormGroup>
-              </FormRow>
-              
-              <FormRow>
-                <FormGroup>
-                  <FormLabel>Address</FormLabel>
-                  <FormInput 
-                    type="text" 
-                    name="address" 
-                    value={formData.address} 
-                    onChange={handleInputChange} 
-                    required 
-                  />
-                </FormGroup>
-              </FormRow>
-              
-              <FormRow>
-                <FormGroup $half>
-                  <FormLabel>City</FormLabel>
-                  <FormInput 
-                    type="text" 
-                    name="city" 
-                    value={formData.city} 
-                    onChange={handleInputChange} 
-                    required 
-                  />
-                </FormGroup>
-                <FormGroup $half>
-                  <FormLabel>ZIP Code</FormLabel>
-                  <FormInput 
-                    type="text" 
-                    name="zipCode" 
-                    value={formData.zipCode} 
-                    onChange={handleInputChange} 
-                    required 
-                  />
-                </FormGroup>
-              </FormRow>
-            </FormSection>
-            
-            <FormSection>
-              <SectionTitle>Payment Information</SectionTitle>
-              <FormRow>
-                <FormGroup>
-                  <FormLabel>Card Number</FormLabel>
-                  <FormInput 
-                    type="text" 
-                    name="cardNumber" 
-                    value={formData.cardNumber} 
-                    onChange={handleInputChange} 
-                    placeholder="1234 5678 9012 3456" 
-                    required 
-                  />
-                </FormGroup>
-              </FormRow>
-              
-              <FormRow>
-                <FormGroup $half>
-                  <FormLabel>Expiry Date</FormLabel>
-                  <FormInput 
-                    type="text" 
-                    name="cardExpiry" 
-                    value={formData.cardExpiry} 
-                    onChange={handleInputChange} 
-                    placeholder="MM/YY" 
-                    required 
-                  />
-                </FormGroup>
-                <FormGroup $half>
-                  <FormLabel>CVV</FormLabel>
-                  <FormInput 
-                    type="text" 
-                    name="cardCvv" 
-                    value={formData.cardCvv} 
-                    onChange={handleInputChange} 
-                    placeholder="123" 
-                    required 
-                  />
-                </FormGroup>
-              </FormRow>
-            </FormSection>
-            
-            <OrderSummary>
-              <SummaryTitle>Order Summary</SummaryTitle>
-              <SummaryItems>
+        <div className="checkout-container">
+          <form onSubmit={handleCheckout} className="checkout-form">
+            <div className="shipping-details">
+              <h3 className="section-title">Shipping Information</h3>
+              <div className="form-group full-width">
+                <label className="form-label">Full Name</label>
+                <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="form-input" required />
+              </div>
+              <div className="form-group full-width">
+                <label className="form-label">Email</label>
+                <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="form-input" required />
+              </div>
+                            <div className="form-group full-width">
+                <label className="form-label">Address</label>
+                <div className="address-input-group">
+                  <input type="text" name="address" value={formData.address} onChange={handleInputChange} className="form-input" placeholder="Street Address" required />
+                  <button type="button" onClick={handleLocateMe} className="locate-me-button" disabled={isLocating}>
+                    <FaMapMarkerAlt /> {isLocating ? 'Locating...' : 'Locate Me'}
+                  </button>
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">City</label>
+                  <input type="text" name="city" value={formData.city} onChange={handleInputChange} className="form-input" required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">ZIP Code</label>
+                  <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} className="form-input" required />
+                </div>
+              </div>
+
+              <h3 className="section-title">Payment Information</h3>
+              <div className="form-group full-width">
+                <label className="form-label">Card Number</label>
+                <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} className="form-input" placeholder="1234 5678 9012 3456" required />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Expiry Date</label>
+                  <input type="text" name="cardExpiry" value={formData.cardExpiry} onChange={handleInputChange} className="form-input" placeholder="MM/YY" required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">CVV</label>
+                  <input type="text" name="cardCvv" value={formData.cardCvv} onChange={handleInputChange} className="form-input" placeholder="123" required />
+                </div>
+              </div>
+            </div>
+
+            <div className="checkout-order-summary">
+              <h3 className="section-title">Order Summary</h3>
+              <div className="summary-items">
                 {Object.entries(groupedCart).map(([storeId, group]) => (
-                  <SummaryStoreGroup key={storeId}>
-                    <SummaryStoreName>{group.storeName}</SummaryStoreName>
+                  <div key={storeId} className="summary-store-group">
+                    <h4 className="summary-store-name">{group.storeName}</h4>
                     {group.items.map(item => (
-                      <SummaryItem key={item.id}>
-                        <SummaryItemName>{item.name} × {item.quantity}</SummaryItemName>
-                        <SummaryItemPrice>
-                          ₱{(item.price * (1 - item.discount / 100) * item.quantity).toFixed(2)}
-                        </SummaryItemPrice>
-                      </SummaryItem>
+                      <div key={item.id} className="summary-item">
+                        <span>{item.name} &times; {item.quantity}</span>
+                        <span>₱{formatPrice(item.price * item.quantity)}</span>
+                      </div>
                     ))}
-                  </SummaryStoreGroup>
+                  </div>
                 ))}
-              </SummaryItems>
-              
-              <Divider />
-              
-              <SummaryRow>
-                <SummaryLabel>Subtotal:</SummaryLabel>
-                <SummaryValue>₱{(cartTotal || 0).toFixed(2)}</SummaryValue>
-              </SummaryRow>
-              
-              <SummaryRow>
-                <SummaryLabel>Tax (10%):</SummaryLabel>
-                <SummaryValue>₱{(cartTotal * 0.1).toFixed(2)}</SummaryValue>
-              </SummaryRow>
-              
-              <SummaryRow $total>
-                <SummaryLabel>Total:</SummaryLabel>
-                <SummaryValue>₱{(cartTotal * 1.1).toFixed(2)}</SummaryValue>
-              </SummaryRow>
-            </OrderSummary>
+              </div>
+              <hr className="divider" />
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <span className="summary-value">₱{formatPrice(subtotal)}</span>
+              </div>
+              <div className="summary-row">
+                <span>Tax</span>
+                <span className="summary-value">₱{formatPrice(tax)}</span>
+              </div>
+              <hr className="divider" />
+              <div className="summary-row total-row">
+                <span>Total</span>
+                <span className="summary-value">₱{formatPrice(total)}</span>
+              </div>
+            </div>
             
-            <FormActions>
-              <BackButton type="button" onClick={() => setIsCheckingOut(false)}>
+            <div className="form-actions">
+              <button type="button" onClick={() => setIsCheckingOut(false)} className="back-button">
                 Back to Cart
-              </BackButton>
-              <PlaceOrderButton type="submit">
+              </button>
+              <button type="submit" className="place-order-button">
                 Place Order
-              </PlaceOrderButton>
-            </FormActions>
-          </CheckoutForm>
-        </CheckoutContainer>
+              </button>
+            </div>
+          </form>
+        </div>
       )}
-    </CartContainer>
+    </motion.div>
   );
 };
-
-const CartContainer = styled(motion.div)`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 80px 20px 40px;
-  
-  @media (max-width: 768px) {
-    padding: 70px 15px 30px;
-  }
-`;
-
-const PageTitle = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const BackLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 30px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-  
-  &:hover {
-    color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const CartContent = styled.div`
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 30px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const CartItemsSection = styled.div`
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 12px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  overflow: hidden;
-`;
-
-const StoreGroup = styled.div`
-  margin-bottom: 30px;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
-  padding: 20px;
-
-  &:last-of-type {
-    margin-bottom: 0;
-  }
-`;
-
-const StoreName = styled.h2`
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.primary};
-  padding-bottom: 10px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-`;
-
-const SummaryStoreGroup = styled.div`
-  margin-bottom: 15px;
-  &:last-of-type {
-    margin-bottom: 0;
-  }
-`;
-
-const SummaryStoreName = styled.h4`
-  font-size: 1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 8px;
-`;
-
-const CartHeader = styled.div`
-  display: flex;
-  padding: 15px 20px;
-  background-color: ${({ theme }) => theme.background};
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-  
-  @media (max-width: 576px) {
-    display: none;
-  }
-`;
-
-const HeaderItem = styled.div`
-  flex: ${props => props.$flex};
-  font-weight: 600;
-  color: ${({ theme }) => theme.textSecondary};
-`;
-
-const CartItemRow = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-  
-  @media (max-width: 576px) {
-    flex-wrap: wrap;
-  }
-`;
-
-const CartItemInfo = styled.div`
-  flex: ${props => props.$flex};
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  
-  @media (max-width: 576px) {
-    flex: 1 0 100%;
-    margin-bottom: 15px;
-  }
-`;
-
-const CartItemImage = styled.img`
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 8px;
-`;
-
-const CartItemDetails = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-`;
-
-const CartItemName = styled(Link)`
-  font-weight: 500;
-  color: ${({ theme }) => theme.text};
-  text-decoration: none;
-  
-  &:hover {
-    color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const DiscountBadge = styled.span`
-  display: inline-block;
-  background-color: ${({ theme }) => theme.accent};
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 600;
-`;
-
-const CartItemPrice = styled.div`
-  flex: ${props => props.$flex};
-  display: flex;
-  flex-direction: column;
-  
-  @media (max-width: 576px) {
-    flex: 1;
-  }
-`;
-
-const OriginalPrice = styled.span`
-  font-size: 0.8rem;
-  color: ${({ theme }) => theme.textSecondary};
-  text-decoration: line-through;
-`;
-
-const CartItemQuantity = styled.div`
-  flex: ${props => props.$flex};
-  
-  @media (max-width: 576px) {
-    flex: 1;
-  }
-`;
-
-const QuantityControl = styled.div`
-  display: flex;
-  align-items: center;
-  width: fit-content;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 6px;
-  overflow: hidden;
-`;
-
-const QuantityButton = styled.button`
-  width: 30px;
-  height: 30px;
-  background-color: ${({ theme }) => theme.cardBg};
-  border: none;
-  color: ${({ theme }) => theme.text};
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  
-  &:hover:not(:disabled) {
-    background-color: ${({ theme }) => theme.border};
-  }
-  
-  &:disabled {
-    color: ${({ theme }) => theme.border};
-    cursor: not-allowed;
-  }
-`;
-
-const QuantityValue = styled.span`
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-left: 1px solid ${({ theme }) => theme.border};
-  border-right: 1px solid ${({ theme }) => theme.border};
-  color: ${({ theme }) => theme.text};
-`;
-
-const CartItemTotal = styled.div`
-  flex: ${props => props.$flex};
-  font-weight: 600;
-  color: ${({ theme }) => theme.primary};
-  
-  @media (max-width: 576px) {
-    flex: 1;
-  }
-`;
-
-const CartItemRemove = styled.div`
-  flex: ${props => props.$flex};
-  display: flex;
-  justify-content: center;
-  
-  @media (max-width: 576px) {
-    flex: 0;
-  }
-`;
-
-const RemoveButton = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.textSecondary};
-  cursor: pointer;
-  transition: color 0.2s ease;
-  
-  &:hover {
-    color: ${({ theme }) => theme.error};
-  }
-`;
-
-const CartActions = styled.div`
-  display: flex;
-  justify-content: flex-start;
-  padding: 20px;
-`;
-
-const ClearCartButton = styled.button`
-  background: none;
-  border: 1px solid ${({ theme }) => theme.border};
-  color: ${({ theme }) => theme.textSecondary};
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.border};
-    color: ${({ theme }) => theme.text};
-  }
-`;
-
-const CartSummarySection = styled.div`
-  align-self: start;
-  
-  @media (max-width: 768px) {
-    grid-row: 1;
-  }
-`;
-
-const SummaryCard = styled.div`
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-`;
-
-const SummaryTitle = styled.h2`
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const SummaryRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  font-size: ${props => props.$total ? '1.2rem' : '1rem'};
-  font-weight: ${props => props.$total ? '600' : '400'};
-`;
-
-const SummaryLabel = styled.span`
-  color: ${({ theme }) => theme.textSecondary};
-`;
-
-const SummaryValue = styled.span`
-  color: ${({ theme }) => theme.text};
-`;
-
-const Divider = styled.hr`
-  border: none;
-  border-top: 1px solid ${({ theme }) => theme.border};
-  margin: 15px 0;
-`;
-
-const CheckoutButton = styled.button`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 12px;
-  font-weight: 600;
-  margin-top: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    filter: brightness(1.1);
-  }
-`;
-
-const EmptyCartContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 12px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  text-align: center;
-`;
-
-const EmptyCartIcon = styled.div`
-  font-size: 4rem;
-  color: ${({ theme }) => theme.border};
-  margin-bottom: 20px;
-`;
-
-const EmptyCartMessage = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const EmptyCartSubtext = styled.p`
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 30px;
-  max-width: 400px;
-`;
-
-const ShopNowButton = styled(Link)`
-  display: inline-block;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    filter: brightness(1.1);
-  }
-`;
-
-const CheckoutContainer = styled.div`
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 12px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  padding: 30px;
-`;
-
-const CheckoutForm = styled.form`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const FormSection = styled.div`
-  margin-bottom: 30px;
-`;
-
-const SectionTitle = styled.h3`
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const FormRow = styled.div`
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-  
-  @media (max-width: 576px) {
-    flex-direction: column;
-  }
-`;
-
-const FormGroup = styled.div`
-  flex: ${props => props.$half ? '1' : '1 0 100%'};
-  display: flex;
-  flex-direction: column;
-`;
-
-const FormLabel = styled.label`
-  margin-bottom: 5px;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.textSecondary};
-`;
-
-const FormInput = styled.input`
-  padding: 10px;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 6px;
-  background-color: ${({ theme }) => theme.inputBg};
-  color: ${({ theme }) => theme.text};
-  
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const OrderSummary = styled.div`
-  grid-column: span 2;
-  background-color: ${({ theme }) => theme.background};
-  border-radius: 8px;
-  padding: 20px;
-  
-  @media (max-width: 768px) {
-    grid-column: span 1;
-  }
-`;
-
-const SummaryItems = styled.div`
-  margin-bottom: 15px;
-  max-height: 200px;
-  overflow-y: auto;
-`;
-
-const SummaryItem = styled.div`
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px dashed ${({ theme }) => theme.border};
-  
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const SummaryItemName = styled.span`
-  color: ${({ theme }) => theme.text};
-`;
-
-const SummaryItemPrice = styled.span`
-  font-weight: 500;
-  color: ${({ theme }) => theme.text};
-`;
-
-const FormActions = styled.div`
-  grid-column: span 2;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  
-  @media (max-width: 768px) {
-    grid-column: span 1;
-  }
-`;
-
-const BackButton = styled.button`
-  padding: 12px 24px;
-  background-color: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
-  color: ${({ theme }) => theme.text};
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.border};
-  }
-`;
-
-const PlaceOrderButton = styled.button`
-  padding: 12px 24px;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    filter: brightness(1.1);
-  }
-`;
-
-const LoginPrompt = styled.p`
-  text-align: center;
-  margin-top: 20px;
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 1rem;
-
-  a {
-    color: ${({ theme }) => theme.primary};
-    font-weight: 600;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-`;
 
 export default Cart;

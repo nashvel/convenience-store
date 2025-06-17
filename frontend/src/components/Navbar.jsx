@@ -3,8 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaShoppingBag, FaBell, FaBuilding } from 'react-icons/fa';
+import axios from 'axios';
 import { CartContext } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import eventEmitter from '../utils/event-emitter';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -14,8 +16,41 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-    const { totalItems } = useContext(CartContext);
-  const [notificationCount, setNotificationCount] = useState(2); // Placeholder for notification count
+  const { totalItems } = useContext(CartContext);
+
+  const dashboardPath = user ? {
+    'admin': '/admin/dashboard',
+    'client': '/seller/dashboard',
+    'rider': '/rider/dashboard'
+  }[user.role] : null;
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (user) {
+        try {
+          const response = await axios.get(`http://localhost:8080/api/notifications?userId=${user.id}`);
+          if (response.data.success) {
+            const unreadCount = response.data.notifications.filter(n => !n.is_read).length;
+            setNotificationCount(unreadCount);
+          }
+        } catch (error) {
+          console.error('Failed to fetch notifications:', error);
+        }
+      }
+    };
+
+    fetchNotifications();
+
+    const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+
+    eventEmitter.subscribe('newNotification', fetchNotifications);
+
+    return () => {
+      clearInterval(interval);
+      eventEmitter.unsubscribe('newNotification', fetchNotifications);
+    };
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,7 +115,7 @@ const Navbar = () => {
                 <FaUser /> <span>Profile</span>
               </NavLink>
               <DropdownMenu>
-                <DropdownItem to="/seller/dashboard">Manage</DropdownItem>
+                {dashboardPath && <DropdownItem to={dashboardPath}>Manage</DropdownItem>}
                 <DropdownItem to="/profile/settings">Settings</DropdownItem>
                 <DropdownButton onClick={logout}>Logout</DropdownButton>
               </DropdownMenu>
@@ -112,7 +147,7 @@ const Navbar = () => {
           </CartButton>
           <CartButton to="/notifications" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <FaBell />
-            {notificationCount > 0 && <CartBadge>{notificationCount}</CartBadge>}
+                            {notificationCount > 0 && <CartBadge>{notificationCount}</CartBadge>}
           </CartButton>
           <CartButton 
             to="/cart"

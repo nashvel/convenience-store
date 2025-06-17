@@ -131,6 +131,19 @@ try {
         )
     ");
 
+    // Create notifications table (depends on users)
+    $mysqli->query("
+        CREATE TABLE notifications (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            user_id INT(11) UNSIGNED NOT NULL,
+            message TEXT NOT NULL,
+            link VARCHAR(255) NULL,
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at DATETIME NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    ");
+
     // Create user_devices table (depends on users)
     $mysqli->query("
         CREATE TABLE user_devices (

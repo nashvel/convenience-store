@@ -19,6 +19,7 @@ class AuthController extends ResourceController
     protected $verificationModel;
     protected $request;
     protected $response;
+    protected $session;
 
     protected function sendVerificationEmail($email, $token)
     {

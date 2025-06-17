@@ -6,13 +6,17 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');
-// API Routes
+
 $routes->group('api', ['filter' => 'cors'], function ($routes) {
     $routes->resource('categories', ['controller' => 'CategoryController']);
     $routes->resource('stores', ['controller' => 'StoreController']);
     $routes->resource('products', ['controller' => 'ProductController']);
+        $routes->get('notifications', 'NotificationController::index');
+    $routes->get('orders', 'OrderController::index');
+    $routes->post('orders', 'OrderController::create');
+    $routes->get('orders/(:num)', 'OrderController::show/$1');
+    $routes->put('orders/cancel/(:num)', 'OrderController::cancel/$1');
 
-    // Authentication API routes
     $routes->group('auth', function ($routes) {
         $routes->post('login', 'AuthController::login');
         $routes->post('signup', 'AuthController::signup');
@@ -23,9 +27,6 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
     });
 });
 
-// Basic route configuration
-// Disabling auto-routing is a security best practice.
-// All routes should be defined explicitly.
 $routes->setAutoRoute(false);
 $routes->setDefaultNamespace('App\Controllers');
 $routes->setDefaultController('Home');

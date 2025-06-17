@@ -6,10 +6,10 @@ const slugify = (text) => {
     .toString()
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-')       // Replace spaces with -
-    .replace(/&/g, '-and-')   // Replace & with 'and'
-    .replace(/[^฀-๿\w-]+/g, '') // Remove all non-word chars except Thai characters
-    .replace(/--+/g, '-');      // Replace multiple - with single -
+    .replace(/\s+/g, '-')       
+    .replace(/&/g, '-and-')     
+    .replace(/[^฀-๿\w-]+/g, '')
+    .replace(/--+/g, '-');     
 };
 
 export default slugify;

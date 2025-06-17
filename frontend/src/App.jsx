@@ -19,12 +19,14 @@ import Cart from './pages/Cart/Cart';
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
 import ForgotPassword from './pages/Auth/ForgotPassword';
-import MyOrders from './pages/Navbar/MyOrders';
 import Notifications from './pages/Navbar/Notifications';
 import StoresListPage from './pages/Stores/StoresListPage';
 import StorePage from './pages/Stores/StorePage';
 import SellerDashboard from './seller/SellerDashboard';
 import Partners from './pages/Partners/Partners';
+import Settings from './pages/Profile/Settings';
+import MyOrdersList from './pages/MyOrders/MyOrdersList';
+import MyOrderDetail from './pages/MyOrders/MyOrders';
 
 
 import { CartProvider } from './context/CartContext';
@@ -101,8 +103,10 @@ const AppContent = () => {
                     <Route path="/forgot-password" element={<ForgotPassword />} />
 
                     {/* User Profile Routes */}
-                    <Route path="/my-orders" element={<MyOrders />} />
+                                        <Route path="/my-orders" element={<MyOrdersList />} />
+                    <Route path="/my-orders/:id" element={<MyOrderDetail />} />
                     <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/profile/settings" element={<Settings />} />
 
                     {/* Seller Dashboard Routes */}
                     <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
