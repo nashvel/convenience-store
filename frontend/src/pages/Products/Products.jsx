@@ -10,15 +10,16 @@ const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { allProducts: products, loading, error, categories } = useContext(StoreContext);
+  console.log('Products page rendered. URL search:', location.search);
 
   // Get query parameters
   const queryParams = new URLSearchParams(location.search);
   const categoryParam = queryParams.get('category');
   const dealsParam = queryParams.get('deals') === 'true';
+  const searchParam = queryParams.get('search');
 
-  // State for filters and sorting
-  const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
-  const [searchQuery, setSearchQuery] = useState('');
+
+  
   const maxPrice = useMemo(() => {
     if (products && products.length > 0) {
       return Math.ceil(Math.max(...products.map(p => p.price)));
@@ -35,30 +36,39 @@ const Products = () => {
   const [sortDirection, setSortDirection] = useState('desc');
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    setSelectedCategory(categoryParam || 'all');
-  }, [categoryParam]);
+  
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   // Apply filters and sorting
   useEffect(() => {
-    if (loading || error) return;
+    if (loading || error) {
+      console.log('Filtering skipped: loading or error state.');
+      return;
+    }
+
+    console.log(`--- Filtering ---`);
+    console.log(`Initial product count: ${products.length}`);
     
     let result = [...products];
     
     // Filter by category
-    if (selectedCategory !== 'all') {
-      result = result.filter(product => product.category_name === selectedCategory);
+    const currentCategory = categoryParam || 'all';
+    console.log(`Filtering by category: "${currentCategory}"`);
+    if (currentCategory !== 'all') {
+      result = result.filter(product => product.category_name === currentCategory);
     }
+    console.log(`Product count after category filter: ${result.length}`);
     
     // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    console.log(`Filtering by search: "${searchParam || 'none'}"`);
+    if (searchParam) {
+      const query = searchParam.toLowerCase();
       result = result.filter(product => 
         product.name.toLowerCase().includes(query) || 
         product.description.toLowerCase().includes(query)
       );
     }
+    console.log(`Product count after search filter: ${result.length}`);
     
     // Filter by price range
     result = result.filter(product => {
@@ -90,8 +100,9 @@ const Products = () => {
         break;
     }
     
+    console.log(`Final filtered product count: ${result.length}`);
     setFilteredProducts(result);
-  }, [products, selectedCategory, searchQuery, priceRange, sortOption, sortDirection, dealsParam, loading, error]);
+  }, [products, categoryParam, searchParam, priceRange, sortOption, sortDirection, dealsParam, loading, error]);
 
   // Handle price range change
     const handlePriceChange = (e, type) => {
@@ -112,6 +123,18 @@ const Products = () => {
   // Toggle sort direction
   const toggleSortDirection = () => {
     setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  const handleSearchChange = (e) => {
+    const params = new URLSearchParams(location.search);
+    const query = e.target.value;
+
+    if (query) {
+      params.set('search', query);
+    } else {
+      params.delete('search');
+    }
+    navigate({ search: params.toString() }, { replace: true });
   };
 
   if (loading) {
@@ -142,7 +165,7 @@ const Products = () => {
             <FilterTitle>Categories</FilterTitle>
             <CategoryList>
               <CategoryItem 
-                $active={selectedCategory === 'all'}
+                $active={(categoryParam || 'all') === 'all'}
                 onClick={() => handleCategoryChange('all')}
               >
                 All Products
@@ -150,7 +173,7 @@ const Products = () => {
               {categories.map(category => (
                 <CategoryItem 
                   key={category.id}
-                  $active={selectedCategory === category.name}
+                  $active={categoryParam === category.name}
                   onClick={() => handleCategoryChange(category.name)}
                 >
                   {category.name}
@@ -190,9 +213,9 @@ const Products = () => {
             <SearchContainer>
               <SearchInput 
                 type="text" 
-                placeholder="Search products..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products..."
+                value={searchParam || ''}
+                onChange={handleSearchChange}
               />
               <SearchIcon><FaSearch /></SearchIcon>
             </SearchContainer>

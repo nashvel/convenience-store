@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaShoppingBag, FaBell, FaBuilding } from 'react-icons/fa';
@@ -12,6 +12,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
     const { totalItems } = useContext(CartContext);
   const [notificationCount, setNotificationCount] = useState(2); // Placeholder for notification count
@@ -32,8 +33,11 @@ const Navbar = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    // Handle search logic here
-    console.log('Searching for:', searchQuery);
+    if (searchQuery.trim()) {
+      const params = new URLSearchParams(location.search);
+      params.set('search', searchQuery.trim());
+      navigate(`/products?${params.toString()}`);
+    }
     setSearchOpen(false);
     setSearchQuery('');
   };
