@@ -1,14 +1,25 @@
 import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
-import { FaStar, FaShoppingBag, FaArrowRight, FaStore } from 'react-icons/fa';
+import { FaStar, FaShoppingBag, FaArrowRight, FaStore, FaMobileAlt, FaDownload } from 'react-icons/fa';
 import ProductCard from '../../components/ProductCard';
 import { LOGO_ASSET_URL } from '../../config';
+import NashSvg from '../../assets/nash.svg';
 
 const Home = () => {
+  const navigate = useNavigate();
   const { allProducts, stores, loading, error, categories } = useContext(StoreContext);
+
+  const handleGetAppClick = (e) => {
+    e.preventDefault();
+    const section = document.getElementById('mobileapp');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+      navigate('/#mobileapp', { replace: true });
+    }
+  };
 
   const featuredProducts = [...allProducts].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)).slice(0, 4);
 
@@ -51,6 +62,9 @@ const Home = () => {
             <PrimaryButton to={categories.length > 0 ? `/products?category=${categories[0].name}` : '/products'}>
               Shop Now <FaArrowRight />
             </PrimaryButton>
+            <SecondaryButton onClick={handleGetAppClick}>
+              Get the App <FaDownload />
+            </SecondaryButton>
           </HeroButtons>
         </HeroContent>
         <HeroImageContainer
@@ -112,6 +126,18 @@ const Home = () => {
           </StoreGrid>
         </Section>
       )}
+
+      <AppPromoSection id="mobileapp">
+        <AppPromoContent>
+          <SectionTitle><FaMobileAlt /> Get Our App</SectionTitle>
+          <PromoDescription>Shop on the go and get exclusive deals with our mobile app. Download now and enjoy a seamless shopping experience.</PromoDescription>
+          <AppBadges>
+            <a href="#" target="_blank" rel="noopener noreferrer"><AppBadgeImg src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="Download on the App Store" /></a>
+            <a href="#" target="_blank" rel="noopener noreferrer"><AppBadgeImg src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" /></a>
+          </AppBadges>
+        </AppPromoContent>
+        <AppPromoImage src={NashSvg} alt="Mobile App Promo" />
+      </AppPromoSection>
 
       <PromoSection>
         <PromoCard $bgColor="#FFF3E0">
@@ -217,22 +243,43 @@ const HeroButtons = styled(motion.div)`
   }
 `;
 
-const PrimaryButton = styled(Link)`
-  display: flex;
+const buttonStyles = `
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: ${({ theme }) => theme.gradientPrimary};
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 28px;
+  border-radius: 50px;
   font-weight: 600;
+  font-size: 1rem;
   text-decoration: none;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(255, 87, 34, 0.3);
-  
+  cursor: pointer;
+  border: 2px solid transparent;
+`;
+
+const PrimaryButton = styled(Link)`
+  ${buttonStyles}
+  background: ${({ theme }) => `linear-gradient(45deg, ${theme.primary}, ${theme.secondary})`};
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
   &:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(255, 87, 34, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+`;
+
+const SecondaryButton = styled.button`
+  ${buttonStyles}
+  background-color: transparent;
+  color: ${({ theme }) => theme.text};
+  border-color: ${({ theme }) => theme.primary};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.primary};
+    color: white;
+    transform: translateY(-3px);
   }
 `;
 
@@ -447,6 +494,55 @@ const PromoImage = styled.img`
     width: 100%;
     height: 120px;
     order: -1;
+  }
+`;
+
+const AppPromoSection = styled(Section)`
+  background: ${({ theme }) => theme.cardBg};
+  border-radius: 12px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 30px;
+  }
+`;
+
+const AppPromoContent = styled.div`
+  flex: 1;
+`;
+
+const AppPromoImage = styled.img`
+  width: 250px;
+  height: auto;
+  border-radius: 12px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 200px;
+    margin-top: 20px;
+  }
+`;
+
+const AppBadges = styled.div`
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+
+  @media (max-width: 768px) {
+    justify-content: center;
+  }
+`;
+
+const AppBadgeImg = styled.img`
+  height: 45px;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
   }
 `;
 

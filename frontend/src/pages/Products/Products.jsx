@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
+import ScrollToTopButton from '../../components/ScrollToTopButton';
 import { FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp } from 'react-icons/fa';
 
 const Products = () => {
@@ -156,6 +157,7 @@ const Products = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
+      <ScrollToTopButton />
       <PageHeader>
         <PageTitle>All Products</PageTitle>
         <MobileFilterToggle onClick={() => setShowFilters(!showFilters)}>
