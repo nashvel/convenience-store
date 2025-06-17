@@ -138,14 +138,21 @@ const Status = styled.span`
   color: #fff;
   font-weight: 600;
   text-transform: capitalize;
-  background-color: ${({ $status, theme }) => {
+    background-color: ${({ $status, theme }) => {
     switch ($status) {
-      case 'pending': return theme.warning;
-      case 'processing': return theme.secondary;
-      case 'shipped': return theme.success;
-      case 'delivered': return theme.success;
-      case 'cancelled': return theme.error;
-      default: return theme.textSecondary;
+      case 'pending':
+        return theme.warning; // Orange
+            case 'accepted':
+        return theme.success; // Green for Accepted
+      case 'shipped':
+        return theme.secondary; // A neutral blue/purple
+      case 'delivered':
+        return theme.primary; // A darker blue
+      case 'rejected':
+      case 'cancelled':
+        return theme.error; // Red
+      default:
+        return theme.textSecondary; // Grey
     }
   }};
 `;

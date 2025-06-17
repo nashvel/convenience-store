@@ -13,6 +13,7 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
     $routes->resource('products', ['controller' => 'ProductController']);
         $routes->get('notifications', 'NotificationController::index');
     $routes->get('orders', 'OrderController::index');
+$routes->get('orders/action/(:any)', 'OrderController::handleOrderAction/$1');
     $routes->post('orders', 'OrderController::create');
     $routes->get('orders/(:num)', 'OrderController::show/$1');
     $routes->put('orders/cancel/(:num)', 'OrderController::cancel/$1');
