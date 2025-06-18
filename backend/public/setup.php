@@ -322,9 +322,9 @@ try {
     $mysqli->query("
         INSERT INTO users (role_id, email, password_hash, first_name, last_name, phone, address, is_verified, created_at)
         VALUES
-        (2, 'test1@gmail.com', '$defaultPassword', 'Jay', 'Nashville', '111111111', '001 Tech Road', TRUE, NOW()),
-        (2, 'test2@gmail.com', '$defaultPassword', 'Jill', 'Fashion', '222222222', '002 Fashion Ave', TRUE, NOW()),
-        (2, 'test3@gmail.com', '$defaultPassword', 'Jared', 'Home', '333333333', '003 Home St', TRUE, NOW())
+        (2, 'zereffdraken@gmail.com', '$defaultPassword', 'Jay', 'Nashville', '111111111', '001 Tech Road', TRUE, NOW()),
+        (2, 'nozelikari@gmail.com', '$defaultPassword', 'Jill', 'Fashion', '222222222', '002 Fashion Ave', TRUE, NOW()),
+        (2, 'yutarosalad3@gmail.com', '$defaultPassword', 'Jared', 'Home', '333333333', '003 Home St', TRUE, NOW())
     ");
     $client1_id = $mysqli->insert_id;
     $client2_id = $client1_id + 1;
