@@ -9,25 +9,14 @@ import { FaFilter, FaSearch } from 'react-icons/fa';
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { allProducts: products, loading, error, categories } = useContext(StoreContext);
+  const { allProducts: products, loading, error, categories, priceRange } = useContext(StoreContext);
 
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const categoryParam = queryParams.get('category');
   const dealsParam = queryParams.get('deals') === 'true';
   const searchParam = queryParams.get('search');
 
-  const maxPrice = useMemo(() => {
-    if (products && products.length > 0) {
-      return Math.ceil(Math.max(...products.map(p => p.price)));
-    }
-    return 1000;
-  }, [products]);
 
-  const [priceRange, setPriceRange] = useState({ min: 0, max: maxPrice });
-
-  useEffect(() => {
-    setPriceRange(prev => ({ ...prev, max: maxPrice }));
-  }, [maxPrice]);
 
   const [sortOption, setSortOption] = useState(queryParams.get('sort') || 'best-sellers');
   const [showFilters, setShowFilters] = useState(false);
@@ -82,10 +71,7 @@ const Products = () => {
     return result;
   }, [products, categoryParam, searchParam, priceRange, sortOption, dealsParam, loading, error]);
 
-  const handlePriceChange = (e, type) => {
-    const value = e.target.value;
-    setPriceRange(prev => ({ ...prev, [type]: value === '' ? '' : parseFloat(value) }));
-  };
+
 
   const updateURLParams = (newParams) => {
     const params = new URLSearchParams(location.search);
@@ -118,31 +104,8 @@ const Products = () => {
   const FilterPanel = () => (
     <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-64 lg:sticky top-24 self-start`}>
       <div className="bg-white p-5 rounded-lg shadow-md space-y-6">
-        <div>
-          <h3 className="font-semibold text-lg mb-3">Categories</h3>
-          <ul className="space-y-2">
-            <li>
-              <button onClick={() => handleCategoryChange('all')} className={`w-full text-left ${currentCategory === 'all' ? 'text-blue-600 font-bold' : 'hover:text-blue-600'}`}>
-                All Categories
-              </button>
-            </li>
-            {categories.map(cat => (
-              <li key={cat.id}>
-                <button onClick={() => handleCategoryChange(cat.name)} className={`w-full text-left ${currentCategory === cat.name ? 'text-blue-600 font-bold' : 'hover:text-blue-600'}`}>
-                  {cat.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-semibold text-lg mb-3">Price Range</h3>
-          <div className="flex items-center space-x-2">
-            <input type="number" value={priceRange.min} onChange={(e) => handlePriceChange(e, 'min')} placeholder="Min" className="w-full p-2 border rounded-md" />
-            <span>-</span>
-            <input type="number" value={priceRange.max} onChange={(e) => handlePriceChange(e, 'max')} placeholder="Max" className="w-full p-2 border rounded-md" />
-          </div>
-        </div>
+
+
       </div>
     </aside>
   );
@@ -153,7 +116,7 @@ const Products = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
     >
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Our Products</h1>
@@ -192,7 +155,7 @@ const Products = () => {
           ) : error ? (
             <div className="text-center py-10 text-red-500">Error: {error}</div>
           ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
               {filteredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}

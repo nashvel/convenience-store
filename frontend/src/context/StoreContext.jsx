@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { CartContext } from './CartContext';
 import { fetchStores } from '../api/storeApi';
 import { fetchAllProducts } from '../api/productApi';
@@ -22,6 +22,23 @@ export const StoreProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const maxPrice = useMemo(() => {
+    if (allProducts && allProducts.length > 0) {
+      return Math.ceil(Math.max(...allProducts.map(p => p.price)));
+    }
+    return 1000; // Default max price
+  }, [allProducts]);
+
+  const [priceRange, setPriceRange] = useState({ min: 0, max: maxPrice });
+
+  useEffect(() => {
+    setPriceRange(prev => ({ ...prev, max: maxPrice }));
+  }, [maxPrice]);
+
+  const handlePriceChange = (type, value) => {
+    setPriceRange(prev => ({ ...prev, [type]: value === '' ? '' : parseFloat(value) }));
+  };
 
   const cartContext = useContext(CartContext);
 
@@ -88,7 +105,9 @@ export const StoreProvider = ({ children }) => {
     isFavorite,
     ...cartContext,
     addToCart: handleAddToCart,
-    categories
+    categories,
+    priceRange,
+    handlePriceChange
   };
 
   return (

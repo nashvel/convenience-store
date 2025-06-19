@@ -1,14 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence } from 'framer-motion';
-import styled from 'styled-components';
 
-import GlobalStyle from './components/styles/GlobalStyle';
-import { theme as customerTheme } from './components/styles/Theme';
-import { neumorphicTheme } from './seller/styles/neumorphicTheme';
+
+
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -34,94 +31,68 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { StoreProvider } from './context/StoreContext';
 
-const StyledToastContainer = styled(ToastContainer)`
-  .Toastify__toast {
-    ${({ theme }) => (theme.neumorphism ? theme.neumorphism(false, '15px') : '')};
-    background: ${({ theme }) => theme.body};
-    color: ${({ theme }) => theme.text};
-    font-weight: 600;
-    border-radius: 15px;
-  }
 
-  .Toastify__progress-bar {
-    background: ${({ theme }) => theme.primary};
-  }
 
-  .Toastify__close-button {
-    color: ${({ theme }) => theme.text};
-  }
-`;
 
-const AppWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-`;
-
-const MainContent = styled.main`
-  flex: 1;
-`;
 
 const AppContent = () => {
   const location = useLocation();
-    const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
+  const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const theme = isSellerRoute ? neumorphicTheme : customerTheme;
 
   return (
     <AuthProvider>
       <CartProvider>
         <StoreProvider>
-          <ThemeProvider theme={theme}>
-            <AppWrapper>
-              <GlobalStyle />
-              <StyledToastContainer
-                position="bottom-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-              />
-                            {!isSellerRoute && !isAdminRoute && <Navbar />}
-              <MainContent>
-                <AnimatePresence mode="wait">
-                  <Routes>
-                    {/* Client Routes */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/products" element={<Products />} />
-                    <Route path="/product/:id/:productName" element={<ProductDetails />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/stores" element={<StoresListPage />} />
-                    <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
-                    <Route path="/partners" element={<Partners />} />
+          <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
+            <ToastContainer
+              position="bottom-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              toastClassName="bg-white text-gray-800 font-semibold rounded-xl shadow-lg"
+              progressClassName="bg-blue-600"
+            />
+            {!isSellerRoute && !isAdminRoute && <Navbar />}
+            <div className={location.pathname.startsWith('/products') ? 'h-28' : 'h-16'} />
+            <main className="flex-1">
+              <AnimatePresence mode="wait">
+                <Routes>
+                  {/* Client Routes */}
+                  <Route path="/" element={<Home />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/product/:id/:productName" element={<ProductDetails />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/stores" element={<StoresListPage />} />
+                  <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
+                  <Route path="/partners" element={<Partners />} />
 
-                    {/* User Authentication Routes */}
-                    <Route path="/signin" element={<SignIn />} />
-                    <Route path="/signup" element={<SignUp />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                  {/* User Authentication Routes */}
+                  <Route path="/signin" element={<SignIn />} />
+                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
 
-                    {/* User Profile Routes */}
-                                        <Route path="/my-orders" element={<MyOrdersList />} />
-                    <Route path="/my-orders/:id" element={<MyOrderDetail />} />
-                    <Route path="/notifications" element={<Notifications />} />
-                    <Route path="/profile/settings" element={<Settings />} />
+                  {/* User Profile Routes */}
+                  <Route path="/my-orders" element={<MyOrdersList />} />
+                  <Route path="/my-orders/:id" element={<MyOrderDetail />} />
+                  <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/profile/settings" element={<Settings />} />
 
-                    {/* Seller Dashboard Routes */}
-                    {/* Seller Dashboard Routes */}
-                    <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
+                  {/* Seller Dashboard Routes */}
+                  <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
 
-                    {/* Admin Dashboard Routes */}
-                    <Route path="/admin/*" element={<AdminApp />} />
-                  </Routes>
-                </AnimatePresence>
-              </MainContent>
-                            {!isSellerRoute && !isAdminRoute && <Footer />}
-            </AppWrapper>
-          </ThemeProvider>
+                  {/* Admin Dashboard Routes */}
+                  <Route path="/admin/*" element={<AdminApp />} />
+                </Routes>
+              </AnimatePresence>
+            </main>
+            {!isSellerRoute && !isAdminRoute && <Footer />}
+          </div>
         </StoreProvider>
       </CartProvider>
     </AuthProvider>

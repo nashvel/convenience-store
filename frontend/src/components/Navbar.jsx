@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaBuilding, FaBell } from 'react-icons/fa';
+import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaBuilding, FaBell, FaChevronDown } from 'react-icons/fa';
 import axios from 'axios';
 import { CartContext } from '../context/CartContext';
+import { StoreContext } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
 import eventEmitter from '../utils/event-emitter';
 
@@ -16,6 +17,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { totalItems } = useContext(CartContext);
+  const { categories, priceRange, handlePriceChange } = useContext(StoreContext);
+  const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const categoryParam = queryParams.get('category');
   const [notificationCount, setNotificationCount] = useState(0);
 
   const dashboardPath = user ? {
@@ -139,7 +143,7 @@ const Navbar = () => {
             <h1 className="text-2xl font-bold text-blue-600">Nash<span className="text-gray-800">QuickMart</span></h1>
           </Link>
 
-          <div className="hidden md:flex items-center space-x-2 h-full">
+                    <div className="hidden md:flex items-center space-x-2 h-full">
             {renderNavLinks()}
           </div>
 
@@ -190,6 +194,71 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+
+      {/* Categories Bar */}
+      <AnimatePresence>
+        {location.pathname.startsWith('/products') && (
+          <motion.div
+            className="bg-white border-t border-gray-200"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-center space-x-4 sm:space-x-6 py-3 overflow-x-auto">
+                <Link to="/products" className={`text-sm font-medium whitespace-nowrap px-3 py-1 rounded-full transition-colors ${!categoryParam ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}>
+                  All Categories
+                </Link>
+                {categories && categories.map(cat => {
+                  const isActive = categoryParam === cat.name;
+                  return (
+                    <Link
+                      key={cat.id}
+                      to={`/products?category=${encodeURIComponent(cat.name)}`}
+                      className={`text-sm font-medium whitespace-nowrap px-3 py-1 rounded-full transition-colors ${isActive ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                    >
+                      {cat.name}
+                    </Link>
+                  );
+                })}
+
+                <div className="border-l border-gray-200 h-6 mx-2"></div>
+
+                <Dropdown
+                  trigger={
+                    <button className="flex items-center gap-1.5 text-sm font-medium whitespace-nowrap px-3 py-1 rounded-full transition-colors text-gray-600 hover:bg-gray-100">
+                      <span>Price</span>
+                      <FaChevronDown className="h-3 w-3" />
+                    </button>
+                  }
+                >
+                  <div className="p-2 w-56">
+                    <p className="text-sm font-semibold text-gray-700 mb-2 px-2">Price Range</p>
+                    <div className="flex items-center space-x-2 px-2">
+                      <input
+                        type="number"
+                        value={priceRange.min}
+                        onChange={(e) => handlePriceChange('min', e.target.value)}
+                        placeholder="Min"
+                        className="w-full p-1 border rounded-md text-sm"
+                      />
+                      <span className="text-gray-500">-</span>
+                      <input
+                        type="number"
+                        value={priceRange.max}
+                        onChange={(e) => handlePriceChange('max', e.target.value)}
+                        placeholder="Max"
+                        className="w-full p-1 border rounded-md text-sm"
+                      />
+                    </div>
+                  </div>
+                </Dropdown>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {searchOpen && (

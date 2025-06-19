@@ -37,7 +37,7 @@ const Home = () => {
 
   return (
     <motion.div
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10 md:pt-24 md:pb-16"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
