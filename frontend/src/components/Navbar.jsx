@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaShoppingBag, FaBell, FaBuilding } from 'react-icons/fa';
+import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaBuilding, FaBell } from 'react-icons/fa';
 import axios from 'axios';
 import { CartContext } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -17,13 +16,13 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { totalItems } = useContext(CartContext);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const dashboardPath = user ? {
     'admin': '/admin/dashboard',
     'client': '/seller/dashboard',
     'rider': '/rider/dashboard'
   }[user.role] : null;
-  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -40,407 +39,180 @@ const Navbar = () => {
       }
     };
 
-    fetchNotifications();
+    if (user) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000);
+      eventEmitter.subscribe('newNotification', fetchNotifications);
 
-    const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
-
-    eventEmitter.subscribe('newNotification', fetchNotifications);
-
-    return () => {
-      clearInterval(interval);
-      eventEmitter.unsubscribe('newNotification', fetchNotifications);
-    };
+      return () => {
+        clearInterval(interval);
+        eventEmitter.unsubscribe('newNotification', fetchNotifications);
+      };
+    }
   }, [user]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
-    // Close mobile menu when route changes
     setMobileMenuOpen(false);
   }, [location]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      const params = new URLSearchParams(location.search);
-      params.set('search', searchQuery.trim());
-      navigate(`/products?${params.toString()}`);
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
     }
     setSearchOpen(false);
     setSearchQuery('');
   };
 
+  const NavLink = ({ to, icon, children, exact = false }) => {
+    const isActive = exact ? location.pathname === to : location.pathname.startsWith(to);
+    return (
+      <Link
+        to={to}
+        className={`
+          relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors
+          ${isActive ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}
+          after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-blue-600 
+          after:transition-transform after:duration-300 after:ease-out after:origin-left 
+          ${isActive ? 'after:scale-x-100' : 'after:scale-x-0'} 
+          hover:after:scale-x-100
+        `}
+      >
+        {icon}
+        <span>{children}</span>
+      </Link>
+    );
+  };
+
+  const renderNavLinks = () => (
+    <>
+      <NavLink to="/" icon={<FaHome />} exact={true}>Home</NavLink>
+      <NavLink to="/products" icon={<FaStore />}>Products</NavLink>
+      <NavLink to="/stores" icon={<FaBuilding />}>Stores</NavLink>
+    </>
+  );
+
+  const Dropdown = ({ trigger, children }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+      <div className="relative" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+        {trigger}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-20 ring-1 ring-black ring-opacity-5"
+            >
+              <div className="py-1">
+                {children}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
+  const DropdownItem = ({ to, onClick, children }) => {
+    const classes = "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left";
+    return to ? <Link to={to} className={classes}>{children}</Link> : <button onClick={onClick} className={classes}>{children}</button>;
+  };
+
   return (
-    <NavContainer 
-      initial={{ y: -100 }}
+    <motion.nav
+      initial={{ y: -80 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      $isScrolled={isScrolled}
-    >
-      <NavContent>
-        <LogoContainer to="/">
-          <LogoText>Nash<LogoSpan>QuickMart</LogoSpan></LogoText>
-        </LogoContainer>
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 h-20 ${isScrolled ? 'bg-white/80 shadow-md backdrop-blur-sm' : 'bg-transparent'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-full">
+          <Link to="/" className="flex-shrink-0">
+            <h1 className="text-2xl font-bold text-blue-600">Nash<span className="text-gray-800">QuickMart</span></h1>
+          </Link>
 
-        <NavLinks $mobileMenuOpen={mobileMenuOpen}>
-          <NavLink 
-            to="/"
-            $isActive={location.pathname === '/'}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <FaHome /> <span>Home</span>
-          </NavLink>
-          <NavLink 
-            to="/products"
-            $isActive={location.pathname === '/products'}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <FaStore /> <span>Products</span>
-          </NavLink>
-          <NavLink to="/stores" $isActive={location.pathname.startsWith('/stores')}>
-            <FaBuilding /> <span>Stores</span>
-          </NavLink>
-          {user ? (
-            <DropdownContainer>
-              <NavLink as="div" $isActive={location.pathname.startsWith('/profile')}>
-                <FaUser /> <span>Profile</span>
-              </NavLink>
-              <DropdownMenu>
+          <div className="hidden md:flex items-center space-x-2 h-full">
+            {renderNavLinks()}
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setSearchOpen(!searchOpen)} className="text-gray-700 hover:text-blue-600">
+              <FaSearch size={20} />
+            </motion.button>
+
+            <Link to="/cart" className="relative text-gray-700 hover:text-blue-600">
+              <FaShoppingCart size={20} />
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-xs rounded-full">{totalItems}</span>
+              )}
+            </Link>
+
+            {user && (
+              <Link to="/notifications" className="relative text-gray-700 hover:text-blue-600">
+                <FaBell size={20} />
+                {notificationCount > 0 && (
+                  <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 bg-red-600 text-white text-xs rounded-full">{notificationCount}</span>
+                )}
+              </Link>
+            )}
+
+            {user ? (
+              <Dropdown trigger={<button className="flex items-center gap-1.5 text-gray-700"><FaUser size={20} /></button>}>
+                <div className="px-4 py-3 text-sm text-gray-700 border-b border-gray-200">
+                  <p className="font-semibold truncate">{user.username}</p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                </div>
                 {dashboardPath && <DropdownItem to={dashboardPath}>Manage</DropdownItem>}
                 <DropdownItem to="/profile/settings">Settings</DropdownItem>
-                <DropdownButton onClick={logout}>Logout</DropdownButton>
-              </DropdownMenu>
-            </DropdownContainer>
-          ) : (
-            <DropdownContainer>
-              <NavLink as="div" $isActive={location.pathname.startsWith('/sign')}>
-                <FaUser /> <span>Account</span>
-              </NavLink>
-              <DropdownMenu>
+                <div className="border-t border-gray-200 my-1"></div>
+                <DropdownItem onClick={logout}>Sign Out</DropdownItem>
+              </Dropdown>
+            ) : (
+              <Dropdown trigger={<button className="flex items-center gap-1.5 text-gray-700"><FaUser size={20} /></button>}>
                 <DropdownItem to="/signin">Sign In</DropdownItem>
                 <DropdownItem to="/signup">Sign Up</DropdownItem>
-                <DropdownItem to="/forgot-password">Forgot Password</DropdownItem>
-              </DropdownMenu>
-            </DropdownContainer>
-          )}
-        </NavLinks>
+              </Dropdown>
+            )}
 
-        <NavActions>
-          <IconButton 
-            onClick={() => setSearchOpen(!searchOpen)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <FaSearch />
-          </IconButton>
-                    <CartButton to="/my-orders" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <FaShoppingBag />
-          </CartButton>
-          <CartButton to="/notifications" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <FaBell />
-                            {notificationCount > 0 && <CartBadge>{notificationCount}</CartBadge>}
-          </CartButton>
-          <CartButton 
-            to="/cart"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <FaShoppingCart />
-            {totalItems > 0 && <CartBadge>{totalItems}</CartBadge>}
-          </CartButton>
-          <MobileMenuButton 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            {mobileMenuOpen ? <FaTimes /> : <FaBars />}
-          </MobileMenuButton>
-        </NavActions>
-      </NavContent>
+            <div className="md:hidden">
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-700 hover:text-blue-600">
+                {mobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <AnimatePresence>
         {searchOpen && (
-          <SearchContainer
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-          >
-            <SearchForm onSubmit={handleSearchSubmit}>
-              <SearchInput 
-                type="text" 
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-              />
-              <SearchButton type="submit">
-                <FaSearch />
-              </SearchButton>
-            </SearchForm>
-          </SearchContainer>
+          <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} className="absolute top-full left-0 right-0 bg-white shadow-md">
+            <form onSubmit={handleSearchSubmit} className="max-w-7xl mx-auto p-4 flex">
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search products..." className="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500"/>
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700"><FaSearch /></button>
+            </form>
+          </motion.div>
         )}
       </AnimatePresence>
-    </NavContainer>
+
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              {renderNavLinks()}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.nav>
   );
 };
-
-const NavContainer = styled(motion.nav)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: ${({ theme }) => theme.navHeight};
-  background-color: ${({ theme, $isScrolled }) => 
-    $isScrolled ? theme.background : 'transparent'};
-  box-shadow: ${({ theme, $isScrolled }) => 
-    $isScrolled ? theme.shadow : 'none'};
-  z-index: 1000;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  backdrop-filter: ${({ $isScrolled }) => 
-    $isScrolled ? 'blur(10px)' : 'none'};
-`;
-
-const NavContent = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-  padding: 0 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const LogoContainer = styled(Link)`
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-`;
-
-const LogoText = styled.h1`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.primary};
-  margin: 0;
-`;
-
-const LogoSpan = styled.span`
-  color: ${({ theme }) => theme.secondary};
-`;
-
-const NavLinks = styled.div`
-  display: flex;
-  gap: 20px;
-  
-  @media (max-width: 768px) {
-    position: absolute;
-    top: ${({ theme }) => theme.navHeight};
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    background-color: ${({ theme }) => theme.background};
-    box-shadow: ${({ theme }) => theme.shadow};
-    padding: 20px;
-    gap: 15px;
-    transform: ${({ $mobileMenuOpen }) => 
-      $mobileMenuOpen ? 'translateY(0)' : 'translateY(-100%)'}
-    opacity: ${({ $mobileMenuOpen }) => 
-      $mobileMenuOpen ? '1' : '0'};
-    visibility: ${({ $mobileMenuOpen }) => 
-      $mobileMenuOpen ? 'visible' : 'hidden'};
-    transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-    z-index: -1;
-  }
-`;
-
-const DropdownContainer = styled.div`
-  position: relative;
-  display: inline-block;
-
-  &:hover > div {
-    display: block;
-  }
-`;
-
-const DropdownMenu = styled.div`
-  display: none;
-  position: absolute;
-  background-color: ${({ theme }) => theme.cardBg};
-  min-width: 160px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  z-index: 1;
-  border-radius: 8px;
-  padding: 10px 0;
-`;
-
-const DropdownItem = styled(Link)`
-  color: ${({ theme }) => theme.text};
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.body};
-  }
-`;
-
-const NavLink = styled(motion(Link))`
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: ${({ theme, $isActive }) => 
-    $isActive ? theme.primary : theme.text};
-  text-decoration: none;
-  font-weight: ${({ $isActive }) => 
-    $isActive ? '600' : '400'};
-  padding: 5px 0;
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: ${({ $isActive }) => 
-      $isActive ? '100%' : '0'};
-    height: 2px;
-    background-color: ${({ theme }) => theme.primary};
-    transition: width 0.3s ease;
-  }
-  
-  &:hover::after {
-    width: 100%;
-  }
-  
-  @media (max-width: 768px) {
-    padding: 10px 0;
-  }
-`;
-
-const NavActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 15px;
-`;
-
-const IconButton = styled(motion.button)`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.text};
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-`;
-
-const CartButton = styled(motion(Link))`
-  position: relative;
-  color: ${({ theme }) => theme.text};
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  text-decoration: none;
-`;
-
-const CartBadge = styled.span`
-  position: absolute;
-  top: 0;
-  right: 0;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 600;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const MobileMenuButton = styled(IconButton)`
-  display: none;
-  
-  @media (max-width: 768px) {
-    display: flex;
-  }
-`;
-
-const SearchContainer = styled(motion.div)`
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: ${({ theme }) => theme.background};
-  padding: 15px;
-  box-shadow: ${({ theme }) => theme.shadow};
-`;
-
-const SearchForm = styled.form`
-  display: flex;
-  max-width: 600px;
-  margin: 0 auto;
-`;
-
-const SearchInput = styled.input`
-  flex: 1;
-  padding: 10px 15px;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 4px 0 0 4px;
-  font-size: 1rem;
-  outline: none;
-  
-  &:focus {
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const SearchButton = styled.button`
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  border: none;
-  border-radius: 0 4px 4px 0;
-  padding: 0 15px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.primary};
-    filter: brightness(1.1);
-  }
-`;
-
-const DropdownButton = styled.button`
-  color: ${({ theme }) => theme.text};
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.body};
-  }
-`;
 
 export default Navbar;
