@@ -1,122 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { fetchReviewsByProductId } from '../../api/productApi';
 import Loading from './Loading';
 import { FaStar, FaTimes } from 'react-icons/fa';
 
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const ModalContent = styled.div`
-  ${({ theme }) => theme.neumorphism(false, '20px')};
-  width: 90%;
-  max-width: 700px;
-  max-height: 80vh;
-  background: ${({ theme }) => theme.body};
-  border-radius: 20px;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-`;
-
-const ModalHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  h3 {
-    margin: 0;
-    color: ${({ theme }) => theme.text};
-  }
-`;
-
-const CloseButton = styled.button`
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 1.5rem;
-  ${({ theme }) => theme.neumorphism(false, '50%')};
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  &:active {
-    ${({ theme }) => theme.neumorphism(true, '50%')};
-  }
-`;
-
-const ReviewsList = styled.div`
-  overflow-y: auto;
-  padding-right: 10px; // for scrollbar
-`;
-
-const ReviewCard = styled.div`
-  ${({ theme }) => theme.neumorphism(true, '15px')};
-  padding: 20px;
-  margin-bottom: 20px;
-  display: flex;
-  gap: 20px;
-`;
-
-const Avatar = styled.img`
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-`;
-
-const ReviewContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-`;
-
-const ReviewHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const CustomerName = styled.h4`
-  margin: 0;
-  color: ${({ theme }) => theme.text};
-`;
-
-const RatingContainer = styled.div`
-  display: flex;
-  gap: 5px;
-  color: #f1c40f;
-`;
-
-const Comment = styled.p`
-  margin: 0;
-  color: ${({ theme }) => theme.textSecondary};
-  line-height: 1.5;
-`;
-
-const DateText = styled.span`
-  font-size: 0.8rem;
-  color: ${({ theme }) => theme.textSecondary};
-  align-self: flex-end;
-`;
-
 const StarRating = ({ rating }) => (
-  <RatingContainer>
-    {[...Array(5)].map((_, i) => <FaStar key={i} color={i < rating ? '#f1c40f' : '#e0e0e0'} />)}
-  </RatingContainer>
+  <div className="flex gap-1 text-yellow-400">
+    {[...Array(5)].map((_, i) => <FaStar key={i} color={i < rating ? 'currentColor' : '#e0e0e0'} />)}
+  </div>
 );
 
 const ProductReviewsModal = ({ product, onClose }) => {
@@ -126,43 +16,50 @@ const ProductReviewsModal = ({ product, onClose }) => {
   useEffect(() => {
     const getReviews = async () => {
       setLoading(true);
-            const data = await fetchReviewsByProductId(product.id);
-      setReviews(data.reviews);
-      setLoading(false);
+      try {
+        const data = await fetchReviewsByProductId(product.id);
+        setReviews(data.reviews);
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     getReviews();
   }, [product.id]);
 
   return (
-    <ModalOverlay onClick={onClose}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
-        <ModalHeader>
-          <h3>Reviews for {product.name}</h3>
-          <CloseButton onClick={onClose}><FaTimes /></CloseButton>
-        </ModalHeader>
-        <ReviewsList>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+          <h3 className="text-xl font-bold text-gray-800">Reviews for {product.name}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <FaTimes size={24} />
+          </button>
+        </div>
+        <div className="overflow-y-auto flex-grow pr-2 space-y-4">
           {loading ? (
             <Loading />
           ) : reviews.length > 0 ? (
             reviews.map(review => (
-              <ReviewCard key={review.id}>
-                <Avatar src={review.avatar} alt={review.customerName} />
-                <ReviewContent>
-                  <ReviewHeader>
-                    <CustomerName>{review.customerName}</CustomerName>
+              <div key={review.id} className="bg-gray-50 rounded-xl p-5 flex gap-4">
+                <img src={review.avatar} alt={review.customerName} className="w-12 h-12 rounded-full" />
+                <div className="flex-grow">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-bold text-gray-800">{review.customerName}</h4>
                     <StarRating rating={review.rating} />
-                  </ReviewHeader>
-                  <Comment>{review.comment}</Comment>
-                  <DateText>{review.date}</DateText>
-                </ReviewContent>
-              </ReviewCard>
+                  </div>
+                  <p className="text-gray-600 leading-relaxed">{review.comment}</p>
+                  <span className="text-xs text-gray-400 mt-2 text-right block">{review.date}</span>
+                </div>
+              </div>
             ))
           ) : (
-            <p>No reviews for this product yet.</p>
+            <p className="text-center text-gray-500 py-10">No reviews for this product yet.</p>
           )}
-        </ReviewsList>
-      </ModalContent>
-    </ModalOverlay>
+        </div>
+      </div>
+    </div>
   );
 };
 

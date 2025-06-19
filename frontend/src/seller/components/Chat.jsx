@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import styled from 'styled-components';
 import { FaPaperPlane, FaSearch, FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
 
-// Mock Data with message IDs
+// Mock Data
 const mockContacts = [
   { id: 1, name: 'Angel', avatar: 'https://i.pravatar.cc/150?u=alice' },
   { id: 2, name: 'Nash', avatar: 'https://i.pravatar.cc/150?u=bob' },
@@ -25,157 +24,6 @@ const mockMessages = {
   4: [], 5: [], 6: [], 7: [], 8: [],
 };
 
-// Styled Components
-const ChatContainer = styled.div`
-  display: flex; height: calc(100vh - 180px); background: ${({ theme }) => theme.body};
-  border-radius: 20px; ${({ theme }) => theme.neumorphism(false, '20px')}; overflow: hidden;
-`;
-const ContactList = styled.div`
-  width: 300px; border-right: 2px solid ${({ theme }) => theme.shadows.dark}; display: flex; flex-direction: column;
-  background: ${({ theme }) => theme.shadows.light};
-`;
-const SearchContainer = styled.div` padding: 15px; border-bottom: 2px solid ${({ theme }) => theme.shadows.dark}; `;
-const SearchInputWrapper = styled.div`
-  display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px;
-  ${({ theme }) => theme.neumorphism(true, '10px')};
-`;
-const SearchInput = styled.input`
-  border: none; background: transparent; width: 100%; color: ${({ theme }) => theme.text};
-  font-size: 0.9rem; &:focus { outline: none; }
-`;
-const ContactsWrapper = styled.div` overflow-y: auto; flex-grow: 1; `;
-const ConversationView = styled.div` flex-grow: 1; display: flex; flex-direction: column; `;
-const ChatHeader = styled.div`
-  padding: 15px 20px; border-bottom: 2px solid ${({ theme }) => theme.shadows.dark};
-  display: flex; align-items: center; gap: 15px; h3 { margin: 0; color: ${({ theme }) => theme.text}; }
-`;
-const Avatar = styled.img` width: 40px; height: 40px; border-radius: 50%; `;
-const MessageArea = styled.div`
-  flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
-`;
-
-const MessageWrapper = styled.div`
-  display: flex;
-  justify-content: ${({ sender }) => (sender === 'me' ? 'flex-end' : 'flex-start')};
-  align-items: center;
-  position: relative;
-
-  &:hover .options-button {
-    opacity: 1;
-  }
-`;
-
-const MessageBubble = styled.div`
-  max-width: 100%;
-  padding: 10px 15px;
-  border-radius: 18px;
-  
-  ${({ sender, theme }) => 
-    sender === 'me' 
-    ? `
-      background: #3498db;
-      color: white;
-    ` 
-    : `
-      color: ${theme.text};
-      background: ${theme.body};
-      ${theme.neumorphism(false, '18px')}
-    `}
-`;
-
-const MessageOptionsButton = styled.button`
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  background: transparent; border: none; cursor: pointer;
-  color: ${({ theme }) => theme.textSecondary};
-  padding: 5px;
-  margin: 0 5px;
-  align-self: center;
-`;
-
-const MessageDropdownMenu = styled.div`
-  ${({ theme }) => theme.neumorphism(false, '8px')}; position: absolute; top: 35px;
-  right: ${({ sender }) => (sender === 'me' ? '0' : 'auto')};
-  left: ${({ sender }) => (sender === 'me' ? 'auto' : '0')};
-  background: ${({ theme }) => theme.body}; border-radius: 8px; z-index: 10; width: 120px; overflow: hidden;
-`;
-
-const MessageDropdownItem = styled.button`
-  background: transparent; border: none; padding: 10px 15px; width: 100%; text-align: left; cursor: pointer;
-  color: ${({ theme, color }) => color || theme.textSecondary}; display: flex; align-items: center; gap: 10px;
-
-  &:hover {
-    background: ${({ theme }) => theme.shadows.light};
-  }
-`;
-
-const MessageInputContainer = styled.div`
-  padding: 15px 20px; display: flex; gap: 15px; align-items: center;
-  border-top: 2px solid ${({ theme }) => theme.shadows.dark};
-`;
-
-const MessageInput = styled.input`
-  flex-grow: 1; border: none; padding: 15px; border-radius: 15px;
-  background: ${({ theme }) => theme.body}; color: ${({ theme }) => theme.text};
-  ${({ theme }) => theme.neumorphism(true, '15px')};
-  &:focus { outline: none; }
-`;
-
-const SendButton = styled.button`
-  border: none; width: 50px; height: 50px; border-radius: 50%;
-  color: white;
-  background: #3498db;
-  cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
-  ${({ theme }) => theme.neumorphism(false, '50%')};
-  transition: all 0.2s ease-in-out;
-
-  &:hover { background: #2980b9; }
-  &:active { ${({ theme }) => theme.neumorphismPressed('50%')}; }
-`;
-
-const ContactItem = styled.div`
-  padding: 15px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer;
-  border-bottom: 1px solid ${({ theme }) => theme.shadows.dark};
-  background: ${({ active, theme }) => (active ? theme.shadows.dark : 'transparent')};
-  &:hover { background: ${({ theme }) => theme.shadows.light}; }
-`;
-
-const EditMessageForm = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 100%;
-`;
-
-const EditInput = styled.input`
-  width: 100%;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-`;
-
-const EditActions = styled.div`
-  display: flex;
-  gap: 5px;
-  justify-content: flex-end;
-
-  button {
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-
-    &:first-child {
-      background-color: #3498db;
-      color: white;
-    }
-
-    &:last-child {
-      background-color: #e0e0e0;
-    }
-  }
-`;
-
 const Chat = () => {
   const [selectedContact, setSelectedContact] = useState(mockContacts[0]);
   const [messages, setMessages] = useState(mockMessages);
@@ -184,7 +32,6 @@ const Chat = () => {
   const [openMessageMenuId, setOpenMessageMenuId] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editingMessageText, setEditingMessageText] = useState('');
-
   const messageEndRef = useRef(null);
 
   useEffect(() => {
@@ -195,8 +42,11 @@ const Chat = () => {
     if (newMessage.trim() === '' || !selectedContact) return;
     const newMsg = { id: Date.now(), sender: 'me', text: newMessage };
     const contactId = selectedContact.id;
-    const newMessages = { ...messages, [contactId]: [...(messages[contactId] || []), newMsg] };
-    setMessages(newMessages);
+    const updatedMessages = {
+      ...messages,
+      [contactId]: [...(messages[contactId] || []), newMsg],
+    };
+    setMessages(updatedMessages);
     setNewMessage('');
   };
 
@@ -234,69 +84,111 @@ const Chat = () => {
   );
 
   return (
-    <ChatContainer>
-      <ContactList>
-        <SearchContainer>
-          <SearchInputWrapper>
-            <FaSearch style={{ color: '#888' }} />
-            <SearchInput type="text" placeholder="Search contacts..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          </SearchInputWrapper>
-        </SearchContainer>
-        <ContactsWrapper>
+    <div className="flex h-[calc(100vh-120px)] bg-white rounded-2xl shadow-lg overflow-hidden">
+      {/* Contact List */}
+      <div className="w-1/3 border-r border-gray-200 flex flex-col bg-gray-50">
+        <div className="p-4 border-b border-gray-200">
+          <div className="relative">
+            <FaSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search contacts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-light"
+            />
+          </div>
+        </div>
+        <div className="flex-grow overflow-y-auto">
           {filteredContacts.map(contact => (
-            <ContactItem key={contact.id} onClick={() => setSelectedContact(contact)} active={selectedContact.id === contact.id}>
-              <Avatar src={contact.avatar} alt={contact.name} />
-              <span>{contact.name}</span>
-            </ContactItem>
+            <div
+              key={contact.id}
+              onClick={() => setSelectedContact(contact)}
+              className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-100 ${selectedContact?.id === contact.id ? 'bg-primary-light' : ''}`}
+            >
+              <img src={contact.avatar} alt={contact.name} className="w-12 h-12 rounded-full" />
+              <span className="font-semibold text-gray-800">{contact.name}</span>
+            </div>
           ))}
-        </ContactsWrapper>
-      </ContactList>
-      <ConversationView>
+        </div>
+      </div>
+
+      {/* Conversation View */}
+      <div className="w-2/3 flex flex-col">
         {selectedContact ? (
           <>
-            <ChatHeader>
-              <Avatar src={selectedContact.avatar} alt={selectedContact.name} />
-              <h3>{selectedContact.name}</h3>
-            </ChatHeader>
-            <MessageArea>
+            {/* Chat Header */}
+            <div className="p-4 border-b border-gray-200 flex items-center gap-4 bg-gray-50">
+              <img src={selectedContact.avatar} alt={selectedContact.name} className="w-12 h-12 rounded-full" />
+              <h3 className="text-xl font-bold text-gray-800">{selectedContact.name}</h3>
+            </div>
+
+            {/* Message Area */}
+            <div className="flex-grow p-6 overflow-y-auto bg-gray-100">
               {(messages[selectedContact.id] || []).map(msg => (
-                <MessageWrapper key={msg.id} sender={msg.sender}>
-                  {msg.sender === 'me' && (
-                    <MessageOptionsButton className="options-button" onClick={() => setOpenMessageMenuId(openMessageMenuId === msg.id ? null : msg.id)}>
-                      <FaEllipsisV />
-                    </MessageOptionsButton>
-                  )}
-                                    {editingMessageId === msg.id ? (
-                    <EditMessageForm onSubmit={(e) => { e.preventDefault(); handleSaveEdit(selectedContact.id, msg.id); }}>
-                      <EditInput type="text" value={editingMessageText} onChange={(e) => setEditingMessageText(e.target.value)} autoFocus />
-                      <EditActions>
-                        <button type="submit">Save</button>
-                        <button type="button" onClick={handleCancelEdit}>Cancel</button>
-                      </EditActions>
-                    </EditMessageForm>
-                  ) : (
-                    <MessageBubble sender={msg.sender}>{msg.text}</MessageBubble>
-                  )}
-                  {openMessageMenuId === msg.id && (
-                    <MessageDropdownMenu sender={msg.sender}>
-                                            <MessageDropdownItem onClick={() => handleEditMessage(msg)}><FaEdit /> Edit</MessageDropdownItem>
-                      <MessageDropdownItem color="#FF5722" onClick={() => handleDeleteMessage(selectedContact.id, msg.id)}><FaTrash /> Delete</MessageDropdownItem>
-                    </MessageDropdownMenu>
-                  )}
-                </MessageWrapper>
+                <div key={msg.id} className={`flex items-end gap-3 my-2 ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.sender === 'other' && <img src={selectedContact.avatar} alt={selectedContact.name} className="w-8 h-8 rounded-full" />}
+                  <div className="relative group">
+                    {editingMessageId === msg.id ? (
+                      <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(selectedContact.id, msg.id); }} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editingMessageText}
+                          onChange={(e) => setEditingMessageText(e.target.value)}
+                          className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-light"
+                          autoFocus
+                        />
+                        <button type="submit" className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">Save</button>
+                        <button type="button" onClick={handleCancelEdit} className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">Cancel</button>
+                      </form>
+                    ) : (
+                      <div className={`px-4 py-2 rounded-2xl max-w-lg ${msg.sender === 'me' ? 'bg-primary text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none'}`}>
+                        {msg.text}
+                      </div>
+                    )}
+                    {msg.sender === 'me' && editingMessageId !== msg.id && (
+                      <div className="absolute top-1/2 -left-8 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => setOpenMessageMenuId(openMessageMenuId === msg.id ? null : msg.id)} className="text-gray-500 hover:text-gray-800">
+                          <FaEllipsisV />
+                        </button>
+                        {openMessageMenuId === msg.id && (
+                          <div className="absolute bottom-full -left-2 mb-1 w-32 bg-white border rounded-lg shadow-xl z-10">
+                            <button onClick={() => handleEditMessage(msg)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"><FaEdit /> Edit</button>
+                            <button onClick={() => handleDeleteMessage(selectedContact.id, msg.id)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"><FaTrash /> Delete</button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               ))}
               <div ref={messageEndRef} />
-            </MessageArea>
-            <MessageInputContainer>
-              <MessageInput type="text" placeholder="Type a message..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSend()} />
-              <SendButton onClick={handleSend}><FaPaperPlane /></SendButton>
-            </MessageInputContainer>
+            </div>
+
+            {/* Message Input */}
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                  className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-light"
+                />
+                <button onClick={handleSend} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors">
+                  <FaPaperPlane />
+                </button>
+              </div>
+            </div>
           </>
         ) : (
-          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%'}}>Select a conversation</div>
+          <div className="flex items-center justify-center h-full text-gray-500">
+            Select a conversation to start chatting
+          </div>
         )}
-      </ConversationView>
-    </ChatContainer>
+      </div>
+    </div>
   );
 };
 

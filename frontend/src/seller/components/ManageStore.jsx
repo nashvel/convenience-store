@@ -1,118 +1,5 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import { FaSave, FaStore, FaClock, FaPhone, FaCreditCard } from 'react-icons/fa';
-
-const Container = styled.div`
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-`;
-
-const Title = styled.h1`
-  font-size: 2rem;
-  color: ${({ theme }) => theme.text};
-  margin: 0;
-`;
-
-const SaveButton = styled.button`
-  ${({ theme }) => theme.neumorphism(false, '15px')};
-  background: ${({ theme }) => theme.primary};
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    ${({ theme }) => theme.neumorphismActive(theme.primary, '15px')};
-  }
-`;
-
-const SettingsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-`;
-
-const Card = styled.div`
-  ${({ theme }) => theme.neumorphism(false, '20px')};
-  background: ${({ theme }) => theme.body};
-  border-radius: 20px;
-  padding: 25px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-`;
-
-const CardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-`;
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const Label = styled.label`
-  font-weight: 600;
-  color: ${({ theme }) => theme.textSecondary};
-`;
-
-const Input = styled.input`
-  ${({ theme }) => theme.neumorphism(true, '10px')};
-  background: ${({ theme }) => theme.body};
-  border: none;
-  padding: 12px 15px;
-  border-radius: 10px;
-  color: ${({ theme }) => theme.text};
-  width: 100%;
-`;
-
-const TimeInputContainer = styled.div`
-  display: flex;
-  gap: 15px;
-`;
-
-const LogoUploader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 20px;
-`;
-
-const LogoPreview = styled.img`
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  ${({ theme }) => theme.neumorphism(false, '50%')};
-`;
-
-const UploadButton = styled.label`
-  ${({ theme }) => theme.neumorphism(false, '10px')};
-  padding: 10px 15px;
-  cursor: pointer;
-  font-weight: 600;
-  color: ${({ theme }) => theme.textSecondary};
-`;
 
 const ManageStore = () => {
   const [storeName, setStoreName] = useState('My Awesome Store');
@@ -133,57 +20,77 @@ const ManageStore = () => {
     alert('Store settings saved!');
   };
 
+  const Card = ({ children }) => (
+    <div className="bg-white rounded-xl shadow-md p-6 flex flex-col gap-6">
+      {children}
+    </div>
+  );
+
+  const CardHeader = ({ icon, title }) => (
+    <div className="flex items-center gap-4 text-xl font-bold text-gray-700">
+      {icon} {title}
+    </div>
+  );
+
+  const FormGroup = ({ label, children }) => (
+    <div className="flex flex-col gap-2">
+      <label className="font-semibold text-gray-600">{label}</label>
+      {children}
+    </div>
+  );
+
+  const Input = (props) => (
+    <input {...props} className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary-light focus:border-primary-light outline-none transition-colors" />
+  );
+
   return (
-    <Container>
-      <Header>
-        <Title>Manage Store</Title>
-        <SaveButton onClick={handleSave}>
+    <div className="p-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Manage Store</h1>
+        <button onClick={handleSave} className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors">
           <FaSave />
           Save Changes
-        </SaveButton>
-      </Header>
+        </button>
+      </div>
 
-      <SettingsGrid>
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
         <Card>
-          <CardHeader><FaStore /> Store Details</CardHeader>
-          <FormGroup>
-            <Label>Store Name</Label>
+          <CardHeader icon={<FaStore />} title="Store Details" />
+          <FormGroup label="Store Name">
             <Input type="text" value={storeName} onChange={(e) => setStoreName(e.target.value)} />
           </FormGroup>
-          <FormGroup>
-            <Label>Store Logo</Label>
-            <LogoUploader>
-              <LogoPreview src={logo} alt="Store Logo" />
-              <UploadButton htmlFor="logo-upload">Change Logo</UploadButton>
-              <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
-            </LogoUploader>
+          <FormGroup label="Store Logo">
+            <div className="flex items-center gap-4">
+              <img src={logo} alt="Store Logo" className="w-20 h-20 rounded-full object-cover border-4 border-gray-100" />
+              <label htmlFor="logo-upload" className="cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">
+                Change Logo
+              </label>
+              <input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+            </div>
           </FormGroup>
         </Card>
 
         <Card>
-          <CardHeader><FaClock /> Operating Hours</CardHeader>
-          <FormGroup>
-            <Label>Opening & Closing Time</Label>
-            <TimeInputContainer>
+          <CardHeader icon={<FaClock />} title="Operating Hours" />
+          <FormGroup label="Opening & Closing Time">
+            <div className="flex gap-4">
               <Input type="time" value={openingTime} onChange={(e) => setOpeningTime(e.target.value)} />
               <Input type="time" value={closingTime} onChange={(e) => setClosingTime(e.target.value)} />
-            </TimeInputContainer>
+            </div>
           </FormGroup>
         </Card>
 
         <Card>
-          <CardHeader><FaPhone /> Contact & Payment</CardHeader>
-          <FormGroup>
-            <Label>Contact Number</Label>
+          <CardHeader icon={<FaPhone />} title="Contact & Payment" />
+          <FormGroup label="Contact Number">
             <Input type="tel" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
           </FormGroup>
-          <FormGroup>
-            <Label>Payment Methods</Label>
+          <FormGroup label="Payment Methods">
             <Input type="text" value={paymentMethods} onChange={(e) => setPaymentMethods(e.target.value)} placeholder="e.g., Visa, Mastercard, PayPal" />
           </FormGroup>
         </Card>
-      </SettingsGrid>
-    </Container>
+      </div>
+    </div>
   );
 };
 

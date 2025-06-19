@@ -1,49 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaEdit, FaTrash, FaPlus, FaMinus, FaEllipsisV, FaStar } from 'react-icons/fa';
 import ProductReviewsModal from './ProductReviewsModal';
 import { fetchAllProducts } from '../../api/productApi';
 import Loading from './Loading';
 
-// Expanded Mock Data
+const DropdownItem = ({ icon, label, onClick, className }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${className}`}>
+    {icon}
+    <span>{label}</span>
+  </button>
+);
 
+const ProductCard = ({ product, onStockChange, onDelete, onOpenMenu, openMenuId, onOpenReviews }) => {
+  const menuRef = useRef(null);
 
-// Styled Components
-const Container = styled.div` padding: 40px; `;
-const Header = styled.div` display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; `;
-const Title = styled.h1` font-size: 2rem; color: ${({ theme }) => theme.text}; margin: 0; `;
-const ViewOptions = styled.div` display: flex; align-items: center; gap: 15px; label { color: ${({ theme }) => theme.textSecondary}; font-weight: 600; } `;
-const SizeSlider = styled.input`
-  -webkit-appearance: none; width: 150px; height: 8px; border-radius: 5px; background: ${({ theme }) => theme.shadows.dark}; outline: none;
-  &::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: ${({ theme }) => theme.primary}; cursor: pointer; ${({ theme }) => theme.neumorphism(false, '50%')}; }
-  &::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: ${({ theme }) => theme.primary}; cursor: pointer; ${({ theme }) => theme.neumorphism(false, '50%')}; }
-`;
-const ProductGrid = styled.div` display: grid; grid-template-columns: repeat(auto-fill, minmax(${({ size }) => size}px, 1fr)); gap: 30px; `;
-const ProductCard = styled.div`
-  ${({ theme }) => theme.neumorphism(false, '20px')}; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; position: relative;
-`;
-const ProductImage = styled.img` width: 100%; height: 160px; object-fit: cover; `;
-const ProductInfo = styled.div` padding: 20px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; `;
-const ProductName = styled.h3` font-size: 1.2rem; color: ${({ theme }) => theme.text}; margin: 0; `;
-const ProductPrice = styled.p` font-size: 1.1rem; font-weight: 600; color: ${({ theme }) => theme.primary}; margin: 0; `;
-const CardFooter = styled.div` display: flex; justify-content: space-between; align-items: center; padding: 0 20px 20px; `;
-const StockControl = styled.div` display: flex; align-items: center; gap: 10px; `;
-const StockButton = styled.button`
-  ${({ theme }) => theme.neumorphism(false, '50%')}; width: 30px; height: 30px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  color: ${({ theme }) => theme.textSecondary}; font-size: 1rem;
-  &:active { ${({ theme }) => theme.neumorphism(true, '50%')}; }
-`;
-const StockDisplay = styled.span` font-size: 1.1rem; font-weight: 600; color: ${({ theme }) => theme.text}; `;
-const OptionsButton = styled(StockButton)` position: relative; `;
-const DropdownMenu = styled.div`
-  ${({ theme }) => theme.neumorphism(false, '10px')}; position: absolute; bottom: 60px; right: 20px; background: ${({ theme }) => theme.body};
-  border-radius: 10px; z-index: 10; overflow: hidden; width: 120px;
-`;
-const DropdownItem = styled.button`
-  background: transparent; border: none; padding: 12px 15px; width: 100%; text-align: left; cursor: pointer; color: ${({ theme }) => theme.textSecondary};
-  display: flex; align-items: center; gap: 10px;
-  &:hover { background: ${({ theme }) => theme.shadows.dark}; color: ${({ theme, color }) => color || theme.primary}; }
-`;
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        onOpenMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onOpenMenu]);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col relative transition-shadow duration-300 hover:shadow-xl">
+      <img src={product.imageUrl} alt={product.name} className="w-full h-40 object-cover" />
+      <div className="p-5 flex flex-col flex-grow">
+        <h3 className="text-lg font-bold text-gray-800 truncate">{product.name}</h3>
+        <p className="text-primary font-semibold text-md mt-1">${product.price.toFixed(2)}</p>
+      </div>
+      <div className="px-5 pb-4 border-t border-gray-100 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <button onClick={() => onStockChange(product.id, -1)} className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors flex items-center justify-center"><FaMinus /></button>
+          <span className="font-bold text-lg text-gray-800">{product.stock}</span>
+          <button onClick={() => onStockChange(product.id, 1)} className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors flex items-center justify-center"><FaPlus /></button>
+        </div>
+        <div className="relative" ref={menuRef}>
+          <button onClick={() => onOpenMenu(product.id)} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">
+            <FaEllipsisV />
+          </button>
+          {openMenuId === product.id && (
+            <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-20 py-1">
+              <DropdownItem icon={<FaEdit />} label="Edit" />
+              <DropdownItem icon={<FaStar />} label="View Reviews" onClick={() => onOpenReviews(product)} />
+              <div className="my-1 border-t border-gray-100"></div>
+              <DropdownItem icon={<FaTrash />} label="Delete" onClick={() => onDelete(product.id)} className="text-red-600 hover:bg-red-50" />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ManageProducts = () => {
   const [products, setProducts] = useState([]);
@@ -56,7 +68,7 @@ const ManageProducts = () => {
     const getProducts = async () => {
       try {
         const fetchedProducts = await fetchAllProducts();
-        setProducts(fetchedProducts.map(p => ({ ...p, imageUrl: p.image }))); // Adapt image property
+        setProducts(fetchedProducts.map(p => ({ ...p, imageUrl: p.image })));
       } catch (error) {
         console.error("Failed to fetch products:", error);
       } finally {
@@ -75,56 +87,58 @@ const ManageProducts = () => {
     setOpenMenuId(null);
   };
 
-    if (loading) {
+  const handleOpenMenu = (id) => {
+    setOpenMenuId(prevId => (prevId === id ? null : id));
+  };
+
+  const handleOpenReviews = (product) => {
+    setViewingReviewsFor(product);
+    setOpenMenuId(null);
+  };
+
+  if (loading) {
     return <Loading />;
   }
 
   return (
-    <Container>
-      <Header>
-        <Title>Manage Products</Title>
-        <ViewOptions>
-          <label htmlFor="size-slider">View Size</label>
-          <SizeSlider id="size-slider" type="range" min="240" max="400" value={cardSize} onChange={(e) => setCardSize(e.target.value)} />
-        </ViewOptions>
-      </Header>
-      <ProductGrid size={cardSize}>
+    <div className="p-8">
+      <header className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Manage Products</h1>
+        <div className="flex items-center gap-4">
+          <label htmlFor="size-slider" className="font-semibold text-gray-600">Card Size</label>
+          <input 
+            id="size-slider" 
+            type="range" 
+            min="250" 
+            max="400" 
+            value={cardSize} 
+            onChange={(e) => setCardSize(e.target.value)} 
+            className="w-40 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+          />
+        </div>
+      </header>
+      <div 
+        className="grid gap-8"
+        style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${cardSize}px, 1fr))` }}>
         {products.map(product => (
-          <ProductCard key={product.id}>
-            <ProductImage src={product.imageUrl} alt={product.name} />
-            <ProductInfo>
-              <ProductName>{product.name}</ProductName>
-              <ProductPrice>${product.price.toFixed(2)}</ProductPrice>
-            </ProductInfo>
-            <CardFooter>
-              <StockControl>
-                <StockButton onClick={() => handleStockChange(product.id, -1)}><FaMinus /></StockButton>
-                <StockDisplay>{product.stock}</StockDisplay>
-                <StockButton onClick={() => handleStockChange(product.id, 1)}><FaPlus /></StockButton>
-              </StockControl>
-              <OptionsButton onClick={() => setOpenMenuId(openMenuId === product.id ? null : product.id)}>
-                <FaEllipsisV />
-              </OptionsButton>
-            </CardFooter>
-            {openMenuId === product.id && (
-              <DropdownMenu>
-                <DropdownItem><FaEdit /> Edit</DropdownItem>
-                <DropdownItem color="#FF5722" onClick={() => handleDelete(product.id)}><FaTrash /> Delete</DropdownItem>
-                <DropdownItem onClick={() => { setViewingReviewsFor(product); setOpenMenuId(null); }}>
-                  <FaStar /> View Reviews
-                </DropdownItem>
-              </DropdownMenu>
-            )}
-          </ProductCard>
+          <ProductCard 
+            key={product.id} 
+            product={product}
+            onStockChange={handleStockChange}
+            onDelete={handleDelete}
+            onOpenMenu={handleOpenMenu}
+            openMenuId={openMenuId}
+            onOpenReviews={handleOpenReviews}
+          />
         ))}
-      </ProductGrid>
+      </div>
       {viewingReviewsFor && 
         <ProductReviewsModal 
           product={viewingReviewsFor} 
           onClose={() => setViewingReviewsFor(null)} 
         />
       }
-    </Container>
+    </div>
   );
 };
 

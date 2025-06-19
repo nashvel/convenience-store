@@ -1,61 +1,4 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
-
-const FormCard = styled.div`
-  ${({ theme }) => theme.neumorphism(false, '20px')};
-  padding: 40px;
-  max-width: 600px;
-  margin: 0 auto;
-`;
-
-const FormTitle = styled.h2`
-  font-size: 1.8rem;
-  margin-bottom: 30px;
-  color: ${({ theme }) => theme.text};
-  text-align: center;
-  font-weight: 600;
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-`;
-
-const Input = styled.input`
-  ${({ theme }) => theme.neumorphismPressed('15px')};
-  border: none;
-  outline: none;
-  padding: 18px;
-  font-size: 1rem;
-  color: ${({ theme }) => theme.text};
-  width: 100%;
-
-  &::placeholder {
-    color: ${({ theme }) => theme.textSecondary};
-  }
-`;
-
-const Button = styled.button`
-  ${({ theme }) => theme.neumorphism(false, '15px')};
-  border: none;
-  outline: none;
-  padding: 18px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.textSecondary};
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    color: ${({ theme }) => theme.primary};
-  }
-
-  &:active, &:disabled {
-    ${({ theme }) => theme.neumorphismPressed('15px')};
-    color: ${({ theme }) => theme.primary};
-  }
-`;
 
 const AddProduct = () => {
   const [productData, setProductData] = useState({
@@ -94,46 +37,55 @@ const AddProduct = () => {
   };
 
   return (
-    <FormCard>
-      <FormTitle>Add a New Product</FormTitle>
-      <Form onSubmit={handleSubmit}>
-        <Input
-          type="text"
-          name="name"
-          value={productData.name}
-          onChange={handleChange}
-          placeholder="Product Name"
-          required
-        />
-        <Input
-          type="number"
-          name="price"
-          value={productData.price}
-          onChange={handleChange}
-          placeholder="Price"
-          required
-        />
-        <Input
-          type="text"
-          name="category"
-          value={productData.category}
-          onChange={handleChange}
-          placeholder="Category"
-          required
-        />
-        <Input
-          type="text"
-          name="image"
-          value={productData.image}
-          onChange={handleChange}
-          placeholder="Image URL"
-          required
-        />
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Adding...' : 'Add Product'}
-        </Button>
-      </Form>
-    </FormCard>
+    <div className="p-8">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+        <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Add a New Product</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <input
+            type="text"
+            name="name"
+            value={productData.name}
+            onChange={handleChange}
+            placeholder="Product Name"
+            required
+            className="w-full px-5 py-3.5 border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary-light focus:border-primary-light outline-none transition-colors"
+          />
+          <input
+            type="number"
+            name="price"
+            value={productData.price}
+            onChange={handleChange}
+            placeholder="Price"
+            required
+            className="w-full px-5 py-3.5 border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary-light focus:border-primary-light outline-none transition-colors"
+          />
+          <input
+            type="text"
+            name="category"
+            value={productData.category}
+            onChange={handleChange}
+            placeholder="Category"
+            required
+            className="w-full px-5 py-3.5 border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary-light focus:border-primary-light outline-none transition-colors"
+          />
+          <input
+            type="text"
+            name="image"
+            value={productData.image}
+            onChange={handleChange}
+            placeholder="Image URL"
+            required
+            className="w-full px-5 py-3.5 border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary-light focus:border-primary-light outline-none transition-colors"
+          />
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-primary text-white font-bold py-4 px-4 rounded-lg hover:bg-primary-dark transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+            {loading ? 'Adding...' : 'Add Product'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 

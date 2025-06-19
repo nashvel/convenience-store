@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
 import { FaStar, FaShoppingBag, FaArrowRight, FaStore, FaMobileAlt, FaDownload } from 'react-icons/fa';
@@ -25,526 +24,143 @@ const Home = () => {
   const featuredProducts = [...allProducts].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)).slice(0, 4);
 
   if (loading) {
-    return <LoadingContainer>Loading products...</LoadingContainer>;
+    return <div className="flex items-center justify-center h-[calc(100vh-80px)]">Loading products...</div>;
   }
 
   if (error) {
-    return <ErrorContainer>{error}</ErrorContainer>;
+    return <div className="flex items-center justify-center h-[calc(100vh-80px)] text-red-500">{error}</div>;
   }
 
+  const buttonBaseClasses = "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const primaryButtonClasses = `${buttonBaseClasses} bg-primary text-white hover:bg-primary-dark focus:ring-primary`;
+  const secondaryButtonClasses = `${buttonBaseClasses} bg-transparent text-primary border-2 border-primary hover:bg-primary hover:text-white focus:ring-primary`;
+
   return (
-    <HomeContainer
+    <motion.div
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10 md:pt-24 md:pb-16"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <HeroSection>
-        <HeroContent>
-          <HeroTitle
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+      <section className="grid md:grid-cols-2 items-center gap-12 mb-20 md:mb-24">
+        <div className="md:order-1 text-center md:text-left">
+          <motion.h1 
+            className="text-4xl md:text-5xl font-bold leading-tight mb-5 text-gray-800"
+            initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }}
           >
-            Quick and Easy <GradientText>Shopping</GradientText> at Your Fingertips
-          </HeroTitle>
-          <HeroSubtitle
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
+            Quick and Easy <span className="text-primary">Shopping</span> at Your Fingertips
+          </motion.h1>
+          <motion.p 
+            className="text-lg text-gray-600 mb-8"
+            initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}
           >
-            Order your favorite convenience store items with just a few clicks
-          </HeroSubtitle>
-          <HeroButtons
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
+            Order your favorite convenience store items with just a few clicks.
+          </motion.p>
+          <motion.div 
+            className="flex gap-4 justify-center md:justify-start"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.5 }}
           >
-            <PrimaryButton to={categories.length > 0 ? `/products?category=${categories[0].name}` : '/products'}>
+            <Link to={categories.length > 0 ? `/products?category=${categories[0].name}` : '/products'} className={primaryButtonClasses}>
               Shop Now <FaArrowRight />
-            </PrimaryButton>
-            <SecondaryButton onClick={handleGetAppClick}>
+            </Link>
+            <button onClick={handleGetAppClick} className={secondaryButtonClasses}>
               Get the App <FaDownload />
-            </SecondaryButton>
-          </HeroButtons>
-        </HeroContent>
-        <HeroImageContainer
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
+            </button>
+          </motion.div>
+        </div>
+        <motion.div 
+          className="md:order-2"
+          initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <HeroImage src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Convenience Store" />
-        </HeroImageContainer>
-      </HeroSection>
+          <img src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Convenience Store" className="rounded-lg shadow-lg w-full h-auto" />
+        </motion.div>
+      </section>
 
-      <Section>
-        <SectionHeader>
-          <SectionTitle><FaStar /> Featured Products</SectionTitle>
-          <ViewAllLink to="/products">View All</ViewAllLink>
-        </SectionHeader>
-        <ProductGrid>
-          {featuredProducts.slice(0, 4).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </ProductGrid>
-      </Section>
+      <section className="mb-16">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FaStar className="text-yellow-400"/> Featured Products</h2>
+          <Link to="/products" className="text-primary font-medium hover:underline">View All</Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          {featuredProducts.map((product) => <ProductCard key={product.id} product={product} />)}
+        </div>
+      </section>
 
-      <Section>
-        <SectionHeader>
-          <SectionTitle><FaShoppingBag /> Shop by Category</SectionTitle>
-        </SectionHeader>
-        <CategoryGrid>
+      <section className="mb-16">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FaShoppingBag className="text-primary" /> Shop by Category</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {categories.map((category) => (
-            <CategoryCard 
-              key={category.id} 
-              to={`/products?category=${category.name}`}
-              whileHover={{ y: -10, transition: { duration: 0.3 } }}
-            >
-              <CategoryIcon className={`fa fa-${category.icon}`} />
-              <CategoryName>{category.name}</CategoryName>
-            </CategoryCard>
+            <motion.div key={category.id} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+              <Link to={`/products?category=${category.name}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg">
+                <i className={`fa fa-${category.icon} text-3xl text-primary mb-3`}></i>
+                <h3 className="font-semibold text-gray-700">{category.name}</h3>
+              </Link>
+            </motion.div>
           ))}
-        </CategoryGrid>
-      </Section>
+        </div>
+      </section>
 
       {stores && stores.length > 0 && (
-        <Section>
-          <SectionHeader>
-            <SectionTitle><FaStore /> Shop by Store</SectionTitle>
-            <ViewAllLink to="/stores">View All</ViewAllLink>
-          </SectionHeader>
-          <StoreGrid>
-            {stores.slice(0, 4).map((store) => (
-              <StoreCard 
-                key={store.id} 
-                to={`/stores/${store.id}/${slugify(store.name)}`}
-                whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              >
-                <StoreLogo src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} />
-                <StoreName>{store.name}</StoreName>
-              </StoreCard>
+        <section className="mb-16">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FaStore className="text-primary" /> Shop by Store</h2>
+            <Link to="/stores" className="text-primary font-medium hover:underline">View All</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {stores.slice(0, 6).map((store) => (
+              <motion.div key={store.id} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+                <Link to={`/store/${store.id}/${slugify(store.name)}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg h-full">
+                  <img src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} className="w-20 h-20 object-contain mb-4" />
+                  <h3 className="font-semibold text-gray-700">{store.name}</h3>
+                </Link>
+              </motion.div>
             ))}
-          </StoreGrid>
-        </Section>
+          </div>
+        </section>
       )}
 
-      <AppPromoSection id="mobileapp">
-        <AppPromoContent>
-          <SectionTitle><FaMobileAlt /> Get Our App</SectionTitle>
-          <PromoDescription>Shop on the go and get exclusive deals with our mobile app. Download now and enjoy a seamless shopping experience.</PromoDescription>
-          <AppBadges>
-            <a href="#" target="_blank" rel="noopener noreferrer"><AppBadgeImg src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="Download on the App Store" /></a>
-            <a href="#" target="_blank" rel="noopener noreferrer"><AppBadgeImg src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" /></a>
-          </AppBadges>
-        </AppPromoContent>
-        <AppPromoImage src={NashSvg} alt="Mobile App Promo" />
-      </AppPromoSection>
+      <section className="grid md:grid-cols-2 gap-8 mb-16">
+        <div className="bg-cyan-50 rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row items-center">
+          <div className="p-8 flex-1">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">Fresh Groceries</h3>
+            <p className="text-gray-600 mb-4">Delivered to your door in minutes.</p>
+            <Link to="/products?category=Groceries" className={`${primaryButtonClasses} text-sm`}>Shop Now</Link>
+          </div>
+          <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Groceries" className="w-full md:w-48 h-48 object-cover" />
+        </div>
+        <div className="bg-yellow-50 rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row items-center">
+          <div className="p-8 flex-1">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">Snacks & Drinks</h3>
+            <p className="text-gray-600 mb-4">Your favorite treats, ready to enjoy.</p>
+            <Link to="/products?category=Snacks" className={`${primaryButtonClasses} text-sm`}>Order Now</Link>
+          </div>
+          <img src="https://images.unsplash.com/photo-1551024601-bec78d8d590d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Snacks" className="w-full md:w-48 h-48 object-cover" />
+        </div>
+      </section>
 
-      <PromoSection>
-        <PromoCard $bgColor="#FFF3E0">
-          <PromoContent>
-            <PromoTitle>Free Delivery</PromoTitle>
-            <PromoDescription>On your first order over ₱15</PromoDescription>
-            <PromoButton to="/products">Order Now</PromoButton>
-          </PromoContent>
-          <PromoImage src="https://images.unsplash.com/photo-1586999768265-24af89630739?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Delivery" />
-        </PromoCard>
-        
-        <PromoCard $bgColor="#E3F2FD">
-          <PromoContent>
-            <PromoTitle>Weekly Deals</PromoTitle>
-            <PromoDescription>Save up to 25% on selected items</PromoDescription>
-            <PromoButton to="/products?deals=true">See Deals</PromoButton>
-          </PromoContent>
-          <PromoImage src="https://images.unsplash.com/photo-1607082350899-7e105aa886ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Deals" />
-        </PromoCard>
-      </PromoSection>
-    </HomeContainer>
+      <section id="mobileapp" className="bg-white rounded-lg shadow-lg p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+        <div className="flex-1 text-center md:text-left">
+          <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3 mb-4"><FaMobileAlt className="text-primary"/> Get Our App!</h2>
+          <p className="text-lg text-gray-600">Experience seamless shopping on the go. Download the Nash app for exclusive deals and faster checkout.</p>
+          <div className="flex gap-4 mt-6 justify-center md:justify-start">
+            <a href="#" target="_blank" rel="noopener noreferrer" className="transition-transform duration-300 hover:scale-105">
+              <img src="/google-play-badge.png" alt="Get it on Google Play" className="h-12" />
+            </a>
+            <a href="#" target="_blank" rel="noopener noreferrer" className="transition-transform duration-300 hover:scale-105">
+              <img src="/app-store-badge.png" alt="Download on the App Store" className="h-12" />
+            </a>
+          </div>
+        </div>
+        <div className="mt-8 md:mt-0">
+          <img src={NashSvg} alt="Nash App" className="w-64 h-auto" />
+        </div>
+      </section>
+
+    </motion.div>
   );
 };
-
-const HomeContainer = styled(motion.div)`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 80px 20px 40px;
-  
-  @media (max-width: 768px) {
-    padding: 70px 15px 30px;
-  }
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: ${({ theme }) => theme.primary};
-`;
-
-const ErrorContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: ${({ theme }) => theme.error};
-`;
-
-const HeroSection = styled.section`
-  display: flex;
-  align-items: center;
-  gap: 40px;
-  margin-bottom: 60px;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    text-align: center;
-    gap: 30px;
-  }
-`;
-
-const HeroContent = styled.div`
-  flex: 1;
-`;
-
-const HeroTitle = styled(motion.h1)`
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.text};
-  
-  @media (max-width: 768px) {
-    font-size: 2rem;
-  }
-`;
-
-const GradientText = styled.span`
-  background: ${({ theme }) => theme.gradientPrimary};
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-`;
-
-const HeroSubtitle = styled(motion.p)`
-  font-size: 1.1rem;
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 30px;
-  
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
-`;
-
-const HeroButtons = styled(motion.div)`
-  display: flex;
-  gap: 15px;
-  
-  @media (max-width: 768px) {
-    justify-content: center;
-  }
-`;
-
-const buttonStyles = `
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 12px 28px;
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 1rem;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: 2px solid transparent;
-`;
-
-const PrimaryButton = styled(Link)`
-  ${buttonStyles}
-  background: ${({ theme }) => `linear-gradient(45deg, ${theme.primary}, ${theme.secondary})`};
-  color: white;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  }
-`;
-
-const SecondaryButton = styled.button`
-  ${buttonStyles}
-  background-color: transparent;
-  color: ${({ theme }) => theme.text};
-  border-color: ${({ theme }) => theme.primary};
-
-  &:hover {
-    background-color: ${({ theme }) => theme.primary};
-    color: white;
-    transform: translateY(-3px);
-  }
-`;
-
-const HeroImageContainer = styled(motion.div)`
-  flex: 1;
-  max-width: 500px;
-`;
-
-const HeroImage = styled.img`
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
-  box-shadow: ${({ theme }) => theme.shadow};
-`;
-
-const Section = styled.section`
-  margin-bottom: 60px;
-`;
-
-const SectionHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  
-  svg {
-    color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const ViewAllLink = styled(Link)`
-  color: ${({ theme }) => theme.secondary};
-  font-weight: 500;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const ProductGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 25px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 15px;
-  }
-`;
-
-const CategoryGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 15px;
-  }
-`;
-
-const CategoryCard = styled(motion(Link))`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 8px;
-  padding: 20px;
-  text-decoration: none;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-5px);
-  }
-`;
-
-const CategoryIcon = styled.i`
-  font-size: 2rem;
-  color: ${({ theme }) => theme.primary};
-  margin-bottom: 10px;
-`;
-
-const CategoryName = styled.h3`
-  font-size: 1rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.text};
-  text-align: center;
-`;
-
-const StoreGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
-`;
-
-const StoreCard = styled(motion(Link))`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 8px;
-  padding: 20px;
-  text-decoration: none;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-5px);
-  }
-`;
-
-const StoreLogo = styled.img`
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  margin-bottom: 15px;
-`;
-
-const StoreName = styled.h3`
-  font-size: 1rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.text};
-  text-align: center;
-`;
-
-const PromoSection = styled.section`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin-bottom: 60px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-`;
-
-const PromoCard = styled.div`
-  display: flex;
-  background-color: ${props => props.$bgColor};
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-`;
-
-const PromoContent = styled.div`
-  flex: 1;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-`;
-
-const PromoTitle = styled.h3`
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const PromoDescription = styled.p`
-  font-size: 1rem;
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 20px;
-`;
-
-const PromoButton = styled(Link)`
-  align-self: flex-start;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    filter: brightness(1.1);
-  }
-  
-  @media (max-width: 768px) {
-    align-self: center;
-  }
-`;
-
-const PromoImage = styled.img`
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-    height: 120px;
-    order: -1;
-  }
-`;
-
-const AppPromoSection = styled(Section)`
-  background: ${({ theme }) => theme.cardBg};
-  border-radius: 12px;
-  padding: 40px;
-  display: flex;
-  align-items: center;
-  gap: 40px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    padding: 30px;
-  }
-`;
-
-const AppPromoContent = styled.div`
-  flex: 1;
-`;
-
-const AppPromoImage = styled.img`
-  width: 250px;
-  height: auto;
-  border-radius: 12px;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    max-width: 200px;
-    margin-top: 20px;
-  }
-`;
-
-const AppBadges = styled.div`
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-
-  @media (max-width: 768px) {
-    justify-content: center;
-  }
-`;
-
-const AppBadgeImg = styled.img`
-  height: 45px;
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
-`;
 
 export default Home;

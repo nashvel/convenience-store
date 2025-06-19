@@ -1,5 +1,4 @@
 import React from 'react';
-import styled from 'styled-components';
 
 // Mock Data
 const salesSummary = {
@@ -16,129 +15,61 @@ const recentTransactions = [
   { id: 'TRX005', customer: 'Eve', date: '2024-07-19', amount: 250.90, status: 'Pending' },
 ];
 
-const ViewSalesContainer = styled.div``;
+const StatusBadge = ({ status }) => {
+  const baseClasses = 'px-3 py-1 rounded-full font-semibold text-xs';
+  const statusClasses = {
+    Completed: 'bg-green-100 text-green-800',
+    Shipped: 'bg-blue-100 text-blue-800',
+    Pending: 'bg-yellow-100 text-yellow-800',
+  };
 
-const SummaryContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 30px;
-  margin-bottom: 40px;
-`;
+  return <span className={`${baseClasses} ${statusClasses[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
+};
 
-const SummaryCard = styled.div`
-  ${({ theme }) => theme.neumorphism(false, '20px')};
-  padding: 25px;
-`;
-
-const CardTitle = styled.h3`
-  font-size: 1rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 10px;
-`;
-
-const CardValue = styled.p`
-  font-size: 2rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-`;
-
-const TableContainer = styled.div`
-  ${({ theme }) => theme.neumorphism(false, '20px')};
-  padding: 30px;
-`;
-
-const TableTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 20px;
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
-
-const Th = styled.th`
-  text-align: left;
-  padding: 15px 0;
-  color: ${({ theme }) => theme.textSecondary};
-  font-weight: 600;
-  border-bottom: 2px solid ${({ theme }) => theme.shadows.dark};
-`;
-
-const Td = styled.td`
-  padding: 20px 0;
-  border-bottom: 1px solid ${({ theme }) => theme.shadows.dark}22;
-  color: ${({ theme }) => theme.text};
-`;
-
-const StatusBadge = styled.span`
-  padding: 8px 15px;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: white;
-  
-  ${({ status, theme }) => {
-    let color = theme.textSecondary;
-    if (status === 'Completed') color = '#28a745'; // Green
-    if (status === 'Shipped') color = theme.primary;
-    if (status === 'Pending') color = '#ffc107'; // Yellow
-    
-    return `
-      background: ${color};
-      box-shadow: inset 2px 2px 4px ${color}BF, 
-                  inset -2px -2px 4px ${color}FF;
-    `;
-  }};
-`;
+const SummaryCard = ({ title, value }) => (
+  <div className="bg-white rounded-xl shadow-md p-6">
+    <h3 className="text-gray-500 font-medium mb-2">{title}</h3>
+    <p className="text-3xl font-bold text-gray-800">{value}</p>
+  </div>
+);
 
 const ViewSales = () => {
   return (
-    <ViewSalesContainer>
-      <SummaryContainer>
-        <SummaryCard>
-          <CardTitle>Total Revenue</CardTitle>
-          <CardValue>₱{salesSummary.totalRevenue.toLocaleString()}</CardValue>
-        </SummaryCard>
-        <SummaryCard>
-          <CardTitle>Total Orders</CardTitle>
-          <CardValue>{salesSummary.totalOrders}</CardValue>
-        </SummaryCard>
-        <SummaryCard>
-          <CardTitle>Average Order Value</CardTitle>
-          <CardValue>₱{salesSummary.averageOrderValue.toFixed(2)}</CardValue>
-        </SummaryCard>
-      </SummaryContainer>
+    <div className="p-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+        <SummaryCard title="Total Revenue" value={`₱${salesSummary.totalRevenue.toLocaleString()}`} />
+        <SummaryCard title="Total Orders" value={salesSummary.totalOrders} />
+        <SummaryCard title="Average Order Value" value={`₱${salesSummary.averageOrderValue.toFixed(2)}`} />
+      </div>
 
-      <TableContainer>
-        <TableTitle>Recent Transactions</TableTitle>
-        <Table>
-          <thead>
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-2xl font-bold text-gray-800">Recent Transactions</h2>
+        </div>
+        <table className="w-full text-left">
+          <thead className="bg-gray-50">
             <tr>
-              <Th>Order ID</Th>
-              <Th>Customer</Th>
-              <Th>Date</Th>
-              <Th>Amount</Th>
-              <Th>Status</Th>
+              <th className="p-4 text-gray-600 font-semibold uppercase text-sm">Order ID</th>
+              <th className="p-4 text-gray-600 font-semibold uppercase text-sm">Customer</th>
+              <th className="p-4 text-gray-600 font-semibold uppercase text-sm">Date</th>
+              <th className="p-4 text-gray-600 font-semibold uppercase text-sm">Amount</th>
+              <th className="p-4 text-gray-600 font-semibold uppercase text-sm">Status</th>
             </tr>
           </thead>
           <tbody>
-            {recentTransactions.map(tx => (
-              <tr key={tx.id}>
-                <Td>{tx.id}</Td>
-                <Td>{tx.customer}</Td>
-                <Td>{tx.date}</Td>
-                <Td>₱{tx.amount.toFixed(2)}</Td>
-                <Td><StatusBadge status={tx.status}>{tx.status}</StatusBadge></Td>
+            {recentTransactions.map((tx, index) => (
+              <tr key={tx.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                <td className="p-4 border-t border-gray-200 text-gray-700">{tx.id}</td>
+                <td className="p-4 border-t border-gray-200 text-gray-700">{tx.customer}</td>
+                <td className="p-4 border-t border-gray-200 text-gray-700">{tx.date}</td>
+                <td className="p-4 border-t border-gray-200 text-gray-700">₱{tx.amount.toFixed(2)}</td>
+                <td className="p-4 border-t border-gray-200 text-gray-700"><StatusBadge status={tx.status} /></td>
               </tr>
             ))}
           </tbody>
-        </Table>
-      </TableContainer>
-    </ViewSalesContainer>
+        </table>
+      </div>
+    </div>
   );
 };
 

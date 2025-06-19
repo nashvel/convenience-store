@@ -1,10 +1,8 @@
 import React, { useContext, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes } from 'react-icons/fa';
 import { StoreContext } from '../../context/StoreContext';
-
 import Reviews from '../../components/Reviews';
 import { PRODUCT_ASSET_URL } from '../../config';
 
@@ -31,24 +29,24 @@ const ProductDetails = () => {
   };
 
   if (loading) {
-    return <ProductDetailsContainer><h2>Loading...</h2></ProductDetailsContainer>;
+    return <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center"><h2>Loading...</h2></div>;
   }
 
   if (error) {
     return (
-      <ErrorContainer>
-        <h2>{error}</h2>
-        <BackButton to="/products">Back to Products</BackButton>
-      </ErrorContainer>
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center">
+        <h2 className="text-2xl font-bold mb-4">{error}</h2>
+        <Link to="/products" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Back to Products</Link>
+      </div>
     );
   }
 
   if (!product) {
     return (
-      <ErrorContainer>
-        <h2>Product not found</h2>
-        <BackButton to="/products">Back to Products</BackButton>
-      </ErrorContainer>
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center">
+        <h2 className="text-2xl font-bold mb-4">Product not found</h2>
+        <Link to="/products" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Back to Products</Link>
+      </div>
     );
   }
 
@@ -56,449 +54,109 @@ const ProductDetails = () => {
   const isOutOfStock = !product || Number(product.stock) <= 0;
 
   return (
-    <ProductDetailsContainer
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12"
     >
-      <BackLink to="/products">
+      <Link to="/products" className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 font-medium mb-6">
         <FaArrowLeft /> Back to Products
-      </BackLink>
+      </Link>
       
-      <ProductContent>
-        <ProductImageSection>
-          <ProductImage src={`${PRODUCT_ASSET_URL}/${product.image}`} alt={product.name} />
-          <FavoriteButton 
+      <div className="grid md:grid-cols-2 gap-8">
+        <div className="relative rounded-lg overflow-hidden bg-gray-100 shadow-sm">
+          <img src={`${PRODUCT_ASSET_URL}/${product.image}`} alt={product.name} className="w-full h-auto aspect-square object-cover"/>
+          <button 
             onClick={() => toggleFavorite(product.id)}
-            $isFavorite={favorite}
+            className={`absolute top-4 right-4 bg-white/80 backdrop-blur-sm rounded-full w-10 h-10 flex items-center justify-center text-2xl transition-colors duration-300 ${favorite ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}
           >
             {favorite ? <FaHeart /> : <FaRegHeart />}
-          </FavoriteButton>
-        </ProductImageSection>
+          </button>
+        </div>
         
-        <ProductInfo>
-          <ProductCategory>{product.category}</ProductCategory>
-          <ProductTitle>{product.name}</ProductTitle>
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold text-gray-500 uppercase mb-1">{product.category}</span>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{product.name}</h1>
           {store && (
-            <StoreInfo to={`/stores/${store.id}`}>
+            <Link to={`/stores/${store.id}`} className="text-gray-600 hover:text-blue-600 mb-4">
               Sold by {store.name}
-            </StoreInfo>
+            </Link>
           )}
           
-          <PriceContainer>
-            <CurrentPrice>
+          <div className="flex items-center gap-2 mb-4">
+            <p className="text-3xl font-bold text-blue-600">
               ₱{product && product.price ? Number(product.price).toFixed(2) : '0.00'}
-            </CurrentPrice>
-          </PriceContainer>
+            </p>
+          </div>
           
-          <StockStatus>
-            {isOutOfStock ? (
-              <OutOfStock>
-                <FaTimes /> Out of Stock
-              </OutOfStock>
-            ) : (
-              <InStock>
-                <FaCheck /> In Stock ({product.stock} available)
-              </InStock>
-            )}
-          </StockStatus>
+          <div className={`flex items-center gap-2 font-semibold mb-4 ${isOutOfStock ? 'text-red-600' : 'text-green-600'}`}>
+            {isOutOfStock ? <FaTimes /> : <FaCheck />} {isOutOfStock ? 'Out of Stock' : `In Stock (${product.stock} available)`}
+          </div>
           
-          <RatingContainer>
+          <div className="flex items-center gap-1 mb-5">
             {[...Array(5)].map((_, i) => (
-              <StarIcon key={i} $filled={i < Math.floor(product.rating)}>
-                <FaStar />
-              </StarIcon>
+              <FaStar key={i} className={i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300'} />
             ))}
-            <RatingText>({product && product.rating ? product.rating.toFixed(1) : '0.0'})</RatingText>
-          </RatingContainer>
+            <span className="text-gray-600 ml-2">({product && product.rating ? product.rating.toFixed(1) : '0.0'})</span>
+          </div>
           
-          <Divider />
+          <hr className="my-5"/>
           
-          <ProductDescription>{product.description}</ProductDescription>
+          <p className="text-gray-700 leading-relaxed mb-6">{product.description}</p>
 
-          <AddToCartSection>
-            <QuantityControl>
-              <QuantityButton 
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+              <button 
                 onClick={() => quantity > 1 && setQuantity(quantity - 1)}
                 disabled={quantity <= 1}
+                className="w-12 h-12 text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 -
-              </QuantityButton>
-              <QuantityInput 
+              </button>
+              <input 
                 type="number" 
                 min="1" 
                 value={quantity}
                 onChange={handleQuantityChange}
+                className="w-16 h-12 text-center border-x border-gray-300 text-gray-800 focus:outline-none"
               />
-              <QuantityButton onClick={() => setQuantity(quantity + 1)}>
+              <button 
+                onClick={() => setQuantity(quantity + 1)}
+                className="w-12 h-12 text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
                 +
-              </QuantityButton>
-            </QuantityControl>
-            
-            <AddToCartButton 
-              onClick={handleAddToCart}
+              </button>
+            </div>
+            <button 
+              onClick={handleAddToCart} 
               disabled={isOutOfStock}
+              className="flex-1 flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
             >
-              <FaShoppingCart /> Add to Cart
-            </AddToCartButton>
-          </AddToCartSection>
-          
-          <ProductMeta>
-            <MetaItem>
-              <MetaLabel>SKU:</MetaLabel>
-              <MetaValue>{product.sku || `SKU-${product.id}`}</MetaValue>
-            </MetaItem>
-            <MetaItem>
-              <MetaLabel>Category:</MetaLabel>
-              <MetaValue>{product.category}</MetaValue>
-            </MetaItem>
-          </ProductMeta>
-        </ProductInfo>
-      </ProductContent>
-      
-      <Reviews />
-    </ProductDetailsContainer>
+              <FaShoppingCart />
+              Add to Cart
+            </button>
+          </div>
+
+          <div className="space-y-2 text-sm">
+            <div className="flex">
+              <span className="font-medium text-gray-500 w-20">SKU:</span>
+              <span className="text-gray-800">{product.sku || 'N/A'}</span>
+            </div>
+            <div className="flex">
+              <span className="font-medium text-gray-500 w-20">Brand:</span>
+              <span className="text-gray-800">{product.brand || 'N/A'}</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <Reviews productId={product.id} />
+
+    </motion.div>
   );
 };
-
-const ProductDetailsContainer = styled(motion.div)`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 80px 20px 40px;
-  
-  @media (max-width: 768px) {
-    padding: 70px 15px 30px;
-  }
-`;
-
-const ErrorContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 60vh;
-  text-align: center;
-  color: ${({ theme }) => theme.error};
-`;
-
-const BackLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 20px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-  
-  &:hover {
-    color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const BackButton = styled(Link)`
-  display: inline-block;
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    filter: brightness(1.1);
-  }
-`;
-
-const ProductContent = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  margin-top: 30px;
-
-  @media (max-width: 992px) {
-    gap: 30px;
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const ProductImageSection = styled.div`
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: ${({ theme }) => theme.cardBg};
-  box-shadow: ${({ theme }) => theme.cardShadow};
-`;
-
-const ProductImage = styled.img`
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-  aspect-ratio: 1 / 1;
-  display: block;
-`;
-
-const FavoriteButton = styled.button`
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  
-  svg {
-    font-size: 1.2rem;
-    color: ${props => props.$isFavorite ? props.theme.error : props.theme.textSecondary};
-  }
-  
-  &:hover {
-    transform: scale(1.1);
-  }
-`;
-
-const ProductInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const ProductCategory = styled.div`
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-`;
-
-const StoreInfo = styled(Link)`
-  font-size: 1rem;
-  color: ${({ theme }) => theme.textSecondary};
-  text-decoration: none;
-  margin-bottom: 15px;
-  display: inline-block;
-
-  &:hover {
-    text-decoration: underline;
-    color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const ProductTitle = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 15px;
-  color: ${({ theme }) => theme.text};
-  
-  @media (max-width: 768px) {
-    font-size: 1.8rem;
-  }
-`;
-
-const StockStatus = styled.div`
-  margin: 15px 0;
-  display: flex;
-  align-items: center;
-`;
-
-const InStock = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: ${({ theme }) => theme.success};
-  font-weight: 600;
-`;
-
-const OutOfStock = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: ${({ theme }) => theme.error};
-  font-weight: 600;
-`;
-
-const PriceContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-`;
-
-const CurrentPrice = styled.div`
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.primary};
-`;
-
-const OriginalPrice = styled.div`
-  font-size: 1.2rem;
-  color: ${({ theme }) => theme.textSecondary};
-  text-decoration: line-through;
-`;
-
-const DiscountBadge = styled.div`
-  background-color: ${({ theme }) => theme.accent};
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-`;
-
-const RatingContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 20px;
-`;
-
-const StarIcon = styled.span`
-  color: ${props => props.$filled ? props.theme.accent : props.theme.border};
-  font-size: 1.2rem;
-`;
-
-const RatingText = styled.span`
-  color: ${({ theme }) => theme.textSecondary};
-  margin-left: 5px;
-`;
-
-const Divider = styled.hr`
-  border: none;
-  border-top: 1px solid ${({ theme }) => theme.border};
-  margin: 20px 0;
-`;
-
-const ProductDescription = styled.p`
-  color: ${({ theme }) => theme.text};
-  line-height: 1.6;
-  margin-bottom: 20px;
-`;
-
-const StockInfo = styled.div`
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-weight: 500;
-  margin-bottom: 20px;
-  background-color: ${props => props.$inStock ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)'};
-  color: ${props => props.$inStock ? '#2ecc71' : '#e74c3c'};
-`;
-
-const AddToCartSection = styled.div`
-  display: flex;
-  gap: 15px;
-  margin-bottom: 30px;
-  
-  @media (max-width: 576px) {
-    flex-direction: column;
-  }
-`;
-
-const QuantityControl = styled.div`
-  display: flex;
-  align-items: center;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 6px;
-  overflow: hidden;
-`;
-
-const QuantityButton = styled.button`
-  width: 40px;
-  height: 40px;
-  background-color: ${({ theme }) => theme.cardBg};
-  border: none;
-  color: ${({ theme }) => theme.text};
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  
-  &:hover:not(:disabled) {
-    background-color: ${({ theme }) => theme.border};
-  }
-  
-  &:disabled {
-    color: ${({ theme }) => theme.border};
-    cursor: not-allowed;
-  }
-`;
-
-const QuantityInput = styled.input`
-  width: 50px;
-  height: 40px;
-  border: none;
-  border-left: 1px solid ${({ theme }) => theme.border};
-  border-right: 1px solid ${({ theme }) => theme.border};
-  text-align: center;
-  font-size: 1rem;
-  color: ${({ theme }) => theme.text};
-  background-color: ${({ theme }) => theme.inputBg};
-  
-  &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-`;
-
-const AddToCartButton = styled.button`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 20px;
-  height: 40px;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover:not(:disabled) {
-    filter: brightness(1.1);
-  }
-  
-  &:disabled {
-    background-color: ${({ theme }) => theme.border};
-    cursor: not-allowed;
-  }
-`;
-
-const ProductMeta = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-
-const MetaItem = styled.div`
-  display: flex;
-  gap: 10px;
-`;
-
-const MetaLabel = styled.span`
-  color: ${({ theme }) => theme.textSecondary};
-  font-weight: 500;
-  width: 60px;
-`;
-
-const MetaValue = styled.span`
-  color: ${({ theme }) => theme.text};
-`;
-
-
 
 export default ProductDetails;

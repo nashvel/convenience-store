@@ -1,155 +1,99 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
 const ResetPassword = () => {
   const { token } = useParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
-    // Validate passwords
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
+      setMessage('Passwords do not match.');
+      setIsError(true);
       return;
     }
 
-    try {
-      const response = await axios.post(`http://localhost/api/auth/reset-password/${token}`, {
-        password
-      });
+    setLoading(true);
+    setMessage('');
+    setIsError(false);
 
-      setSuccess('Password reset successful! You can now login with your new password.');
-      
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        navigate('/signin');
-      }, 2000);
+    try {
+      await axios.post(`http://localhost:8080/api/auth/reset-password/${token}`, { password });
+      setMessage('Password has been reset successfully. Redirecting to sign in...');
+      setIsError(false);
+      setTimeout(() => navigate('/signin'), 2000);
     } catch (error) {
-      setError(error.response?.data?.message || 'An error occurred. Please try again.');
+      setMessage(error.response?.data?.message || 'Failed to reset password. The link may be invalid or expired.');
+      setIsError(true);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container>
-      <FormWrapper>
-        <Title>Reset Password</Title>
-        <Form onSubmit={handleSubmit}>
-          <Input 
-            type="password" 
-            placeholder="New Password" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Input 
-            type="password" 
-            placeholder="Confirm Password" 
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-          {error && <Error>{error}</Error>}
-          {success && <Success>{success}</Success>}
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Resetting...' : 'Reset Password'}
-          </Button>
-        </Form>
-        <Links>
-          <StyledLink to="/signin">Back to Login</StyledLink>
-        </Links>
-      </FormWrapper>
-    </Container>
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 p-10 bg-white shadow-lg rounded-xl">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Reset Your Password</h2>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <input 
+                id="password"
+                name="password"
+                type="password" 
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="New Password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div>
+              <input 
+                id="confirm-password"
+                name="confirm-password"
+                type="password" 
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Confirm New Password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {message && 
+            <div className={`p-4 rounded-md text-sm ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+              <p>{message}</p>
+            </div>
+          }
+
+          <div>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+            >
+              {loading ? 'Resetting Password...' : 'Reset Password'}
+            </button>
+          </div>
+        </form>
+        <div className="text-sm text-center">
+            <Link to="/signin" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Back to Sign In
+            </Link>
+        </div>
+      </div>
+    </div>
   );
 };
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: calc(100vh - 80px);
-  background-color: ${({ theme }) => theme.body};
-`;
-
-const FormWrapper = styled.div`
-  padding: 40px;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 8px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  text-align: center;
-  width: 100%;
-  max-width: 400px;
-`;
-
-const Title = styled.h2`
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Input = styled.input`
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 4px;
-  border: 1px solid ${({ theme }) => theme.border};
-  background-color: ${({ theme }) => theme.body};
-  color: ${({ theme }) => theme.text};
-`;
-
-const Button = styled.button`
-  padding: 10px;
-  border-radius: 4px;
-  border: none;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
-`;
-
-const Links = styled.div`
-  margin-top: 20px;
-`;
-
-const StyledLink = styled(Link)`
-  color: ${({ theme }) => theme.primary};
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const Error = styled.div`
-  color: #dc3545;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 4px;
-  background-color: #f8d7da;
-`;
-
-const Success = styled.div`
-  color: #28a745;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 4px;
-  background-color: #d4edda;
-`;
 
 export default ResetPassword;

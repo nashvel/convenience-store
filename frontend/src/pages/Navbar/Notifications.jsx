@@ -1,48 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-
-const NotificationsContainer = styled.div`
-  padding: 4rem 2rem;
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-`;
-
-const Title = styled.h1`
-  font-size: 2.5rem;
-  margin-bottom: 2rem;
-  color: #333;
-`;
-
-const NotificationList = styled.div`
-  text-align: left;
-`;
-
-const NotificationItem = styled.div`
-  background-color: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  opacity: ${({ isRead }) => (isRead ? 0.6 : 1)};
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-`;
-
-const NotificationLink = styled(Link)`
-  display: block;
-  padding: 1.5rem;
-  text-decoration: none;
-  color: inherit;
-`;
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -82,37 +41,38 @@ const Notifications = () => {
     fetchNotifications();
   }, [user]);
 
+  const NotificationContent = ({ notification }) => (
+    <div
+      className={`bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:-translate-y-0.5 ${notification.is_read ? 'opacity-60' : ''}`}>
+      <p>{notification.message}</p>
+      <small className="text-gray-500">{new Date(notification.created_at).toLocaleString()}</small>
+    </div>
+  );
+
   return (
-    <NotificationsContainer>
-      <Title>Notifications</Title>
-      <NotificationList>
+    <div className="py-16 px-8 max-w-3xl mx-auto text-center">
+      <h1 className="text-4xl font-bold mb-8 text-gray-800">Notifications</h1>
+      <div className="text-left">
         {loading ? (
           <p>Loading notifications...</p>
         ) : error ? (
-          <p style={{ color: 'red' }}>{error}</p>
+          <p className="text-red-500">{error}</p>
         ) : notifications.length > 0 ? (
           notifications.map(notification => {
             const orderId = getOrderId(notification.message);
-            const notificationContent = (
-              <NotificationItem key={notification.id} isRead={notification.is_read}>
-                <p>{notification.message}</p>
-                <small>{new Date(notification.created_at).toLocaleString()}</small>
-              </NotificationItem>
-            );
-
             return orderId ? (
-              <Link to={`/my-orders/${orderId}`} key={notification.id} style={{ textDecoration: 'none' }}>
-                {notificationContent}
+              <Link to={`/my-orders/${orderId}`} key={notification.id} className="no-underline text-inherit">
+                <NotificationContent notification={notification} />
               </Link>
             ) : (
-              notificationContent
+              <NotificationContent key={notification.id} notification={notification} />
             );
           })
         ) : (
           <p>You have no new notifications.</p>
         )}
-      </NotificationList>
-    </NotificationsContainer>
+      </div>
+    </div>
   );
 };
 

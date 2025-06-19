@@ -1,80 +1,8 @@
 import React, { useState } from 'react';
-import styled, { css } from 'styled-components';
+
 import { FaStar, FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 
-const ReviewsContainer = styled.div`
-  margin-top: 40px;
-`;
 
-const Title = styled.h2`
-  font-size: 1.8rem;
-  margin-bottom: 20px;
-`;
-
-const ReviewItem = styled.div`
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-  padding: 20px 0;
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const ReviewHeader = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-`;
-
-const Avatar = styled.img`
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  margin-right: 15px;
-`;
-
-const Author = styled.div`
-  font-weight: 600;
-`;
-
-const Rating = styled.div`
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-  color: ${({ theme }) => theme.accent};
-`;
-
-const StarIcon = styled(FaStar)`
-  margin-right: 3px;
-`;
-
-const Comment = styled.p`
-  line-height: 1.6;
-  margin-bottom: 15px;
-`;
-
-const ReviewActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  color: ${({ theme }) => theme.textSecondary};
-`;
-
-const ActionButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: ${({ theme, $active }) => $active ? theme.primary : theme.textSecondary};
-  font-size: 0.9rem;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: ${({ theme }) => theme.primary};
-  }
-`;
 
 // Placeholder data
 const initialReviews = [
@@ -130,37 +58,37 @@ const Reviews = () => {
   };
 
   return (
-    <ReviewsContainer>
-      <Title>Customer Reviews</Title>
+    <div className="mt-10">
+      <h2 className="text-3xl font-bold mb-5">Customer Reviews</h2>
       {reviews.map(review => (
-        <ReviewItem key={review.id}>
-          <ReviewHeader>
-            <Avatar src={review.avatar} alt={review.author} />
-            <Author>{review.author}</Author>
-            <Rating>
+        <div key={review.id} className="border-b border-gray-200 py-5 last:border-b-0">
+          <div className="flex items-center mb-2.5">
+            <img src={review.avatar} alt={review.author} className="w-12 h-12 rounded-full mr-4" />
+            <div className="font-semibold text-gray-800">{review.author}</div>
+            <div className="flex items-center ml-auto text-yellow-500">
               {[...Array(review.rating)].map((_, i) => (
-                <StarIcon key={i} />
+                <FaStar key={i} className="mr-1" />
               ))}
-            </Rating>
-          </ReviewHeader>
-          <Comment>{review.comment}</Comment>
-          <ReviewActions>
-            <ActionButton 
+            </div>
+          </div>
+          <p className="text-gray-600 leading-relaxed mb-4">{review.comment}</p>
+          <div className="flex items-center gap-5 text-gray-500">
+            <button 
               onClick={() => handleAction(review.id, 'like')}
-              $active={userActions[review.id] === 'like'}
+              className={`flex items-center gap-1.5 text-sm transition-colors duration-200 ease-in-out hover:text-blue-600 ${userActions[review.id] === 'like' ? 'text-blue-600' : 'text-gray-500'}`}
             >
               <FaThumbsUp /> {review.likes}
-            </ActionButton>
-            <ActionButton 
+            </button>
+            <button 
               onClick={() => handleAction(review.id, 'dislike')}
-              $active={userActions[review.id] === 'dislike'}
+              className={`flex items-center gap-1.5 text-sm transition-colors duration-200 ease-in-out hover:text-red-600 ${userActions[review.id] === 'dislike' ? 'text-red-600' : 'text-gray-500'}`}
             >
               <FaThumbsDown /> {review.dislikes}
-            </ActionButton>
-          </ReviewActions>
-        </ReviewItem>
+            </button>
+          </div>
+        </div>
       ))}
-    </ReviewsContainer>
+    </div>
   );
 };
 

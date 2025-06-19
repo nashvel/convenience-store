@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import SellerHome from './components/SellerHome';
@@ -10,24 +9,6 @@ import Reviews from './components/Reviews';
 import Chat from './components/Chat';
 import ManageStore from './components/ManageStore';
 import ViewSales from './components/ViewSales';
-
-const DashboardContainer = styled.div`
-  display: flex;
-  height: 100vh;
-  background-color: ${({ theme }) => theme.body};
-`;
-
-const MainContent = styled.div`
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-`;
-
-const ContentArea = styled.div`
-  padding: 30px;
-  flex-grow: 1;
-`;
 
 const SellerDashboard = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -56,15 +37,15 @@ const SellerDashboard = () => {
   };
 
   return (
-    <DashboardContainer>
+    <div className="flex h-screen bg-gray-100 font-sans">
       <Sidebar activeView={activeView} setActiveView={setActiveView} />
-      <MainContent>
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <ContentArea>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
           {renderContent()}
-        </ContentArea>
-      </MainContent>
-    </DashboardContainer>
+        </main>
+      </div>
+    </div>
   );
 };
 

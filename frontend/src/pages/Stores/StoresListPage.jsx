@@ -1,6 +1,5 @@
 import React, { useContext, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
 import { LOGO_ASSET_URL } from '../../config';
@@ -21,168 +20,60 @@ const StoresListPage = () => {
   }, [stores, searchQuery]);
 
   if (loading) {
-    return <PageContainer>Loading stores...</PageContainer>;
+    return <div className="max-w-6xl mx-auto px-5 pt-20 pb-10">Loading stores...</div>;
   }
 
   if (error) {
-    return <PageContainer>Error: {error}</PageContainer>;
+    return <div className="max-w-6xl mx-auto px-5 pt-20 pb-10">Error: {error}</div>;
   }
 
   return (
-    <PageContainer
+    <motion.div
+      className="max-w-6xl mx-auto px-5 pt-20 pb-10"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <PageTitle>All Stores</PageTitle>
-      <IntroText>Visit our trusted partners and discover a world of quality products.</IntroText>
-      <SearchContainer>
-        <SearchInput
+      <h1 className="text-4xl font-bold text-center mb-5 text-primary">All Stores</h1>
+      <p className="text-center text-lg text-gray-500 mb-10 max-w-2xl mx-auto">Visit our trusted partners and discover a world of quality products.</p>
+      <div className="relative w-full max-w-lg mx-auto mb-10">
+        <input
           type="text"
           placeholder="Search for your favorite store..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full py-3 pl-12 pr-5 border border-gray-300 rounded-full bg-gray-100 text-gray-800 text-base transition-all duration-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
-        <SearchIcon><FaSearch /></SearchIcon>
-      </SearchContainer>
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><FaSearch /></span>
+      </div>
 
       {filteredStores.length > 0 ? (
-        <StoreGrid>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
           {filteredStores.map((store) => (
-          <StoreCard 
-            key={store.id} 
-            to={`/stores/${store.id}/${slugify(store.name)}`}
-            whileHover={{ y: -10, transition: { duration: 0.3 } }}
-          >
-            <StoreLogo src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} />
-            <StoreName>{store.name}</StoreName>
-          </StoreCard>
-        ))}
-        </StoreGrid>
+            <motion.div
+              key={store.id}
+              whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            >
+              <Link
+                to={`/stores/${store.id}/${slugify(store.name)}`}
+                className="flex flex-col items-center justify-center bg-white rounded-lg p-5 text-decoration-none shadow-md transition-all duration-300 text-center h-full"
+              >
+                <img src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} className="w-24 h-24 object-contain mb-4" />
+                <h3 className="text-lg font-semibold text-gray-800">{store.name}</h3>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       ) : (
-        <NoResultsContainer>
-          <NoResultsIcon>😞</NoResultsIcon>
-          <NoResultsText>No stores found matching "{searchQuery}"</NoResultsText>
-          <NoResultsSubText>Try a different search or check your spelling.</NoResultsSubText>
-        </NoResultsContainer>
+        <div className="text-center py-16 px-5 text-gray-500">
+          <div className="text-5xl mb-4">😞</div>
+          <p className="text-lg font-medium text-gray-800 mb-2">No stores found matching "{searchQuery}"</p>
+          <p className="text-base">Try a different search or check your spelling.</p>
+        </div>
       )}
-    </PageContainer>
+    </motion.div>
   );
 };
-
-const PageContainer = styled(motion.div)`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 80px 20px 40px;
-`;
-
-const PageTitle = styled.h1`
-  font-size: 2.5rem;
-  text-align: center;
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.primary};
-`;
-
-const IntroText = styled.p`
-  text-align: center;
-  font-size: 1.2rem;
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 40px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-`;
-
-const StoreGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 30px;
-`;
-
-const StoreCard = styled(motion(Link))`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 8px;
-  padding: 20px;
-  text-decoration: none;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  transition: all 0.3s ease;
-  text-align: center;
-  
-  &:hover {
-    transform: translateY(-5px);
-  }
-`;
-
-const StoreLogo = styled.img`
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
-  margin-bottom: 15px;
-`;
-
-const StoreName = styled.h3`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-`;
-
-const SearchContainer = styled.div`
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto 40px;
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 12px 20px 12px 45px;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 50px;
-  background: ${({ theme }) => theme.inputBg};
-  color: ${({ theme }) => theme.text};
-  font-size: 1rem;
-  transition: all 0.3s ease;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.primary};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.primary}33;
-  }
-`;
-
-const SearchIcon = styled.span`
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: ${({ theme }) => theme.textSecondary};
-`;
-
-const NoResultsContainer = styled.div`
-  text-align: center;
-  padding: 60px 20px;
-  color: ${({ theme }) => theme.textSecondary};
-`;
-
-const NoResultsIcon = styled.div`
-  font-size: 3rem;
-  margin-bottom: 15px;
-`;
-
-const NoResultsText = styled.p`
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 8px;
-`;
-
-const NoResultsSubText = styled.p`
-  font-size: 1rem;
-`;
 
 export default StoresListPage;

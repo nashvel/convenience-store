@@ -1,7 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import styled from 'styled-components';
 import axios from 'axios';
 
 const SignIn = () => {
@@ -30,16 +29,15 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Handle admin login directly on the frontend for now
     if (email === 'admin@test.com' && password === 'admin1234') {
       const adminUser = {
         first_name: 'Admin',
         last_name: 'User',
         role: 'admin',
       };
-      login(adminUser); // Update auth context
-      navigate('/admin/dashboard'); // Redirect to admin dashboard
-      return; // Skip the rest of the function
+      login(adminUser);
+      navigate('/admin/dashboard');
+      return;
     }
 
     setLoading(true);
@@ -54,11 +52,8 @@ const SignIn = () => {
         withCredentials: true,
       });
 
-            const { token, user } = response.data;
-      
-      login(user); // Update the user in the context
-
-      // Keep token and user info in local storage for session persistence
+      const { token, user } = response.data;
+      login(user);
       localStorage.setItem('token', token);
       if (user) {
         localStorage.setItem('firstName', user.first_name || '');
@@ -66,24 +61,15 @@ const SignIn = () => {
       }
 
       switch (user.role) {
-        case 'customer':
-          navigate('/');
-          break;
-        case 'client':
-          navigate('/seller/dashboard');
-          break;
-        case 'rider':
-          navigate('/rider/dashboard');
-          break;
-        case 'admin':
-          navigate('/admin/dashboard');
-          break;
-        default:
-          navigate('/');
+        case 'customer': navigate('/'); break;
+        case 'client': navigate('/seller/dashboard'); break;
+        case 'rider': navigate('/rider/dashboard'); break;
+        case 'admin': navigate('/admin/dashboard'); break;
+        default: navigate('/');
       }
     } catch (err) {
       if (err.response?.status === 403 && err.response?.data?.error === 'not_verified') {
-        setError('Email not verified. Resend verification email?');
+        setError('Email not verified. Click the button below to resend the verification email.');
         setShowResend(true);
       } else {
         setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
@@ -94,120 +80,89 @@ const SignIn = () => {
   };
 
   return (
-    <Container>
-      <FormWrapper>
-        <Title>Sign In</Title>
-        <Form onSubmit={handleSubmit}>
-          <Input 
-            type="email" 
-            placeholder="Email" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input 
-            type="password" 
-            placeholder="Password" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {error && <Error>{error}</Error>}
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
-          </Button>
-          {showResend && (
-            <Button 
-              type="button" 
-              onClick={handleResendVerification} 
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 p-10 bg-white shadow-lg rounded-xl">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <input 
+                id="email-address"
+                name="email"
+                type="email" 
+                autoComplete="email"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Email address" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <input 
+                id="password"
+                name="password"
+                type="password" 
+                autoComplete="current-password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {error && 
+            <div className={`p-4 rounded-md ${showResend ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+              <p>{error}</p>
+            </div>
+          }
+
+          <div className="flex items-center justify-end">
+            <div className="text-sm">
+              <Link to="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+                Forgot your password?
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <button 
+              type="submit" 
               disabled={loading}
-              style={{ marginTop: '10px', backgroundColor: '#ffc107' }}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
             >
-              {loading ? 'Sending...' : 'Resend Verification Email'}
-            </Button>
+              {loading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </div>
+
+          {showResend && (
+            <div>
+              <button 
+                type="button" 
+                onClick={handleResendVerification} 
+                disabled={loading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 disabled:bg-yellow-300"
+              >
+                {loading ? 'Sending...' : 'Resend Verification Email'}
+              </button>
+            </div>
           )}
-        </Form>
-        <Links>
-          <StyledLink to="/signup">Don't have an account? Sign Up</StyledLink>
-          <StyledLink to="/forgot-password">Forgot Password?</StyledLink>
-        </Links>
-      </FormWrapper>
-    </Container>
+        </form>
+        <div className="text-sm text-center">
+          <p className="text-gray-600">
+            Don't have an account?{' '}
+            <Link to="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Sign Up
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: calc(100vh - 80px);
-  background-color: ${({ theme }) => theme.body};
-`;
-
-const FormWrapper = styled.div`
-  padding: 40px;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 8px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  text-align: center;
-  width: 100%;
-  max-width: 400px;
-`;
-
-const Title = styled.h2`
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Input = styled.input`
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 4px;
-  border: 1px solid ${({ theme }) => theme.border};
-  background-color: ${({ theme }) => theme.body};
-  color: ${({ theme }) => theme.text};
-`;
-
-const Button = styled.button`
-  padding: 10px;
-  border-radius: 4px;
-  border: none;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
-  margin-bottom: 10px;
-`;
-
-
-
-const Links = styled.div`
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const StyledLink = styled(Link)`
-  color: ${({ theme }) => theme.primary};
-  text-decoration: none;
-  margin-top: 10px;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const Error = styled.div`
-  color: #dc3545;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 4px;
-  background-color: #f8d7da;
-`;
 
 export default SignIn;

@@ -1,151 +1,5 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
-
-import { FaBoxOpen, FaCreditCard, FaMapMarkerAlt, FaMotorcycle, FaCheck, FaTimes, FaTags, FaRulerCombined } from 'react-icons/fa';
-
-const OrdersContainer = styled.div`
-  padding: 30px;
-  background: ${({ theme }) => theme.body};
-`;
-
-const TabContainer = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
-`;
-
-const TabButton = styled.button`
-  padding: 15px 25px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  color: ${({ theme, $isActive }) => ($isActive ? 'white' : theme.textSecondary)};
-  ${({ theme, $isActive }) => ($isActive ? theme.neumorphismActive(theme.primary, '15px') : theme.neumorphism(false, '15px'))};
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    color: ${({ theme, $isActive }) => !$isActive && theme.primary};
-  }
-`;
-
-const StickyNote = styled.div`
-  ${({ theme }) => theme.neumorphism(true, '15px')};
-  background: #fffde7; /* A light yellow, like a real sticky note */
-  color: #5d4037; /* A brownish text color */
-  padding: 20px;
-  margin-bottom: 25px;
-  font-weight: 600;
-  border-left: 5px solid #f9a825; /* A darker yellow accent */
-`;
-
-const Title = styled.h1`
-  font-size: 2rem;
-  color: ${({ theme }) => theme.text};
-  margin-bottom: 30px;
-`;
-
-const OrderList = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 25px;
-`;
-
-const OrderCard = styled.div`
-  ${({ theme }) => theme.neumorphism(false, '20px')};
-  padding: 25px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-`;
-
-const ProductInfo = styled.div`
-  display: flex;
-  gap: 20px;
-  align-items: center;
-`;
-
-const ProductImage = styled.img`
-  width: 80px;
-  height: 80px;
-  border-radius: 15px;
-  object-fit: cover;
-  ${({ theme }) => theme.neumorphismPressed('15px')};
-  padding: 5px;
-`;
-
-const ProductDetails = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const ProductName = styled.div`
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  font-size: 1.1rem;
-`;
-
-const CardHeader = styled.div`
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.primary};
-`;
-
-const InfoSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-`;
-
-const InfoItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 0.95rem;
-  color: ${({ theme }) => theme.textSecondary};
-
-  svg {
-    color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const RiderSelect = styled.select`
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid ${({ theme }) => theme.shadows.dark};
-  background: ${({ theme }) => theme.body};
-  color: ${({ theme }) => theme.text};
-  outline: none;
-  width: 100%;
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 15px;
-  margin-top: auto;
-`;
-
-const ActionButton = styled.button`
-  ${({ theme, accept }) => (accept ? theme.neumorphism(false, '10px') : theme.neumorphism(false, '10px'))};
-  flex-grow: 1;
-  padding: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: ${({ accept, theme }) => (accept ? theme.accent : theme.error)};
-
-  &:hover {
-    color: white;
-    background: ${({ accept, theme }) => (accept ? theme.accent : theme.error)};
-  }
-
-  &:active {
-    ${({ theme }) => theme.neumorphismPressed('10px')};
-  }
-`;
+import { FaBoxOpen, FaCreditCard, FaMapMarkerAlt, FaMotorcycle, FaCheck, FaTimes, FaTags, FaRulerCombined, FaInfoCircle } from 'react-icons/fa';
 
 const mockOrders = [
   {
@@ -171,12 +25,12 @@ const mockOrders = [
       quantity: 2,
       size: 'Medium',
     },
-    payment: 'PayPal',
-    address: 'Boarding House',
+    payment: 'Cash on Delivery',
+    address: 'Poblacion, Alubijid',
   },
   {
     id: 'ORD-12347',
-    customer: 'Byakuya',
+    customer: 'John Doe',
     product: {
       name: 'Scented Candles',
       category: 'Furniture',
@@ -190,6 +44,66 @@ const mockOrders = [
 ];
 
 const mockRiders = ['Rider A', 'Rider B', 'Rider C'];
+
+const TabButton = ({ label, count, isActive, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-colors duration-200 focus:outline-none ${
+      isActive
+        ? 'border-primary text-primary'
+        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+    }`}
+  >
+    {label} <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${isActive ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}`}>{count}</span>
+  </button>
+);
+
+const InfoItem = ({ icon, text }) => (
+  <div className="flex items-center gap-3 text-sm text-gray-600">
+    <div className="w-5 text-center text-gray-400">{icon}</div>
+    <span>{text}</span>
+  </div>
+);
+
+const OrderCard = ({ order, onAccept, onDecline, isTransaction = false }) => (
+    <div className="bg-white rounded-xl shadow-md p-6 flex flex-col gap-5 transition-shadow duration-300 hover:shadow-lg">
+      <div className="flex justify-between items-start">
+        <h3 className="font-bold text-gray-800 text-lg">#{order.id}</h3>
+        <p className="text-gray-600 font-semibold">{order.customer}</p>
+      </div>
+      
+      <div className="flex gap-4 items-center border-t border-b border-gray-100 py-4">
+        <img src={order.product.imageUrl} alt={order.product.name} className="w-20 h-20 rounded-lg object-cover border border-gray-200" />
+        <div className="flex-grow">
+          <p className="font-bold text-gray-800">{order.product.name}</p>
+          <InfoItem icon={<FaTags />} text={order.product.category} />
+          <InfoItem icon={<FaBoxOpen />} text={`Quantity: ${order.product.quantity}`} />
+          <InfoItem icon={<FaRulerCombined />} text={`Size: ${order.product.size}`} />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <InfoItem icon={<FaCreditCard />} text={order.payment} />
+        <InfoItem icon={<FaMapMarkerAlt />} text={order.address} />
+        {!isTransaction && (
+          <div className="flex items-center gap-3">
+            <div className="w-5 text-center text-gray-400"><FaMotorcycle /></div>
+            <select className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-light outline-none">
+              <option value="">Assign Rider</option>
+              {mockRiders.map(rider => (<option key={rider} value={rider}>{rider}</option>))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {!isTransaction && (
+        <div className="flex gap-4 mt-auto pt-4 border-t border-gray-100">
+          <button onClick={() => onAccept(order.id)} className="w-full py-2.5 px-4 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-2"><FaCheck /> Accept</button>
+          <button onClick={() => onDecline(order.id)} className="w-full py-2.5 px-4 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"><FaTimes /> Decline</button>
+        </div>
+      )}
+    </div>
+);
 
 const Orders = () => {
   const [activeTab, setActiveTab] = useState('incoming');
@@ -209,77 +123,39 @@ const Orders = () => {
   };
 
   return (
-    <OrdersContainer>
-      <Title>Orders Management</Title>
-      <TabContainer>
-        <TabButton $isActive={activeTab === 'incoming'} onClick={() => setActiveTab('incoming')}>
-          Incoming Orders ({incomingOrders.length})
-        </TabButton>
-        <TabButton $isActive={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')}>
-          Transactions ({acceptedOrders.length})
-        </TabButton>
-      </TabContainer>
-
-      {activeTab === 'incoming' && (
-        <OrderList>
-        {incomingOrders.map((order) => (
-          <OrderCard key={order.id}>
-            <CardHeader>{order.id} - {order.customer}</CardHeader>
-            <ProductInfo>
-              <ProductImage src={order.product.imageUrl} alt={order.product.name} />
-              <ProductDetails>
-                <ProductName>{order.product.name}</ProductName>
-                <InfoItem><FaTags />{order.product.category}</InfoItem>
-                <InfoItem><FaBoxOpen />Quantity: {order.product.quantity}</InfoItem>
-                <InfoItem><FaRulerCombined />Size: {order.product.size}</InfoItem>
-              </ProductDetails>
-            </ProductInfo>
-            <InfoSection>
-              <InfoItem><FaCreditCard /> {order.payment}</InfoItem>
-              <InfoItem><FaMapMarkerAlt /> {order.address}</InfoItem>
-              <InfoItem>
-                <FaMotorcycle />
-                <RiderSelect>
-                  <option value="">Select a Rider</option>
-                  {mockRiders.map(rider => (<option key={rider} value={rider}>{rider}</option>))}
-                </RiderSelect>
-              </InfoItem>
-            </InfoSection>
-            <ActionButtons>
-              <ActionButton accept onClick={() => handleAccept(order.id)}><FaCheck /> Accept</ActionButton>
-              <ActionButton onClick={() => handleDecline(order.id)}><FaTimes /> Decline</ActionButton>
-            </ActionButtons>
-          </OrderCard>
-        ))}
-      </OrderList>
-      )}
-
-      {activeTab === 'transactions' && (
-        <div>
-          <StickyNote>Orders can still be cancelled if not yet shipped.</StickyNote>
-          <OrderList>
-            {acceptedOrders.map((order) => (
-              <OrderCard key={order.id}>
-                <CardHeader>{order.id} - {order.customer}</CardHeader>
-                <ProductInfo>
-                  <ProductImage src={order.product.imageUrl} alt={order.product.name} />
-                  <ProductDetails>
-                    <ProductName>{order.product.name}</ProductName>
-                    <InfoItem><FaTags />{order.product.category}</InfoItem>
-                    <InfoItem><FaBoxOpen />Quantity: {order.product.quantity}</InfoItem>
-                    <InfoItem><FaRulerCombined />Size: {order.product.size}</InfoItem>
-                  </ProductDetails>
-                </ProductInfo>
-                <InfoSection>
-                  <InfoItem><FaCreditCard /> {order.payment}</InfoItem>
-                  <InfoItem><FaMapMarkerAlt /> {order.address}</InfoItem>
-                </InfoSection>
-              </OrderCard>
-            ))}
-          </OrderList>
+    <div className="p-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Orders Management</h1>
+      <div className="border-b border-gray-200">
+        <div className="flex -mb-px">
+          <TabButton label="Incoming Orders" count={incomingOrders.length} isActive={activeTab === 'incoming'} onClick={() => setActiveTab('incoming')} />
+          <TabButton label="Transactions" count={acceptedOrders.length} isActive={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')} />
         </div>
-      )}
-    </OrdersContainer>
+      </div>
+
+      <div className="mt-8">
+        {activeTab === 'incoming' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {incomingOrders.map((order) => (
+              <OrderCard key={order.id} order={order} onAccept={handleAccept} onDecline={handleDecline} />
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'transactions' && (
+          <div>
+            <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-4 rounded-md mb-6 flex items-center gap-3">
+              <FaInfoCircle className="text-xl" />
+              <p className="font-semibold">Orders can still be cancelled if not yet shipped.</p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {acceptedOrders.map((order) => (
+                <OrderCard key={order.id} order={order} isTransaction={true} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

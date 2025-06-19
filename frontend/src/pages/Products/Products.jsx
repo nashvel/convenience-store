@@ -1,26 +1,21 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import ScrollToTopButton from '../../components/ScrollToTopButton';
-import { FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp } from 'react-icons/fa';
+import { FaFilter, FaSearch } from 'react-icons/fa';
 
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { allProducts: products, loading, error, categories } = useContext(StoreContext);
-  console.log('Products page rendered. URL search:', location.search);
 
-  // Get query parameters
-  const queryParams = new URLSearchParams(location.search);
+  const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const categoryParam = queryParams.get('category');
   const dealsParam = queryParams.get('deals') === 'true';
   const searchParam = queryParams.get('search');
 
-
-  
   const maxPrice = useMemo(() => {
     if (products && products.length > 0) {
       return Math.ceil(Math.max(...products.map(p => p.price)));
@@ -33,34 +28,20 @@ const Products = () => {
   useEffect(() => {
     setPriceRange(prev => ({ ...prev, max: maxPrice }));
   }, [maxPrice]);
+
   const [sortOption, setSortOption] = useState(queryParams.get('sort') || 'best-sellers');
   const [showFilters, setShowFilters] = useState(false);
 
-  
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const filteredProducts = useMemo(() => {
+    if (loading || error) return [];
 
-  // Apply filters and sorting
-  useEffect(() => {
-    if (loading || error) {
-      console.log('Filtering skipped: loading or error state.');
-      return;
-    }
-
-    console.log(`--- Filtering ---`);
-    console.log(`Initial product count: ${products.length}`);
-    
     let result = [...products];
-    
-    // Filter by category
+
     const currentCategory = categoryParam || 'all';
-    console.log(`Filtering by category: "${currentCategory}"`);
     if (currentCategory !== 'all') {
       result = result.filter(product => product.category_name === currentCategory);
     }
-    console.log(`Product count after category filter: ${result.length}`);
-    
-    // Filter by search query
-    console.log(`Filtering by search: "${searchParam || 'none'}"`);
+
     if (searchParam) {
       const query = searchParam.toLowerCase();
       result = result.filter(product => 
@@ -68,21 +49,17 @@ const Products = () => {
         product.description.toLowerCase().includes(query)
       );
     }
-    console.log(`Product count after search filter: ${result.length}`);
-    
-    // Filter by price range
+
     result = result.filter(product => {
       const min = priceRange.min === '' || isNaN(priceRange.min) ? 0 : priceRange.min;
       const max = priceRange.max === '' || isNaN(priceRange.max) ? Infinity : priceRange.max;
       return product.price >= min && product.price <= max;
     });
-    
-    // Filter by deals
+
     if (dealsParam) {
       result = result.filter(product => product.discount > 0);
     }
-    
-    // Apply sorting
+
     switch (sortOption) {
       case 'price-asc':
         result.sort((a, b) => a.price - b.price);
@@ -101,413 +78,133 @@ const Products = () => {
         result.sort((a, b) => b.rating - a.rating);
         break;
     }
-    
-    console.log(`Final filtered product count: ${result.length}`);
-    setFilteredProducts(result);
+
+    return result;
   }, [products, categoryParam, searchParam, priceRange, sortOption, dealsParam, loading, error]);
 
-  // Handle price range change
-    const handlePriceChange = (e, type) => {
+  const handlePriceChange = (e, type) => {
     const value = e.target.value;
     setPriceRange(prev => ({ ...prev, [type]: value === '' ? '' : parseFloat(value) }));
+  };
+
+  const updateURLParams = (newParams) => {
+    const params = new URLSearchParams(location.search);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
+    navigate(`${location.pathname}?${params.toString()}`);
   };
 
   const handleSortChange = (e) => {
     const newSortOption = e.target.value;
     setSortOption(newSortOption);
-    const newParams = new URLSearchParams(location.search);
-    newParams.set('sort', newSortOption);
-    navigate(`${location.pathname}?${newParams.toString()}`, { replace: true });
+    updateURLParams({ sort: newSortOption });
   };
 
-    const handleCategoryChange = (category) => {
-    const params = new URLSearchParams(location.search);
-    if (category === 'all') {
-      params.delete('category');
-    } else {
-      params.set('category', category);
-    }
-    navigate({ search: params.toString() });
+  const handleCategoryChange = (category) => {
+    updateURLParams({ category: category === 'all' ? null : category });
   };
 
   const handleSearchChange = (e) => {
-    const params = new URLSearchParams(location.search);
-    const query = e.target.value;
-
-    if (query) {
-      params.set('search', query);
-    } else {
-      params.delete('search');
-    }
-    navigate({ search: params.toString() }, { replace: true });
+    updateURLParams({ search: e.target.value });
   };
 
-  if (loading) {
-    return <LoadingContainer>Loading products...</LoadingContainer>;
-  }
+  const currentCategory = categoryParam || 'all';
 
-  if (error) {
-    return <ErrorContainer>{error}</ErrorContainer>;
-  }
+  const FilterPanel = () => (
+    <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-64 lg:sticky top-24 self-start`}>
+      <div className="bg-white p-5 rounded-lg shadow-md space-y-6">
+        <div>
+          <h3 className="font-semibold text-lg mb-3">Categories</h3>
+          <ul className="space-y-2">
+            <li>
+              <button onClick={() => handleCategoryChange('all')} className={`w-full text-left ${currentCategory === 'all' ? 'text-blue-600 font-bold' : 'hover:text-blue-600'}`}>
+                All Categories
+              </button>
+            </li>
+            {categories.map(cat => (
+              <li key={cat.id}>
+                <button onClick={() => handleCategoryChange(cat.name)} className={`w-full text-left ${currentCategory === cat.name ? 'text-blue-600 font-bold' : 'hover:text-blue-600'}`}>
+                  {cat.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-semibold text-lg mb-3">Price Range</h3>
+          <div className="flex items-center space-x-2">
+            <input type="number" value={priceRange.min} onChange={(e) => handlePriceChange(e, 'min')} placeholder="Min" className="w-full p-2 border rounded-md" />
+            <span>-</span>
+            <input type="number" value={priceRange.max} onChange={(e) => handlePriceChange(e, 'max')} placeholder="Max" className="w-full p-2 border rounded-md" />
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
 
   return (
-    <ProductsContainer
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24"
     >
-      <ScrollToTopButton />
-      <PageHeader>
-        <PageTitle>All Products</PageTitle>
-        <MobileFilterToggle onClick={() => setShowFilters(!showFilters)}>
-          <FaFilter /> {showFilters ? 'Hide Filters' : 'Show Filters'}
-        </MobileFilterToggle>
-      </PageHeader>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Our Products</h1>
+        <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden p-2 rounded-md bg-gray-200">
+          <FaFilter />
+        </button>
+      </div>
 
-      <ProductsLayout>
-        <FiltersPanel $show={showFilters}>
-          <FilterSection>
-            <FilterTitle>Categories</FilterTitle>
-            <CategoryList>
-              <CategoryItem 
-                $active={(categoryParam || 'all') === 'all'}
-                onClick={() => handleCategoryChange('all')}
-              >
-                All Products
-              </CategoryItem>
-              {categories.map(category => (
-                <CategoryItem 
-                  key={category.id}
-                  $active={categoryParam === category.name}
-                  onClick={() => handleCategoryChange(category.name)}
-                >
-                  {category.name}
-                </CategoryItem>
-              ))}
-            </CategoryList>
-          </FilterSection>
-
-          <FilterSection>
-            <FilterTitle>Price Range</FilterTitle>
-            <PriceRangeContainer>
-              <PriceInput>
-                <label>Min:</label>
-                <input 
-                  type="number" 
-                  min="0" 
-                  max={priceRange.max} 
-                  value={priceRange.min}
-                  onChange={(e) => handlePriceChange(e, 'min')}
-                />
-              </PriceInput>
-              <PriceInput>
-                <label>Max:</label>
-                <input 
-                  type="number" 
-                  min={priceRange.min} 
-                  value={priceRange.max}
-                  onChange={(e) => handlePriceChange(e, 'max')}
-                />
-              </PriceInput>
-            </PriceRangeContainer>
-          </FilterSection>
-        </FiltersPanel>
-
-        <ProductsContent>
-          <ProductsToolbar>
-            <SearchContainer>
-              <SearchInput 
+      <div className="flex flex-col lg:flex-row gap-8">
+        <FilterPanel />
+        <main className="flex-1">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div className="relative w-full md:w-auto">
+              <FaSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+              <input 
                 type="text" 
-                placeholder="Search products..."
+                placeholder="Search products..." 
                 value={searchParam || ''}
                 onChange={handleSearchChange}
+                className="pl-10 p-2 border rounded-md w-full md:w-64"
               />
-              <SearchIcon><FaSearch /></SearchIcon>
-            </SearchContainer>
-            
-            <SortContainer>
-              <SortSelect value={sortOption} onChange={handleSortChange}>
-                <option value="best-sellers">Best Sellers</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="name-asc">Alphabetical (A-Z)</option>
-                <option value="name-desc">Alphabetical (Z-A)</option>
-              </SortSelect>
-              
-            </SortContainer>
-          </ProductsToolbar>
+            </div>
+            <select value={sortOption} onChange={handleSortChange} className="p-2 border rounded-md w-full md:w-auto">
+              <option value="best-sellers">Best Sellers</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="name-asc">Name: A-Z</option>
+              <option value="name-desc">Name: Z-A</option>
+            </select>
+          </div>
 
-          {filteredProducts.length === 0 ? (
-            <NoProductsMessage>
-              No products found matching your criteria. Try adjusting your filters.
-            </NoProductsMessage>
+          <p className="text-sm text-gray-500 mb-4">{filteredProducts.length} products found</p>
+
+          {loading ? (
+            <div className="text-center py-10">Loading products...</div>
+          ) : error ? (
+            <div className="text-center py-10 text-red-500">Error: {error}</div>
+          ) : filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filteredProducts.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
           ) : (
-            <>
-              <ProductCount>{filteredProducts.length} products found</ProductCount>
-              <ProductsGrid>
-                {filteredProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </ProductsGrid>
-            </>
+            <div className="text-center py-10">No products match your criteria.</div>
           )}
-        </ProductsContent>
-      </ProductsLayout>
-    </ProductsContainer>
+        </main>
+      </div>
+      <ScrollToTopButton />
+    </motion.div>
   );
 };
-
-const ProductsContainer = styled(motion.div)`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 80px 20px 40px;
-  
-  @media (max-width: 768px) {
-    padding: 70px 15px 30px;
-  }
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: ${({ theme }) => theme.primary};
-`;
-
-const ErrorContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: ${({ theme }) => theme.error};
-`;
-
-const PageHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-`;
-
-const PageTitle = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.text};
-`;
-
-const MobileFilterToggle = styled.button`
-  display: none;
-  align-items: center;
-  gap: 8px;
-  background: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
-  color: ${({ theme }) => theme.text};
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  
-  @media (max-width: 768px) {
-    display: flex;
-  }
-`;
-
-const ProductsLayout = styled.div`
-  display: flex;
-  gap: 30px;
-  align-items: flex-start;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-`;
-
-const FiltersPanel = styled.aside`
-  width: 250px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 80px;
-  align-self: flex-start;
-
-  @media (max-width: 768px) {
-    position: static;
-    width: 100%;
-    display: ${props => props.$show ? 'block' : 'none'};
-    margin-bottom: 20px;
-  }
-`;
-
-const FilterSection = styled.div`
-  background: ${({ theme }) => theme.cardBg};
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-`;
-
-const FilterTitle = styled.h3`
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const CategoryList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const CategoryItem = styled.li`
-  padding: 8px 0;
-  cursor: pointer;
-  color: ${props => props.$active ? props.theme.primary : props.theme.text};
-  font-weight: ${props => props.$active ? '600' : '400'};
-  transition: all 0.2s ease;
-  
-  &:hover {
-    color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const PriceRangeContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-
-const PriceInput = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  
-  label {
-    width: 40px;
-    color: ${({ theme }) => theme.textSecondary};
-  }
-  
-  input {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid ${({ theme }) => theme.border};
-    border-radius: 4px;
-    background: ${({ theme }) => theme.inputBg};
-    color: ${({ theme }) => theme.text};
-  }
-`;
-
-const ProductsContent = styled.div`
-  flex: 1;
-`;
-
-const ProductsToolbar = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  
-  @media (max-width: 576px) {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
-  }
-`;
-
-const SearchContainer = styled.div`
-  position: relative;
-  width: 300px;
-  
-  @media (max-width: 576px) {
-    width: 100%;
-  }
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 10px 15px 10px 40px;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 6px;
-  background: ${({ theme }) => theme.inputBg};
-  color: ${({ theme }) => theme.text};
-  
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const SearchIcon = styled.span`
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: ${({ theme }) => theme.textSecondary};
-`;
-
-const SortContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const SortSelect = styled.select`
-  padding: 10px;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 6px;
-  background: ${({ theme }) => theme.inputBg};
-  color: ${({ theme }) => theme.text};
-  cursor: pointer;
-  
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.primary};
-  }
-`;
-
-const SortDirectionButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 6px;
-  background: ${({ theme }) => theme.inputBg};
-  color: ${({ theme }) => theme.text};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${({ theme }) => theme.border};
-  }
-`;
-
-const ProductCount = styled.div`
-  margin-bottom: 15px;
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.9rem;
-`;
-
-const ProductsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 25px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 15px;
-  }
-`;
-
-const NoProductsMessage = styled.div`
-  padding: 40px 0;
-  text-align: center;
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 1.1rem;
-`;
 
 export default Products;

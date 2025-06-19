@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { FaStar, FaShoppingCart } from 'react-icons/fa';
 import { CartContext } from '../context/CartContext';
@@ -21,162 +20,58 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <CardContainer 
-      to={`/product/${product.id}/${slugify(product.name)}`}
-      whileHover={{ y: -10 }}
-      transition={{ duration: 0.3 }}
+    <motion.div
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full group"
     >
-      <ImageContainer>
-        <ProductImage src={`${PRODUCT_ASSET_URL}/${product.image}`} alt={product.name} />
-        {product.stock > 0 ? (
-          <AddToCartButton 
-            onClick={handleAddToCart}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <FaShoppingCart />
-          </AddToCartButton>
-        ) : (
-          <OutOfStockBadge>Out of Stock</OutOfStockBadge>
-        )}
-      </ImageContainer>
-      
-      <CardContent>
-        <StoreName>{store ? store.name : 'Unknown Store'}</StoreName>
-        <ProductName>{product.name}</ProductName>
-        
-        <PriceRatingContainer>
-          <Price>₱{Number(product.price).toFixed(2)}</Price>
-          <Rating>
-            <FaStar /> {product.rating}
-          </Rating>
-        </PriceRatingContainer>
-        
-        <CategoryBadge>{product.category}</CategoryBadge>
-      </CardContent>
-    </CardContainer>
+      <Link to={`/product/${product.id}/${slugify(product.name)}`} className="block">
+        <div className="relative h-48 overflow-hidden">
+          <img 
+            src={`${PRODUCT_ASSET_URL}/${product.image}`}
+            alt={product.name} 
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          {product.stock > 0 ? (
+            <motion.button 
+              onClick={handleAddToCart}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="absolute bottom-3 right-3 bg-blue-600 text-white rounded-full w-9 h-9 flex items-center justify-center shadow-lg"
+            >
+              <FaShoppingCart />
+            </motion.button>
+          ) : (
+            <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">Out of Stock</div>
+          )}
+           {product.discount > 0 && (
+            <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
+              -{product.discount}%
+            </div>
+          )}
+        </div>
+      </Link>
+      <div className="p-4 flex flex-col flex-grow">
+        <p className="text-xs text-gray-500 uppercase font-semibold mb-1">{store ? store.name : 'Unknown Store'}</p>
+        <h3 className="text-sm font-semibold text-gray-800 mb-2 truncate">{product.name}</h3>
+        <div className="mt-auto flex justify-between items-center">
+           <p className="text-lg font-bold text-blue-600">
+            {product.discount > 0 ? (
+              <span className="flex items-baseline gap-2">
+                ₱{Number(product.price * (1 - product.discount / 100)).toFixed(2)}
+                <span className="text-sm text-gray-500 line-through">₱{Number(product.price).toFixed(2)}</span>
+              </span>
+            ) : (
+              `₱${Number(product.price).toFixed(2)}`
+            )}
+          </p>
+          <div className="flex items-center text-sm text-gray-600">
+            <FaStar className="text-yellow-400 mr-1" /> {product.rating}
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 };
-
-const CardContainer = styled(motion(Link))`
-  display: flex;
-  flex-direction: column;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  height: 100%;
-  text-decoration: none;
-  color: ${({ theme }) => theme.text};
-`;
-
-const ImageContainer = styled.div`
-  position: relative;
-  width: 100%;
-  height: 180px;
-  overflow: hidden;
-`;
-
-const ProductImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-  
-  ${CardContainer}:hover & {
-    transform: scale(1.05);
-  }
-`;
-
-const AddToCartButton = styled(motion.button)`
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  opacity: 0.9;
-  
-  &:hover {
-    opacity: 1;
-  }
-`;
-
-const OutOfStockBadge = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: ${({ theme }) => theme.error};
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
-`;
-
-const CardContent = styled.div`
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-`;
-
-const StoreName = styled.p`
-  font-size: 0.8rem;
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 5px;
-  text-transform: uppercase;
-  font-weight: 600;
-`;
-
-const ProductName = styled.h3`
-  margin: 0 0 8px 0;
-  font-size: 1rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.text};
-`;
-
-const PriceRatingContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-`;
-
-const Price = styled.span`
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: ${({ theme }) => theme.primary};
-`;
-
-const Rating = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.85rem;
-  color: ${({ theme }) => theme.textSecondary};
-  
-  svg {
-    color: #FFC107;
-  }
-`;
-
-const CategoryBadge = styled.span`
-  background-color: ${({ theme }) => theme.secondary};
-  color: white;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  align-self: flex-start;
-  margin-top: auto;
-`;
 
 export default ProductCard;

@@ -1,134 +1,84 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setMessage('');
+    setIsError(false);
 
     try {
-      const response = await axios.post('http://localhost/api/auth/forgot-password', {
-        email
-      });
-
-      setSuccess('Reset link has been sent to your email. Please check your inbox.');
+      await axios.post('http://localhost:8080/api/auth/forgot-password', { email });
+      setMessage('A password reset link has been sent to your email. Please check your inbox.');
+      setIsError(false);
     } catch (error) {
-      setError(error.response?.data?.message || 'An error occurred. Please try again.');
+      setMessage(error.response?.data?.message || 'An error occurred. Please try again.');
+      setIsError(true);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container>
-      <FormWrapper>
-        <Title>Forgot Password</Title>
-        <Form onSubmit={handleSubmit}>
-          <Input 
-            type="email" 
-            placeholder="Email" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          {error && <Error>{error}</Error>}
-          {success && <Success>{success}</Success>}
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Reset Link'}
-          </Button>
-        </Form>
-        <Links>
-          <StyledLink to="/signin">Back to Login</StyledLink>
-        </Links>
-      </FormWrapper>
-    </Container>
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 p-10 bg-white shadow-lg rounded-xl">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Forgot your password?</h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Enter your email address and we'll send you a link to reset your password.
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <input 
+                id="email-address"
+                name="email"
+                type="email" 
+                autoComplete="email"
+                required
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Email address" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {message && 
+            <div className={`p-4 rounded-md text-sm ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+              <p>{message}</p>
+            </div>
+          }
+
+          <div>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+            >
+              {loading ? 'Sending Link...' : 'Send Password Reset Link'}
+            </button>
+          </div>
+        </form>
+        <div className="text-sm text-center">
+          <p className="text-gray-600">
+            Remember your password?{' '}
+            <Link to="/signin" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Sign In
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: calc(100vh - 80px);
-  background-color: ${({ theme }) => theme.body};
-`;
-
-const FormWrapper = styled.div`
-  padding: 40px;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 8px;
-  box-shadow: ${({ theme }) => theme.cardShadow};
-  text-align: center;
-  width: 100%;
-  max-width: 400px;
-`;
-
-const Title = styled.h2`
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.text};
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Input = styled.input`
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 4px;
-  border: 1px solid ${({ theme }) => theme.border};
-  background-color: ${({ theme }) => theme.body};
-  color: ${({ theme }) => theme.text};
-`;
-
-const Button = styled.button`
-  padding: 10px;
-  border-radius: 4px;
-  border: none;
-  background-color: ${({ theme }) => theme.primary};
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
-`;
-
-const Links = styled.div`
-  margin-top: 20px;
-`;
-
-const StyledLink = styled(Link)`
-  color: ${({ theme }) => theme.primary};
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const Error = styled.div`
-  color: #dc3545;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 4px;
-  background-color: #f8d7da;
-`;
-
-const Success = styled.div`
-  color: #28a745;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 4px;
-  background-color: #d4edda;
-`;
 
 export default ForgotPassword;
