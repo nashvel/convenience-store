@@ -29,6 +29,19 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Handle admin login directly on the frontend for now
+    if (email === 'admin@test.com' && password === 'admin1234') {
+      const adminUser = {
+        first_name: 'Admin',
+        last_name: 'User',
+        role: 'admin',
+      };
+      login(adminUser); // Update auth context
+      navigate('/admin/dashboard'); // Redirect to admin dashboard
+      return; // Skip the rest of the function
+    }
+
     setLoading(true);
     setError('');
     setShowResend(false);

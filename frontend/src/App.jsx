@@ -8,7 +8,7 @@ import styled from 'styled-components';
 
 import GlobalStyle from './components/styles/GlobalStyle';
 import { theme as customerTheme } from './components/styles/Theme';
-import { neumorphicTheme } from './client/styles/neumorphicTheme';
+import { neumorphicTheme } from './seller/styles/neumorphicTheme';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -23,6 +23,7 @@ import Notifications from './pages/Navbar/Notifications';
 import StoresListPage from './pages/Stores/StoresListPage';
 import StorePage from './pages/Stores/StorePage';
 import SellerDashboard from './seller/SellerDashboard';
+import AdminApp from './admin/AdminApp';
 import Partners from './pages/Partners/Partners';
 import Settings from './pages/Profile/Settings';
 import MyOrdersList from './pages/MyOrders/MyOrdersList';
@@ -63,7 +64,8 @@ const MainContent = styled.main`
 
 const AppContent = () => {
   const location = useLocation();
-  const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
+    const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
+  const isAdminRoute = location.pathname.startsWith('/admin');
   const theme = isSellerRoute ? neumorphicTheme : customerTheme;
 
   return (
@@ -84,7 +86,7 @@ const AppContent = () => {
                 draggable
                 pauseOnHover
               />
-              {!isSellerRoute && <Navbar />}
+                            {!isSellerRoute && !isAdminRoute && <Navbar />}
               <MainContent>
                 <AnimatePresence mode="wait">
                   <Routes>
@@ -109,11 +111,15 @@ const AppContent = () => {
                     <Route path="/profile/settings" element={<Settings />} />
 
                     {/* Seller Dashboard Routes */}
+                    {/* Seller Dashboard Routes */}
                     <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
+
+                    {/* Admin Dashboard Routes */}
+                    <Route path="/admin/*" element={<AdminApp />} />
                   </Routes>
                 </AnimatePresence>
               </MainContent>
-              {!isSellerRoute && <Footer />}
+                            {!isSellerRoute && !isAdminRoute && <Footer />}
             </AppWrapper>
           </ThemeProvider>
         </StoreProvider>

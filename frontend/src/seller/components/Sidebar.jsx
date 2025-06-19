@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { neumorphicTheme } from '../styles/neumorphicTheme';
 import styled from 'styled-components';
+import { toast } from 'react-toastify';
 import { FaStore, FaTachometerAlt, FaBoxOpen, FaChevronDown, FaPlusCircle, FaTasks, FaClipboardList, FaComments, FaBars, FaTimes, FaStar, FaCog, FaClock, FaCalendarAlt } from 'react-icons/fa';
 
 const SidebarContainer = styled.div`
