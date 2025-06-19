@@ -2,22 +2,18 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaStar, FaShoppingCart } from 'react-icons/fa';
-import { CartContext } from '../context/CartContext';
+
 import { StoreContext } from '../context/StoreContext';
 import { PRODUCT_ASSET_URL } from '../config';
 import slugify from '../utils/slugify';
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useContext(CartContext);
+  
   const { stores } = useContext(StoreContext);
 
   const store = stores.find(s => s.id === product.store_id);
 
-  const handleAddToCart = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCart(product);
-  };
+
 
   return (
     <motion.div
@@ -32,16 +28,7 @@ const ProductCard = ({ product }) => {
             alt={product.name} 
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          {product.stock > 0 ? (
-            <motion.button 
-              onClick={handleAddToCart}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="absolute bottom-3 right-3 bg-blue-600 text-white rounded-full w-9 h-9 flex items-center justify-center shadow-lg"
-            >
-              <FaShoppingCart />
-            </motion.button>
-          ) : (
+          {product.stock > 0 ? null : (
             <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">Out of Stock</div>
           )}
            {product.discount > 0 && (

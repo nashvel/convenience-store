@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes } from 'react-icons/fa';
 import { StoreContext } from '../../context/StoreContext';
 import Reviews from '../../components/Reviews';
+import ProductCard from '../../components/ProductCard';
 import { PRODUCT_ASSET_URL } from '../../config';
 
 const ProductDetails = () => {
@@ -14,6 +15,10 @@ const ProductDetails = () => {
 
   const product = !loading && allProducts.length > 0 ? allProducts.find(p => String(p.id) === id) : null;
   const store = product ? stores.find(s => s.id === product.store_id) : null;
+
+  const suggestedProducts = product
+    ? allProducts.filter(p => p.store_id === product.store_id && String(p.id) !== id).slice(0, 5)
+    : [];
 
   const handleAddToCart = () => {
     if (product) {
@@ -59,7 +64,7 @@ const ProductDetails = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12"
+      className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12"
     >
       <Link to="/products" className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 font-medium mb-6">
         <FaArrowLeft /> Back to Products
@@ -154,6 +159,17 @@ const ProductDetails = () => {
       </div>
 
       <Reviews productId={product.id} />
+
+      {suggestedProducts.length > 0 && (
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">More from {store?.name || 'this store'}</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+            {suggestedProducts.map(p => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </div>
+      )}
 
     </motion.div>
   );

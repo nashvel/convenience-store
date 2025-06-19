@@ -5,6 +5,7 @@ import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaB
 import axios from 'axios';
 import { CartContext } from '../context/CartContext';
 import { StoreContext } from '../context/StoreContext';
+import { UIContext } from '../context/UIContext';
 import { useAuth } from '../context/AuthContext';
 import eventEmitter from '../utils/event-emitter';
 
@@ -18,6 +19,7 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const { totalItems } = useContext(CartContext);
   const { categories, priceRange, handlePriceChange } = useContext(StoreContext);
+  const { isPageScrolled } = useContext(UIContext);
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const categoryParam = queryParams.get('category');
   const [notificationCount, setNotificationCount] = useState(0);
@@ -56,10 +58,14 @@ const Navbar = () => {
   }, [user]);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleScroll = () => {
+      if (location.pathname !== '/stores') {
+        setIsScrolled(window.scrollY > 20);
+      }
+    };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -133,17 +139,20 @@ const Navbar = () => {
 
   return (
     <motion.nav
-      initial={{ y: -80 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 h-20 ${isScrolled ? 'bg-white/80 shadow-md backdrop-blur-sm' : 'bg-transparent'}`}>
+      className={`fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm transition-all duration-300`}
+      animate={{
+        height: (location.pathname === '/stores' && isPageScrolled) ? 64 : 80,
+        boxShadow: isScrolled || (location.pathname === '/stores' && isPageScrolled) ? '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' : 'none'
+      }}
+      transition={{ duration: 0.3, ease: [0.43, 0.13, 0.23, 0.96] }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-full">
+        <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex-shrink-0">
-            <h1 className="text-2xl font-bold text-blue-600">Nash<span className="text-gray-800">QuickMart</span></h1>
+            <span className="text-2xl font-bold text-gray-900">Nash<span className="text-blue-600">Quick</span>Mart</span>
           </Link>
 
-                    <div className="hidden md:flex items-center space-x-2 h-full">
+          <div className="hidden md:flex items-center space-x-2">
             {renderNavLinks()}
           </div>
 

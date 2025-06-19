@@ -58,36 +58,40 @@ const Reviews = () => {
   };
 
   return (
-    <div className="mt-10">
-      <h2 className="text-3xl font-bold mb-5">Customer Reviews</h2>
-      {reviews.map(review => (
-        <div key={review.id} className="border-b border-gray-200 py-5 last:border-b-0">
-          <div className="flex items-center mb-2.5">
-            <img src={review.avatar} alt={review.author} className="w-12 h-12 rounded-full mr-4" />
-            <div className="font-semibold text-gray-800">{review.author}</div>
-            <div className="flex items-center ml-auto text-yellow-500">
-              {[...Array(review.rating)].map((_, i) => (
-                <FaStar key={i} className="mr-1" />
-              ))}
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+      <div className="space-y-6">
+        {reviews.map(review => (
+          <div key={review.id} className="flex items-start">
+            <img src={review.avatar} alt={review.author} className="w-10 h-10 rounded-full mr-4 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <div className="font-semibold text-gray-800 text-sm">{review.author}</div>
+                <div className="flex items-center text-yellow-400">
+                  {[...Array(review.rating)].map((_, i) => (
+                    <FaStar key={i} className="text-sm" />
+                  ))}
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
+              <div className="flex items-center gap-4 text-gray-500 mt-2">
+                <button 
+                  onClick={() => handleAction(review.id, 'like')}
+                  className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ease-in-out hover:text-blue-600 ${userActions[review.id] === 'like' ? 'text-blue-600' : 'text-gray-500'}`}
+                >
+                  <FaThumbsUp /> {review.likes}
+                </button>
+                <button 
+                  onClick={() => handleAction(review.id, 'dislike')}
+                  className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ease-in-out hover:text-red-600 ${userActions[review.id] === 'dislike' ? 'text-red-600' : 'text-gray-500'}`}
+                >
+                  <FaThumbsDown /> {review.dislikes}
+                </button>
+              </div>
             </div>
           </div>
-          <p className="text-gray-600 leading-relaxed mb-4">{review.comment}</p>
-          <div className="flex items-center gap-5 text-gray-500">
-            <button 
-              onClick={() => handleAction(review.id, 'like')}
-              className={`flex items-center gap-1.5 text-sm transition-colors duration-200 ease-in-out hover:text-blue-600 ${userActions[review.id] === 'like' ? 'text-blue-600' : 'text-gray-500'}`}
-            >
-              <FaThumbsUp /> {review.likes}
-            </button>
-            <button 
-              onClick={() => handleAction(review.id, 'dislike')}
-              className={`flex items-center gap-1.5 text-sm transition-colors duration-200 ease-in-out hover:text-red-600 ${userActions[review.id] === 'dislike' ? 'text-red-600' : 'text-gray-500'}`}
-            >
-              <FaThumbsDown /> {review.dislikes}
-            </button>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import ScrollToTopButton from '../../components/ScrollToTopButton';
-import { FaFilter, FaSearch } from 'react-icons/fa';
+import { FaSearch } from 'react-icons/fa';
 
 const Products = () => {
   const location = useLocation();
@@ -19,7 +19,11 @@ const Products = () => {
 
 
   const [sortOption, setSortOption] = useState(queryParams.get('sort') || 'best-sellers');
-  const [showFilters, setShowFilters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(20);
+
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [categoryParam, searchParam, priceRange, sortOption, dealsParam]);
 
   const filteredProducts = useMemo(() => {
     if (loading || error) return [];
@@ -101,15 +105,6 @@ const Products = () => {
 
   const currentCategory = categoryParam || 'all';
 
-  const FilterPanel = () => (
-    <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-64 lg:sticky top-24 self-start`}>
-      <div className="bg-white p-5 rounded-lg shadow-md space-y-6">
-
-
-      </div>
-    </aside>
-  );
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -119,15 +114,10 @@ const Products = () => {
       className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
     >
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Our Products</h1>
-        <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden p-2 rounded-md bg-gray-200">
-          <FaFilter />
-        </button>
+        <h4 className="text-3xl font-bold">Our Products</h4>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        <FilterPanel />
-        <main className="flex-1">
+      <main>
           <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <div className="relative w-full md:w-auto">
               <FaSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
@@ -155,16 +145,27 @@ const Products = () => {
           ) : error ? (
             <div className="text-center py-10 text-red-500">Error: {error}</div>
           ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
-              {filteredProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+                {filteredProducts.slice(0, visibleCount).map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+              {visibleCount < filteredProducts.length && (
+                <div className="text-center mt-10">
+                  <button 
+                    onClick={() => setVisibleCount(prev => prev + 20)}
+                    className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-10">No products match your criteria.</div>
           )}
-        </main>
-      </div>
+      </main>
       <ScrollToTopButton />
     </motion.div>
   );

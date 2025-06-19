@@ -99,6 +99,7 @@ const AppContent = () => {
   );
 };
 
+// Forcing a full re-compile to fix a caching issue.
 const App = () => (
   <Router>
     <AppContent />
