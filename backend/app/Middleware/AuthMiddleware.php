@@ -2,39 +2,57 @@
 
 namespace App\Middleware;
 
-use CodeIgniter\HTTP\IncomingRequest;
+use CodeIgniter\Filters\FilterInterface;
+use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\HTTP\Response;
-use Psr\Log\LoggerInterface;
+use Config\Services;
 
-class AuthMiddleware
+class AuthMiddleware implements FilterInterface
 {
+    /**
+     * @param RequestInterface $request
+     * @param array|null       $arguments
+     *
+     * @return mixed
+     */
     public function before(RequestInterface $request, $arguments = null)
     {
         $session = session();
-        
+        log_message('info', 'AuthMiddleware triggered for URI: ' . $request->getUri());
+        log_message('info', 'Session data: ' . json_encode($session->get()));
+        log_message('info', 'Cookie header: [' . $request->getHeaderLine('Cookie') . ']');
+
         // Check if user is logged in via session
         if ($session->has('logged_in') && $session->get('logged_in') === true) {
-            return null;
+            return;
         }
 
         // Check for token in Authorization header
-        $authHeader = $request->getHeader('Authorization');
-        if ($authHeader) {
-            $token = str_replace('Bearer ', '', $authHeader->getValue());
+        $authHeader = $request->getHeaderLine('Authorization');
+        if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+            $token = $matches[1];
             
             // Validate token against session
             if ($session->has('token') && $session->get('token') === $token) {
-                return null;
+                return;
             }
         }
 
-        // If neither session nor valid token, redirect to login
-        return redirect()->to('/signin');
+        // If not authenticated, return a 401 Unauthorized response
+        return Services::response()
+            ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED)
+            ->setJSON(['error' => 'Unauthorized']);
     }
 
-    public function after(ResponseInterface $response, $arguments = null)
+    /**
+     * @param RequestInterface  $request
+     * @param ResponseInterface $response
+     * @param array|null        $arguments
+     *
+     * @return mixed
+     */
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        return $response;
+        // No action needed
     }
 }

@@ -2,7 +2,7 @@ import { API_BASE_URL } from './config';
 
 export const fetchCategories = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/categories`);
+    const response = await fetch(`${API_BASE_URL}/categories`);
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }

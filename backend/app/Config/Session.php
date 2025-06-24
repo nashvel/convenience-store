@@ -102,6 +102,46 @@ class Session extends BaseConfig
 
     /**
      * --------------------------------------------------------------------------
+     * Session Cookie Path
+     * --------------------------------------------------------------------------
+     *
+     * The path for the session cookie.
+     */
+    public string $cookiePath = '/';
+
+    /**
+     * --------------------------------------------------------------------------
+     * Session Cookie Domain
+     * --------------------------------------------------------------------------
+     *
+     * The domain for the session cookie.
+     * E.g., '.example.com' for site-wide cookies.
+     */
+    public string $cookieDomain = '';
+
+    /**
+     * --------------------------------------------------------------------------
+     * Session Cookie Secure
+     * --------------------------------------------------------------------------
+     *
+     * Whether to set the session cookie with the Secure flag.
+     * NOTE: This must be `true` if `cookieSameSite` is 'None'.
+     */
+    public bool $cookieSecure = false;
+
+    /**
+     * --------------------------------------------------------------------------
+     * Session Cookie SameSite
+     * --------------------------------------------------------------------------
+     *
+     * The SameSite setting for the session cookie.
+     * Options are: 'Lax', 'Strict', 'None'.
+     * For cross-origin requests, this needs to be 'None'.
+     */
+    public string $cookieSameSite = 'Lax';
+
+    /**
+     * --------------------------------------------------------------------------
      * Lock Retry Interval (microseconds)
      * --------------------------------------------------------------------------
      *

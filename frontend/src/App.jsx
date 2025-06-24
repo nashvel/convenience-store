@@ -18,6 +18,7 @@ import SignUp from './pages/Auth/SignUp';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import Notifications from './pages/Navbar/Notifications';
 import StoresListPage from './pages/Stores/StoresListPage';
+import RestaurantsPage from './pages/Restaurants/Restaurants';
 import StorePage from './pages/Stores/StorePage';
 import SellerDashboard from './seller/SellerDashboard';
 import AdminApp from './admin/AdminApp';
@@ -70,6 +71,7 @@ const AppContent = () => {
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/stores" element={<StoresListPage />} />
                   <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
+                  <Route path="/restaurants" element={<RestaurantsPage />} />
                   <Route path="/partners" element={<Partners />} />
 
                   {/* User Authentication Routes */}

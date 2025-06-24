@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config';
 
 const MyOrdersList = () => {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ const MyOrdersList = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080/api/orders?userId=${user.id}`);
+                const response = await axios.get(`${API_BASE_URL}/orders?userId=${user.id}`);
         if (response.data.success) {
           setOrders(response.data.orders);
         } else {

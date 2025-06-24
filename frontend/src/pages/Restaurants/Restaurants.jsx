@@ -8,8 +8,7 @@ import { FaSearch } from 'react-icons/fa';
 import slugify from '../../utils/slugify';
 import StoreCardSkeleton from '../../components/Skeletons/StoreCardSkeleton';
 
-// Forcing a re-compile to fix a caching issue.
-const StoresListPage = () => {
+const RestaurantsPage = () => {
   const { stores, loading, error } = useContext(StoreContext);
   const [searchQuery, setSearchQuery] = useState('');
   const { isPageScrolled, setIsPageScrolled } = useContext(UIContext);
@@ -28,21 +27,22 @@ const StoresListPage = () => {
 
     window.addEventListener('scroll', handleScroll);
 
-    // Cleanup function to reset the scroll state when leaving the page
     return () => {
       window.removeEventListener('scroll', handleScroll);
       setIsPageScrolled(false);
     };
   }, [setIsPageScrolled]);
 
-  const filteredStores = useMemo(() => {
+  const restaurants = useMemo(() => stores.filter(store => store.store_type === 'restaurant'), [stores]);
+
+  const filteredRestaurants = useMemo(() => {
     if (!searchQuery) {
-      return stores;
+      return restaurants;
     }
-    return stores.filter(store =>
+    return restaurants.filter(store =>
       store.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [stores, searchQuery]);
+  }, [restaurants, searchQuery]);
 
   if (loading) {
     return (
@@ -74,8 +74,8 @@ const StoresListPage = () => {
           animate={{ opacity: isPageScrolled ? 1 : 0 }}
           transition={{ duration: 0.3 }}
         >
-          <motion.h1 layoutId="stores-title" className="text-2xl font-bold text-gray-800">All Stores</motion.h1>
-          <motion.p layoutId="stores-subtitle" className="text-sm text-gray-600 mt-1">Visit our trusted partners and discover a world of quality products.</motion.p>
+          <motion.h1 layoutId="restaurants-title" className="text-2xl font-bold text-gray-800">All Restaurants</motion.h1>
+          <motion.p layoutId="restaurants-subtitle" className="text-sm text-gray-600 mt-1">Delicious meals, delivered to your door.</motion.p>
         </motion.div>
       </div>
 
@@ -86,15 +86,15 @@ const StoresListPage = () => {
             animate={{ opacity: isPageScrolled ? 0 : 1 }}
             transition={{ duration: 0.3 }}
           >
-            <motion.h1 layoutId="stores-title" className="text-4xl font-bold text-center mb-5 text-primary">All Stores</motion.h1>
-            <motion.p layoutId="stores-subtitle" className="text-center text-lg text-gray-500 mb-10 max-w-2xl mx-auto">Visit our trusted partners and discover a world of quality products.</motion.p>
+            <motion.h1 layoutId="restaurants-title" className="text-4xl font-bold text-center mb-5 text-primary">All Restaurants</motion.h1>
+            <motion.p layoutId="restaurants-subtitle" className="text-center text-lg text-gray-500 mb-10 max-w-2xl mx-auto">Delicious meals, delivered to your door.</motion.p>
           </motion.div>
         </div>
 
         <div className="relative w-full max-w-lg mx-auto mb-10">
           <input
             type="text"
-            placeholder="Search for your favorite store..."
+            placeholder="Search for your favorite restaurant..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full py-3 pl-12 pr-5 border border-gray-300 rounded-full bg-gray-100 text-gray-800 text-base transition-all duration-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -102,9 +102,9 @@ const StoresListPage = () => {
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><FaSearch /></span>
         </div>
 
-        {filteredStores.length > 0 ? (
+        {filteredRestaurants.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
-            {filteredStores.map((store) => (
+            {filteredRestaurants.map((store) => (
               <motion.div
                 key={store.id}
                 whileHover={{ y: -10, transition: { duration: 0.3 } }}
@@ -122,7 +122,7 @@ const StoresListPage = () => {
         ) : (
           <div className="text-center py-16 px-5 text-gray-500">
             <div className="text-5xl mb-4">😞</div>
-            <p className="text-lg font-medium text-gray-800 mb-2">No stores found matching "{searchQuery}"</p>
+            <p className="text-lg font-medium text-gray-800 mb-2">No restaurants found matching "{searchQuery}"</p>
             <p className="text-base">Try a different search or check your spelling.</p>
           </div>
         )}
@@ -131,4 +131,4 @@ const StoresListPage = () => {
   );
 };
 
-export default StoresListPage;
+export default RestaurantsPage;

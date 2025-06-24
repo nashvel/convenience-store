@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config';
 import axios from 'axios';
 
 const SignIn = () => {
@@ -16,7 +17,7 @@ const SignIn = () => {
     setLoading(true);
     setError('');
     try {
-      await axios.post('http://localhost:8080/api/auth/resend-verification', { email });
+            await axios.post(`${API_BASE_URL}/auth/resend-verification`, { email });
       setError('A new verification email has been sent. Please check your inbox.');
       setShowResend(false);
     } catch (err) {
@@ -45,7 +46,7 @@ const SignIn = () => {
     setShowResend(false);
 
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/login', {
+            const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         email,
         password
       }, {
@@ -55,10 +56,6 @@ const SignIn = () => {
       const { token, user } = response.data;
       login(user);
       localStorage.setItem('token', token);
-      if (user) {
-        localStorage.setItem('firstName', user.first_name || '');
-        localStorage.setItem('lastName', user.last_name || '');
-      }
 
       switch (user.role) {
         case 'customer': navigate('/'); break;

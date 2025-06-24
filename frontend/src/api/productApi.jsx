@@ -1,9 +1,11 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 
-const API_URL = 'http://localhost:8080/api'; // Your CodeIgniter backend URL
+const API_URL = API_BASE_URL;
 
 const apiClient = axios.create({
+  withCredentials: true,
   baseURL: API_URL,
 });
 

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config';
+import NotificationSkeleton from '../../components/Skeletons/NotificationSkeleton';
+import { FaBell, FaCheckCircle, FaTimesCircle, FaInfoCircle, FaShoppingBag } from 'react-icons/fa';
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -14,6 +17,20 @@ const Notifications = () => {
     return match ? match[1] : null;
   };
 
+  const getNotificationIcon = (message) => {
+    const lowerCaseMessage = message.toLowerCase();
+    if (lowerCaseMessage.includes('delivered') || lowerCaseMessage.includes('completed')) {
+      return <FaCheckCircle className="text-green-500" />;
+    }
+    if (lowerCaseMessage.includes('cancelled') || lowerCaseMessage.includes('rejected')) {
+      return <FaTimesCircle className="text-red-500" />;
+    }
+    if (lowerCaseMessage.includes('order placed') || lowerCaseMessage.includes('assigned')) {
+      return <FaShoppingBag className="text-blue-500" />;
+    }
+    return <FaInfoCircle className="text-gray-500" />;
+  };
+
   useEffect(() => {
     const fetchNotifications = async () => {
       if (!user) {
@@ -24,7 +41,7 @@ const Notifications = () => {
       try {
         setError('');
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080/api/notifications?userId=${user.id}`);
+                const response = await axios.get(`${API_BASE_URL}/notifications?userId=${user.id}`);
         if (response.data.success) {
           setNotifications(response.data.notifications);
         } else {
@@ -41,36 +58,65 @@ const Notifications = () => {
     fetchNotifications();
   }, [user]);
 
-  const NotificationContent = ({ notification }) => (
-    <div
-      className={`bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:-translate-y-0.5 ${notification.is_read ? 'opacity-60' : ''}`}>
-      <p>{notification.message}</p>
-      <small className="text-gray-500">{new Date(notification.created_at).toLocaleString()}</small>
-    </div>
-  );
+  const NotificationItem = ({ notification }) => {
+    const orderId = getOrderId(notification.message);
+    const content = (
+      <div className={`flex items-start p-4 transition-colors duration-200 hover:bg-gray-50 ${!notification.is_read ? 'bg-blue-50' : 'bg-white'}`}>
+        <div className="flex-shrink-0 w-8 text-center pt-1">
+          {getNotificationIcon(notification.message)}
+        </div>
+        <div className="ml-4 flex-grow">
+          <p className="text-sm text-gray-700">{notification.message}</p>
+          <small className="text-xs text-gray-500">{new Date(notification.created_at).toLocaleString()}</small>
+        </div>
+        {!notification.is_read && (
+          <div className="w-2 h-2 bg-blue-500 rounded-full self-center ml-4"></div>
+        )}
+      </div>
+    );
+
+    return orderId ? (
+      <Link to={`/my-orders/${orderId}`} className="no-underline text-inherit block">
+        {content}
+      </Link>
+    ) : (
+      content
+    );
+  };
 
   return (
-    <div className="py-16 px-8 max-w-3xl mx-auto text-center">
-      <h1 className="text-4xl font-bold mb-8 text-gray-800">Notifications</h1>
-      <div className="text-left">
-        {loading ? (
-          <p>Loading notifications...</p>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
-        ) : notifications.length > 0 ? (
-          notifications.map(notification => {
-            const orderId = getOrderId(notification.message);
-            return orderId ? (
-              <Link to={`/my-orders/${orderId}`} key={notification.id} className="no-underline text-inherit">
-                <NotificationContent notification={notification} />
-              </Link>
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            You have {notifications.filter(n => !n.is_read).length} unread notifications.
+          </p>
+        </header>
+
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="divide-y divide-gray-200">
+            {loading ? (
+              Array.from({ length: 5 }).map((_, index) => <NotificationSkeleton key={index} />)
+            ) : error ? (
+              <div className="p-8 text-center">
+                <FaTimesCircle className="mx-auto h-12 w-12 text-red-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">An error occurred</h3>
+                <p className="mt-1 text-sm text-gray-500">{error}</p>
+              </div>
+            ) : notifications.length > 0 ? (
+              notifications.map(notification => (
+                <NotificationItem key={notification.id} notification={notification} />
+              ))
             ) : (
-              <NotificationContent key={notification.id} notification={notification} />
-            );
-          })
-        ) : (
-          <p>You have no new notifications.</p>
-        )}
+              <div className="p-8 text-center">
+                <FaBell className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No new notifications</h3>
+                <p className="mt-1 text-sm text-gray-500">You're all caught up!</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

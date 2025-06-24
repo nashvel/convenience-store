@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { PRODUCT_ASSET_URL } from '../../config';
+import { API_BASE_URL, PRODUCT_ASSET_URL } from '../../config';
 
 const MyOrders = () => {
   const { id } = useParams();
@@ -21,7 +21,7 @@ const MyOrders = () => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080/api/orders/${id}`);
+                const response = await axios.get(`${API_BASE_URL}/orders/${id}`);
         if (response.data.success) {
           setOrder(response.data.order);
         } else {
@@ -40,7 +40,7 @@ const MyOrders = () => {
 
   const handleCancelOrder = async () => {
     try {
-      const response = await axios.put(`http://localhost:8080/api/orders/cancel/${id}`);
+            const response = await axios.put(`${API_BASE_URL}/orders/cancel/${id}`);
       if (response.data.success) {
         setOrder({ ...order, status: 'cancelled' });
         alert('Order cancelled successfully!');

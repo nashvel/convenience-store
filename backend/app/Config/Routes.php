@@ -8,16 +8,12 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 
 $routes->group('api', ['filter' => 'cors'], function ($routes) {
+    // Publicly accessible routes
     $routes->resource('categories', ['controller' => 'CategoryController']);
     $routes->resource('stores', ['controller' => 'StoreController']);
     $routes->resource('products', ['controller' => 'ProductController']);
-        $routes->get('notifications', 'NotificationController::index');
-    $routes->get('orders', 'OrderController::index');
-$routes->get('orders/action/(:any)', 'OrderController::handleOrderAction/$1');
-    $routes->post('orders', 'OrderController::create');
-    $routes->get('orders/(:num)', 'OrderController::show/$1');
-    $routes->put('orders/cancel/(:num)', 'OrderController::cancel/$1');
 
+    // Authentication routes
     $routes->group('auth', function ($routes) {
         $routes->post('login', 'AuthController::login');
         $routes->post('signup', 'AuthController::signup');
@@ -25,6 +21,27 @@ $routes->get('orders/action/(:any)', 'OrderController::handleOrderAction/$1');
         $routes->post('forgot-password', 'AuthController::forgotPassword');
         $routes->post('reset-password/(:segment)', 'AuthController::resetPassword/$1');
         $routes->get('verify-email/(:segment)', 'AuthController::verifyEmail/$1');
+    });
+
+    // Protected routes that require authentication
+    $routes->group('', ['filter' => 'auth'], function($routes) {
+        // User Addresses
+        $routes->get('addresses', 'AddressController::getAddresses');
+        $routes->post('addresses', 'AddressController::addAddress');
+        $routes->put('addresses/(:num)', 'AddressController::updateAddress/$1');
+        $routes->delete('addresses/(:num)', 'AddressController::deleteAddress/$1');
+        $routes->put('addresses/set-default/(:num)', 'AddressController::setDefaultAddress/$1');
+
+        // Notifications
+        $routes->get('notifications', 'NotificationController::index');
+
+        // Orders
+        $routes->get('orders', 'OrderController::index');
+        $routes->get('orders/action/(:any)', 'OrderController::handleOrderAction/$1');
+        $routes->post('orders', 'OrderController::create');
+        $routes->get('orders/(:num)', 'OrderController::show/$1');
+        $routes->put('orders/cancel/(:num)', 'OrderController::cancel/$1');
+        $routes->put('orders/status/(:num)', 'OrderController::updateStatus/$1');
     });
 });
 

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -34,7 +36,7 @@ const SignUp = () => {
     setIsSuccess(false);
 
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/signup', {
+            const response = await axios.post(`${API_BASE_URL}/auth/signup`, {
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,

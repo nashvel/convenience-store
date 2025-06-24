@@ -14,18 +14,34 @@ class OrderController extends ResourceController
     public function index()
     {
         $userId = $this->request->getGet('userId');
-        if (!$userId) {
-            return $this->failUnauthorized('User ID is required.');
+        $storeId = $this->request->getGet('store_id');
+        
+        if (!$userId && !$storeId) {
+            return $this->failUnauthorized('User ID or Store ID is required.');
         }
 
         $db = \Config\Database::connect();
         try {
-            $orders = $db->table('orders')
-                         ->select('*, total_amount as total')
-                         ->where('customer_id', $userId)
-                         ->orderBy('created_at', 'DESC')
-                         ->get()
-                         ->getResultArray();
+            $query = $db->table('orders')->select('orders.*, users.first_name, users.last_name')
+                        ->join('users', 'users.id = orders.customer_id');
+
+            if ($userId) {
+                $query->where('orders.customer_id', $userId);
+            } elseif ($storeId) {
+                $query->where('orders.store_id', $storeId);
+            }
+
+            $orders = $query->orderBy('orders.created_at', 'DESC')->get()->getResultArray();
+
+            // For each order, fetch order items
+            foreach ($orders as &$order) {
+                $order['items'] = $db->table('order_items')
+                                      ->select('order_items.*, products.name as product_name, products.image as product_image')
+                                      ->join('products', 'products.id = order_items.product_id')
+                                      ->where('order_id', $order['id'])
+                                      ->get()
+                                      ->getResultArray();
+            }
 
             return $this->respond(['success' => true, 'orders' => $orders]);
         } catch (\Exception $e) {
@@ -242,6 +258,43 @@ class OrderController extends ResourceController
         } catch (\Exception $e) {
             log_message('error', 'JWT Decode Error: ' . $e->getMessage());
             return $this->fail('<h1>Link Expired or Invalid</h1><p>This action link is either invalid or has expired. Please manage the order from your dashboard.</p>');
+        }
+    }
+
+    public function updateStatus($id = null)
+    {
+        $db = \Config\Database::connect();
+        $data = $this->request->getJSON();
+
+        if (!isset($data->status)) {
+            return $this->fail('New status is required.');
+        }
+
+        $newStatus = $data->status;
+        $allowedStatus = ['accepted', 'rejected', 'in_transit', 'delivered', 'cancelled'];
+
+        if (!in_array($newStatus, $allowedStatus)) {
+            return $this->fail('Invalid status provided.');
+        }
+
+        try {
+            $order = $db->table('orders')->where('id', $id)->get()->getRow();
+            if (!$order) {
+                return $this->failNotFound('Order not found.');
+            }
+
+            // Here you might want to add authorization to check if the user
+            // has permission to update this order (e.g., is the store owner).
+
+            $db->table('orders')->where('id', $id)->update(['status' => $newStatus]);
+
+            // Optionally, send a notification to the customer about the status change.
+            $this->sendCustomerNotification($id, $newStatus);
+
+            return $this->respond(['success' => true, 'message' => 'Order status updated successfully.']);
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('An error occurred while updating the order status.');
         }
     }
 

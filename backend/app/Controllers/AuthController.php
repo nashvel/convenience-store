@@ -176,18 +176,35 @@ class AuthController extends ResourceController
                     return $this->fail('Invalid user role', 500);
                 }
 
+                $sessionData = [
+                    'id'         => $user['id'],
+                    'email'      => $user['email'],
+                    'first_name' => $user['first_name'],
+                    'last_name'  => $user['last_name'],
+                    'role'       => $role['name'],
+                    'logged_in'  => true,
+                ];
+
+                if ($role['name'] === 'client') {
+                    $db = \Config\Database::connect();
+                    $store = $db->table('stores')->where('client_id', $user['id'])->get()->getRowArray();
+                    if ($store) {
+                        $sessionData['store_id'] = $store['id'];
+                    }
+                }
+
+                $this->session->set($sessionData);
+                log_message('info', 'Session set for user: ' . $user['email']);
+
                 $token = bin2hex(random_bytes(32));
                 
+                $userData = $sessionData;
+                unset($userData['logged_in']);
+
                 $response = [
                     'status' => 'success',
                     'token'  => $token,
-                    'user'   => [
-                        'id'         => $user['id'],
-                        'email'      => $user['email'],
-                        'first_name' => $user['first_name'],
-                        'last_name'  => $user['last_name'],
-                        'role'       => $role['name'],
-                    ]
+                    'user'   => $userData
                 ];
 
                 return $this->respond($response);

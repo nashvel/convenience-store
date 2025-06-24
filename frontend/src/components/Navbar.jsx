@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaBuilding, FaBell, FaChevronDown } from 'react-icons/fa';
+import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaBuilding, FaBell, FaChevronDown, FaShoppingBag } from 'react-icons/fa';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import { CartContext } from '../context/CartContext';
 import { StoreContext } from '../context/StoreContext';
 import { UIContext } from '../context/UIContext';
@@ -34,7 +35,7 @@ const Navbar = () => {
     const fetchNotifications = async () => {
       if (user) {
         try {
-          const response = await axios.get(`http://localhost:8080/api/notifications?userId=${user.id}`);
+                    const response = await axios.get(`${API_BASE_URL}/notifications?userId=${user.id}`, { withCredentials: true });
           if (response.data.success) {
             const unreadCount = response.data.notifications.filter(n => !n.is_read).length;
             setNotificationCount(unreadCount);
@@ -105,6 +106,7 @@ const Navbar = () => {
       <NavLink to="/" icon={<FaHome />} exact={true}>Home</NavLink>
       <NavLink to="/products" icon={<FaStore />}>Products</NavLink>
       <NavLink to="/stores" icon={<FaBuilding />}>Stores</NavLink>
+      <NavLink to="/restaurants" icon={<FaShoppingBag />}>Restaurants</NavLink>
     </>
   );
 

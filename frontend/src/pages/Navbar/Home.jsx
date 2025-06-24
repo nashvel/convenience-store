@@ -22,6 +22,8 @@ const Home = () => {
   };
 
   const featuredProducts = [...allProducts].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)).slice(0, 4);
+  const convenienceStores = stores.filter(store => store.store_type === 'convenience');
+  const restaurants = stores.filter(store => store.store_type === 'restaurant');
 
   if (loading) {
     return <div className="flex items-center justify-center h-[calc(100vh-80px)]">Loading products...</div>;
@@ -49,13 +51,13 @@ const Home = () => {
             className="text-4xl md:text-5xl font-bold leading-tight mb-5 text-gray-800"
             initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }}
           >
-            Quick and Easy <span className="text-primary">Shopping</span> at Your Fingertips
+            Quick and Easy <span className="text-primary">Shopping & Food Delivery</span> at Your Fingertips
           </motion.h1>
           <motion.p 
             className="text-lg text-gray-600 mb-8"
             initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}
           >
-            Order your favorite convenience store items with just a few clicks.
+            Order your favorite convenience store items and restaurant meals with just a few clicks.
           </motion.p>
           <motion.div 
             className="flex gap-4 justify-center md:justify-start"
@@ -103,16 +105,16 @@ const Home = () => {
         </div>
       </section>
 
-      {stores && stores.length > 0 && (
+      {convenienceStores && convenienceStores.length > 0 && (
         <section className="mb-16">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FaStore className="text-primary" /> Shop by Store</h2>
             <Link to="/stores" className="text-primary font-medium hover:underline">View All</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {stores.slice(0, 6).map((store) => (
+            {convenienceStores.slice(0, 6).map((store) => (
               <motion.div key={store.id} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
-                <Link to={`/store/${store.id}/${slugify(store.name)}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg h-full">
+                <Link to={`/stores/${store.id}/${slugify(store.name)}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg h-full">
                   <img src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} className="w-20 h-20 object-contain mb-4" />
                   <h3 className="font-semibold text-gray-700">{store.name}</h3>
                 </Link>
@@ -122,7 +124,26 @@ const Home = () => {
         </section>
       )}
 
-      <section className="grid md:grid-cols-2 gap-8 mb-16">
+      {restaurants && restaurants.length > 0 && (
+        <section className="mb-16">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FaShoppingBag className="text-primary" /> Order Food</h2>
+            <Link to="/restaurants" className="text-primary font-medium hover:underline">View All</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {restaurants.slice(0, 6).map((store) => (
+              <motion.div key={store.id} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+                <Link to={`/stores/${store.id}/${slugify(store.name)}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg h-full">
+                  <img src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} className="w-20 h-20 object-contain mb-4" />
+                  <h3 className="font-semibold text-gray-700">{store.name}</h3>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="grid md:grid-cols-3 gap-8 mb-16">
         <div className="bg-cyan-50 rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row items-center">
           <div className="p-8 flex-1">
             <h3 className="text-2xl font-bold text-gray-800 mb-2">Fresh Groceries</h3>
@@ -138,6 +159,14 @@ const Home = () => {
             <Link to="/products?category=Snacks" className={`${primaryButtonClasses} text-sm`}>Order Now</Link>
           </div>
           <img src="https://images.unsplash.com/photo-1551024601-bec78d8d590d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Snacks" className="w-full md:w-48 h-48 object-cover" />
+        </div>
+        <div className="bg-red-50 rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row items-center">
+          <div className="p-8 flex-1">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">Hot Meals</h3>
+            <p className="text-gray-600 mb-4">Delicious food from local restaurants.</p>
+            <Link to="/restaurants" className={`${primaryButtonClasses} text-sm`}>Browse Food</Link>
+          </div>
+          <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Hot Meals" className="w-full md:w-48 h-48 object-cover" />
         </div>
       </section>
 
