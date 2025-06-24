@@ -19,7 +19,7 @@ class AddressController extends ResourceController
 
     public function getAddresses()
     {
-        $userId = session()->get('user_id');
+        $userId = session()->get('id');
 
         if (!$userId) {
             return $this->failUnauthorized('You must be logged in to view addresses.');
@@ -40,7 +40,8 @@ class AddressController extends ResourceController
 
     public function addAddress()
     {
-        $userId = session()->get('user_id');
+
+        $userId = session()->get('id');
 
         if (!$userId) {
             return $this->failUnauthorized('You must be logged in to add an address.');
@@ -73,7 +74,7 @@ class AddressController extends ResourceController
 
     public function updateAddress($id = null)
     {
-        $userId = session()->get('user_id');
+        $userId = session()->get('id');
 
         if (!$userId) {
             return $this->failUnauthorized('You must be logged in to update an address.');
@@ -104,7 +105,7 @@ class AddressController extends ResourceController
 
     public function deleteAddress($id = null)
     {
-        $userId = session()->get('user_id');
+        $userId = session()->get('id');
 
         if (!$userId) {
             return $this->failUnauthorized('You must be logged in to delete an address.');
@@ -127,7 +128,7 @@ class AddressController extends ResourceController
 
     public function setDefaultAddress($id = null)
     {
-        $userId = session()->get('user_id');
+        $userId = session()->get('id');
 
         if (!$userId) {
             return $this->failUnauthorized('You must be logged in to set a default address.');

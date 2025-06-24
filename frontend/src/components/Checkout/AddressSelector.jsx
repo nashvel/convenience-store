@@ -1,57 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaCheckCircle } from 'react-icons/fa';
+import { FaMapMarkerAlt } from 'react-icons/fa';
 import AddressModal from '../Modals/AddressModal';
+import AddressSelectionModal from '../Modals/AddressSelectionModal';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { toast } from 'react-toastify';
 
 const AddressSelector = ({ onSelectAddress, user }) => {
   const [addresses, setAddresses] = useState([]);
-  const [addressSlots, setAddressSlots] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
-  const [currentSlot, setCurrentSlot] = useState(null);
-  // Address fetching logic has been removed due to a 401 Unauthorized error.
+  const [currentSlotLabel, setCurrentSlotLabel] = useState('');
+
+  const fetchAddresses = async () => {
+    if (!user) return;
+    try {
+      const response = await axios.get(`${API_BASE_URL}/addresses`, { withCredentials: true });
+      if (response.data && response.data.addresses) {
+        const fetchedAddresses = response.data.addresses;
+        setAddresses(fetchedAddresses);
+        if (fetchedAddresses.length > 0) {
+          const defaultAddress = fetchedAddresses.find(addr => addr.is_default);
+          const addressToSelect = defaultAddress || fetchedAddresses[0];
+          setSelectedAddress(addressToSelect);
+          onSelectAddress(addressToSelect);
+        } else {
+          setSelectedAddress(null);
+          onSelectAddress(null);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch addresses:', error.response || error.message);
+    }
+  };
+
   useEffect(() => {
-    if (!user) {
+    if (user) {
+      fetchAddresses();
+    } else {
       setAddresses([]);
-      setAddressSlots([]);
+      setSelectedAddress(null);
     }
   }, [user]);
 
-  const handleOpenModal = (slot) => {
-    setCurrentSlot(slot);
-    setEditingAddress(slot.data);
-    setIsModalOpen(true);
-  };
-
-  const handleInitialSetup = () => {
-    const firstSlot = { id: 'new-1', label: 'Address 1', isFilled: false, data: null };
-    handleOpenModal(firstSlot);
-  };
-
   const handleSaveAddress = async (addressData) => {
     try {
-      const payload = {
-        ...addressData,
-        label: currentSlot.label,
-        zip_code: addressData.zipCode
-      };
-
+      const payload = { ...addressData, label: currentSlotLabel, zip_code: addressData.zipCode };
+      let response;
       if (editingAddress) {
-        await axios.put(`${API_BASE_URL}/addresses/${editingAddress.id}`, payload, { withCredentials: true });
+        response = await axios.put(`${API_BASE_URL}/addresses/${editingAddress.id}`, payload, { withCredentials: true });
         toast.success('Address updated successfully!');
       } else {
-        await axios.post(`${API_BASE_URL}/addresses`, payload, { withCredentials: true });
+        response = await axios.post(`${API_BASE_URL}/addresses`, payload, { withCredentials: true });
         toast.success('Address added successfully!');
       }
-      // fetchAddresses();
-      setIsModalOpen(false);
+      
+      setIsEditModalOpen(false);
       setEditingAddress(null);
-      setCurrentSlot(null);
+      await fetchAddresses(); // Refetch to get the latest list
+
+      if (response.data && response.data.address) {
+        setSelectedAddress(response.data.address);
+        onSelectAddress(response.data.address);
+      }
     } catch (error) {
-      toast.error('Failed to save address.');
+      console.error('Failed to save address:', error.response || error.message);
+      toast.error('Failed to save address. Check console for details.');
     }
   };
 
@@ -60,25 +76,37 @@ const AddressSelector = ({ onSelectAddress, user }) => {
       try {
         await axios.delete(`${API_BASE_URL}/addresses/${addressId}`, { withCredentials: true });
         toast.success('Address deleted successfully!');
-        // fetchAddresses();
+        
+        if (selectedAddress && selectedAddress.id === addressId) {
+            setSelectedAddress(null);
+            onSelectAddress(null);
+        }
+        
+        await fetchAddresses();
       } catch (error) {
         toast.error('Failed to delete address.');
       }
     }
   };
 
-  const handleAddMore = () => {
-    const nextSlotNumber = addressSlots.length + 1;
-    const newSlot = {
-      id: `new-${nextSlotNumber}`,
-      label: `Address ${nextSlotNumber}`,
-      isFilled: false,
-      data: null
-    };
-    setAddressSlots([...addressSlots, newSlot]);
+  const handleAddNewAddress = () => {
+    setIsSelectionModalOpen(false);
+    setEditingAddress(null);
+    const nextLabel = `Address ${addresses.length + 1}`;
+    setCurrentSlotLabel(nextLabel);
+    setIsEditModalOpen(true);
   };
 
+  const handleEditAddress = (address) => {
+    setIsSelectionModalOpen(false);
+    setEditingAddress(address);
+    setCurrentSlotLabel(address.label);
+    setIsEditModalOpen(true);
+  };
 
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="space-y-4">
@@ -86,66 +114,58 @@ const AddressSelector = ({ onSelectAddress, user }) => {
       
       {addresses.length === 0 ? (
         <div className="text-center p-4 border-2 border-dashed rounded-lg">
-          <p className="text-gray-600">You don't have an address yet.</p>
+          <p className="text-gray-600">You don't have a delivery address yet.</p>
           <button 
-            onClick={handleInitialSetup} 
+            onClick={handleAddNewAddress} 
             className="mt-2 text-primary font-semibold hover:underline"
           >
-            Setup now?
+            Add an address
           </button>
         </div>
       ) : (
-        <>
-          {addressSlots.map((slot) => (
-            <div key={slot.id}>
-              {slot.isFilled ? (
-                <div 
-                  className={`p-4 border rounded-lg cursor-pointer flex justify-between items-start ${selectedAddress?.id === slot.id ? 'border-primary ring-2 ring-primary' : 'border-gray-300'}`}
-                  onClick={() => {
-                    setSelectedAddress(slot.data);
-                    onSelectAddress(slot.data);
-                  }}
-                >
-                  <div className="flex items-start">
-                    {selectedAddress?.id === slot.id && <FaCheckCircle className="text-primary mr-3 mt-1" />}
-                    <div>
-                      <p className="font-semibold">{slot.label}</p>
-                      <p className="text-sm text-gray-600">{slot.data.full_name}</p>
-                      <p className="text-sm text-gray-600">{`${slot.data.province || slot.data.line1}, ${slot.data.city}, ${slot.data.zip_code}`}</p>
-                      <p className="text-sm text-gray-600">{slot.data.phone}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); handleOpenModal(slot); }} className="text-gray-500 hover:text-primary"><FaEdit /></button>
-                    <button onClick={(e) => { e.stopPropagation(); handleDeleteAddress(slot.id); }} className="text-gray-500 hover:text-red-500"><FaTrash /></button>
-                  </div>
-                </div>
-              ) : (
-                <button 
-                  onClick={() => handleOpenModal(slot)}
-                  className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary transition-all"
-                >
-                  <FaPlus /> {`Add ${slot.label}`}
-                </button>
-              )}
+        <div className="p-4 border rounded-lg flex justify-between items-center">
+          {selectedAddress ? (
+            <div className="flex items-start gap-3">
+              <FaMapMarkerAlt className="text-primary mt-1 flex-shrink-0" />
+              <div>
+                <p className="font-semibold">{selectedAddress.full_name}</p>
+                <p className="text-sm text-gray-600">{`${selectedAddress.province}, ${selectedAddress.city}, ${selectedAddress.zip_code}`}</p>
+                <p className="text-sm text-gray-600">{selectedAddress.phone}</p>
+              </div>
             </div>
-          ))}
-
+          ) : (
+            <p className="text-gray-600">Please select a delivery address.</p>
+          )}
           <button 
-            onClick={handleAddMore}
-            className="w-full flex items-center justify-center gap-2 p-3 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 transition-all"
+            onClick={() => setIsSelectionModalOpen(true)} 
+            className="text-primary font-semibold hover:underline flex-shrink-0 ml-4"
           >
-            <FaPlus /> Add More Address
+            {selectedAddress ? 'Change' : 'Select Address'}
           </button>
-        </>
+        </div>
       )}
 
+      <AddressSelectionModal
+        isOpen={isSelectionModalOpen}
+        onClose={() => setIsSelectionModalOpen(false)}
+        addresses={addresses}
+        selectedAddress={selectedAddress}
+        onSelectAddress={(address) => {
+            setSelectedAddress(address);
+            onSelectAddress(address);
+            setIsSelectionModalOpen(false);
+        }}
+        onAddNewAddress={handleAddNewAddress}
+        onEditAddress={handleEditAddress}
+        onDeleteAddress={handleDeleteAddress}
+      />
+
       <AddressModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveAddress}
         initialAddress={editingAddress}
-        addressLabel={currentSlot ? `Add ${currentSlot.label}` : 'Address'}
+        addressLabel={editingAddress ? 'Edit Address' : 'Add New Address'}
       />
     </div>
   );

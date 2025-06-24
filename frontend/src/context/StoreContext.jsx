@@ -59,15 +59,7 @@ export const StoreProvider = ({ children }) => {
         console.error('Failed to fetch data', error);
         setError('Failed to load store data.');
       } finally {
-        const mockStores = [
-          { id: 9001, name: 'The Corner Bodega', description: 'Your friendly neighborhood spot for snacks, drinks, and essentials.', location: '123 Market St, Metro City', logo: 'placeholder' },
-          { id: 9002, name: 'Sunrise Grocers', description: 'Fresh produce and pantry staples, delivered with a smile.', location: '456 Sunrise Ave, Dawn Valley', logo: 'placeholder' },
-          { id: 9003, name: 'Midnight Munchies', description: 'Open 24/7 for all your late-night cravings and needs.', location: '789 Night Owl Rd, Dusk Town', logo: 'placeholder' },
-          { id: 9004, name: 'City Center Mart', description: 'The convenient choice for busy city dwellers on the go.', location: '101 Plaza Blvd, Urban Core', logo: 'placeholder' },
-          { id: 9005, name: 'The Green Leaf', description: 'Organic, healthy, and sustainable products for a better life.', location: '212 Eco Way, Verdant Village', logo: 'placeholder' },
-          { id: 9006, name: 'Quick Stop Shop', description: 'In and out in a flash with everything you need.', location: '333 Speedy St, Rushville', logo: 'placeholder' },
-        ];
-        setStores([...fetchedStores, ...mockStores]);
+        setStores(fetchedStores);
         setLoading(false);
       }
     };

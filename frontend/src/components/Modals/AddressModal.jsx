@@ -104,7 +104,7 @@ const AddressModal = ({ isOpen, onClose, onSave, initialAddress, addressLabel })
               <FaTimes size={20} />
             </button>
             <h2 className="text-2xl font-bold mb-4 text-gray-800">{addressLabel || 'Delivery Address'}</h2>
-            <form onSubmit={handleSave}>
+            <form>
               <button
                 type="button"
                 onClick={handleLocateMe}
@@ -149,7 +149,7 @@ const AddressModal = ({ isOpen, onClose, onSave, initialAddress, addressLabel })
 
               <div className="mt-6 flex justify-end gap-4">
                 <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">Save Address</button>
+                <button type="button" onClick={handleSave} className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">Save Address</button>
               </div>
             </form>
           </motion.div>
