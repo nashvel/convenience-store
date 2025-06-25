@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaSpinner } from 'react-icons/fa';
 
 import ShippingModal from '../Modals/ShippingModal';
+import PaymentModal from '../Modals/PaymentModal';
 import AddressSelector from './AddressSelector';
 
 const Checkout = ({
@@ -13,8 +14,8 @@ const Checkout = ({
   setShippingOption,
   deliveryAddress,
   setDeliveryAddress,
-  paymentDetails,
-  handlePaymentInputChange,
+  paymentMethod,
+  setPaymentMethod,
   handleCheckout,
   isSubmitting,
   setIsCheckingOut,
@@ -23,6 +24,7 @@ const Checkout = ({
   pickupStore
 }) => {
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   return (
     <>
       <div className="bg-white rounded-xl shadow-lg p-8">
@@ -40,21 +42,10 @@ const Checkout = ({
 
             {shippingOption === 'door_to_door' ? (
               <div>
-                <h3 className="text-lg font-semibold mb-4">Payment Information</h3>
-                <div className="mb-4">
-                  <label className="block mb-1.5 text-sm text-gray-500">Card Number</label>
-                  <input type="text" name="cardNumber" value={paymentDetails.cardNumber} onChange={handlePaymentInputChange} className="w-full p-2.5 border border-gray-200 rounded-md bg-gray-50 text-gray-800 focus:outline-none focus:border-primary" placeholder="1234 5678 9012 3456" required />
-                </div>
-                <div className="flex flex-col md:flex-row gap-4 mb-4">
-                  <div className="flex-1">
-                    <label className="block mb-1.5 text-sm text-gray-500">Expiry Date</label>
-                    <input type="text" name="cardExpiry" value={paymentDetails.cardExpiry} onChange={handlePaymentInputChange} className="w-full p-2.5 border border-gray-200 rounded-md bg-gray-50 text-gray-800 focus:outline-none focus:border-primary" placeholder="MM/YY" required />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block mb-1.5 text-sm text-gray-500">CVV</label>
-                    <input type="text" name="cardCvv" value={paymentDetails.cardCvv} onChange={handlePaymentInputChange} className="w-full p-2.5 border border-gray-200 rounded-md bg-gray-50 text-gray-800 focus:outline-none focus:border-primary" placeholder="123" required />
-                  </div>
-                </div>
+                <h3 className="text-lg font-semibold mb-4">Payment Method</h3>
+                <button type="button" onClick={() => setIsPaymentModalOpen(true)} className="w-full p-4 border border-gray-300 rounded-lg text-left hover:border-primary">
+                  <span className="font-semibold">{paymentMethod === 'cod' ? 'Cash on Delivery' : ''}</span>
+                </button>
               </div>
             ) : null}
           </div>
@@ -123,6 +114,13 @@ const Checkout = ({
         onClose={() => setIsShippingModalOpen(false)} 
         selectedOption={shippingOption}
         onSelect={setShippingOption}
+      />
+
+      <PaymentModal 
+        isOpen={isPaymentModalOpen} 
+        onClose={() => setIsPaymentModalOpen(false)} 
+        selectedOption={paymentMethod}
+        onSelect={setPaymentMethod}
       />
     </>
   );

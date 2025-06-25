@@ -16,7 +16,7 @@ try {
     $mysqli->query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Drop all tables
-    $tables = ['user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications'];
+    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications'];
     foreach ($tables as $table) {
         $mysqli->query("DROP TABLE IF EXISTS $table");
     }
@@ -136,6 +136,20 @@ try {
         )
     ");
 
+    // Create cart_items table (depends on users and products)
+    $mysqli->query("
+        CREATE TABLE cart_items (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            user_id INT(11) UNSIGNED NOT NULL,
+            product_id INT(11) UNSIGNED NOT NULL,
+            quantity INT(11) NOT NULL DEFAULT 1,
+            created_at DATETIME NULL,
+            updated_at DATETIME NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+        )
+    ");
+
     // Create orders table (depends on users and stores)
     $mysqli->query("
         CREATE TABLE orders (
@@ -146,6 +160,7 @@ try {
             status ENUM('pending', 'accepted', 'rejected', 'in_transit', 'delivered', 'cancelled') DEFAULT 'pending',
             total_amount DECIMAL(10,2) NOT NULL,
             delivery_address TEXT NOT NULL,
+            payment_method VARCHAR(50) NOT NULL DEFAULT 'cod',
             delivery_fee DECIMAL(10,2) NOT NULL,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,

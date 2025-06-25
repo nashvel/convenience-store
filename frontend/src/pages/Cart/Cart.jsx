@@ -39,11 +39,7 @@ const Cart = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shippingOption, setShippingOption] = useState('door_to_door');
   const [deliveryAddress, setDeliveryAddress] = useState(null);
-  const [paymentDetails, setPaymentDetails] = useState({
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvv: ''
-  });
+  const [paymentMethod, setPaymentMethod] = useState('cod');
 
   const groupedCart = cartItems.reduce((acc, item) => {
     const storeId = item.store_id;
@@ -61,10 +57,7 @@ const Cart = () => {
   const storeIds = Object.keys(groupedCart);
   const pickupStore = storeIds.length === 1 ? stores.find(s => s.id === parseInt(storeIds[0])) : null;
 
-  const handlePaymentInputChange = (e) => {
-    const { name, value } = e.target;
-    setPaymentDetails(prev => ({ ...prev, [name]: value }));
-  };
+
 
 
   
@@ -95,7 +88,7 @@ const Cart = () => {
         name: `${user.first_name} ${user.last_name}`,
         email: user.email,
       },
-      paymentDetails: paymentDetails,
+      payment_method: paymentMethod,
       shipping_method: shippingOption,
       shipping_fee: shippingFee,
       subtotal: subtotal,
@@ -149,19 +142,19 @@ const Cart = () => {
                 <div key={storeId} className="p-6 border-b last:border-b-0">
                   <h3 className="text-xl font-semibold mb-4">{group.storeName}</h3>
                   {group.items.map(item => (
-                    <div key={item.id} className="flex items-center gap-4 py-4 border-b last:border-b-0">
+                    <div key={item.cartItemId} className="flex items-center gap-4 py-4 border-b last:border-b-0">
                       <img src={`${PRODUCT_ASSET_URL}/${item.image}`} alt={item.name} className="w-20 h-20 object-cover rounded-md" />
                       <div className="flex-grow">
                         <h4 className="font-semibold">{item.name}</h4>
                         <p className="text-sm text-gray-500">Price: ₱{formatPrice(item.price)}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-2 py-1 border rounded-md">-</button>
+                                                <button onClick={() => updateQuantity(item.cartItemId, Number(item.quantity) - 1)} className="px-2 py-1 border rounded-md">-</button>
                         <span>{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-2 py-1 border rounded-md">+</button>
+                                                <button onClick={() => updateQuantity(item.cartItemId, Number(item.quantity) + 1)} className="px-2 py-1 border rounded-md">+</button>
                       </div>
                       <p className="font-semibold w-24 text-right">₱{formatPrice(item.price * item.quantity)}</p>
-                      <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-700">
+                      <button onClick={() => removeFromCart(item.cartItemId)} className="text-red-500 hover:text-red-700">
                         <FaTrash />
                       </button>
                     </div>
@@ -220,8 +213,8 @@ const Cart = () => {
             setShippingOption={setShippingOption}
             deliveryAddress={deliveryAddress}
             setDeliveryAddress={setDeliveryAddress}
-            paymentDetails={paymentDetails}
-            handlePaymentInputChange={handlePaymentInputChange}
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
             handleCheckout={handleCheckout}
             isSubmitting={isSubmitting}
             setIsCheckingOut={setIsCheckingOut}

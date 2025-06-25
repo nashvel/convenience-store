@@ -32,6 +32,13 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
         $routes->delete('addresses/(:num)', 'AddressController::deleteAddress/$1');
         $routes->put('addresses/set-default/(:num)', 'AddressController::setDefaultAddress/$1');
 
+        // Cart routes
+        $routes->get('cart', 'CartController::getCart');
+        $routes->post('cart', 'CartController::addToCart');
+        $routes->put('cart/items/(:num)', 'CartController::updateCartItem/$1');
+        $routes->delete('cart/items/(:num)', 'CartController::removeCartItem/$1');
+        $routes->delete('cart', 'CartController::clearCart');
+
         // Notifications
         $routes->get('notifications', 'NotificationController::index');
 

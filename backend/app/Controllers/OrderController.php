@@ -6,6 +6,7 @@ use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use App\Models\ProductModel;
 
 class OrderController extends ResourceController
 {
@@ -61,11 +62,34 @@ class OrderController extends ResourceController
             $userId = $data['userId'];
             $cartItems = $data['cartItems'];
             $shippingInfo = $data['shippingInfo'];
-            $total = $data['total'];
 
             if (empty($cartItems)) {
                 return $this->fail('Cart is empty.');
             }
+
+            // Server-side total calculation for security
+            $productModel = new ProductModel();
+            $productIds = array_map(fn($item) => $item['productId'], $cartItems);
+            $products = $productModel->whereIn('id', $productIds)->findAll();
+            $productMap = [];
+            foreach ($products as $product) {
+                $productMap[$product['id']] = $product;
+            }
+
+            $subtotal = 0;
+            foreach ($cartItems as $item) {
+                if (isset($productMap[$item['productId']])) {
+                    $product = $productMap[$item['productId']];
+                    $subtotal += $product['price'] * $item['quantity'];
+                } else {
+                    $db->transRollback();
+                    return $this->failNotFound('Product with ID ' . $item['productId'] . ' not found.');
+                }
+            }
+
+            $tax = $data['tax'] ?? 0;
+            $shippingFee = $data['shipping_fee'] ?? 0;
+            $totalAmount = $subtotal + $tax + $shippingFee;
 
             // For simplicity, we'll use the store_id from the first cart item.
             $storeId = $cartItems[0]['store_id'];
@@ -75,9 +99,11 @@ class OrderController extends ResourceController
             $orderData = [
                 'customer_id' => $userId,
                 'store_id' => $storeId,
-                'total_amount' => $total,
+                'total_amount' => $totalAmount,
                 'status' => 'pending',
                 'delivery_address' => $deliveryAddress,
+                'payment_method' => $data['payment_method'] ?? 'cod',
+                'delivery_fee' => $shippingFee,
                 'created_at' => date('Y-m-d H:i:s')
             ];
             $db->table('orders')->insert($orderData);
@@ -88,7 +114,7 @@ class OrderController extends ResourceController
             foreach ($cartItems as $item) {
                 $orderItemsData[] = [
                     'order_id' => $orderId,
-                    'product_id' => $item['id'],
+                    'product_id' => $item['productId'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                 ];

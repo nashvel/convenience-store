@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, PRODUCT_ASSET_URL } from '../../config';
+import CancelOrderModal from '../../components/Modals/CancelOrderModal';
 
 const MyOrders = () => {
   const { id } = useParams();
@@ -11,6 +12,7 @@ const MyOrders = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -38,18 +40,19 @@ const MyOrders = () => {
     fetchOrder();
   }, [id, user, navigate]);
 
-  const handleCancelOrder = async () => {
+  const handleConfirmCancel = async () => {
     try {
-            const response = await axios.put(`${API_BASE_URL}/orders/cancel/${id}`);
+      const response = await axios.put(`${API_BASE_URL}/orders/cancel/${id}`);
       if (response.data.success) {
         setOrder({ ...order, status: 'cancelled' });
-        alert('Order cancelled successfully!');
       } else {
-        alert('Failed to cancel order.');
+        setError('Failed to cancel order.');
       }
     } catch (err) {
-      alert('An error occurred while cancelling the order.');
+      setError('An error occurred while cancelling the order.');
       console.error(err);
+    } finally {
+      setIsModalOpen(false);
     }
   };
 
@@ -100,13 +103,23 @@ const MyOrders = () => {
         ))}
       </div>
 
-      {order.status === 'pending' && (
-        <button 
-          onClick={handleCancelOrder} 
-          className="mt-8 w-full bg-red-600 text-white py-3 rounded-lg font-semibold transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-          Cancel Order
-        </button>
-      )}
+      <div className="mt-8 flex gap-4">
+        <Link to={`/track-order/${order.id}`} className="flex-1 text-center bg-blue-600 text-white py-3 rounded-lg font-semibold transition hover:bg-blue-700">
+          Track Order
+        </Link>
+        {order.status === 'pending' && (
+          <button 
+            onClick={() => setIsModalOpen(true)} 
+            className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold transition hover:bg-red-700">
+            Cancel Order
+          </button>
+        )}
+      </div>
+      <CancelOrderModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   );
 };

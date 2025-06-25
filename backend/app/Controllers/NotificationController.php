@@ -11,10 +11,10 @@ class NotificationController extends ResourceController
 
     public function index()
     {
-        $userId = $this->request->getVar('userId');
+        $userId = session()->get('id');
 
         if (!$userId) {
-            return $this->fail('User ID is required.');
+            return $this->failUnauthorized('You must be logged in to view notifications.');
         }
 
         $db = \Config\Database::connect();

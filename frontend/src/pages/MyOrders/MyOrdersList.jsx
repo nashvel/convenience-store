@@ -74,7 +74,7 @@ const MyOrdersList = () => {
                 <tr key={order.id} className="border-b border-gray-100 last:border-b-0">
                   <td className="p-4">#{order.id}</td>
                   <td className="p-4">{new Date(order.created_at).toLocaleDateString()}</td>
-                  <td className="p-4">₱{parseFloat(order.total || 0).toFixed(2)}</td>
+                  <td className="p-4">₱{parseFloat(order.total_amount || 0).toFixed(2)}</td>
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-white text-xs font-semibold capitalize ${getStatusClass(order.status)}`}>
                       {order.status}

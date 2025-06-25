@@ -26,6 +26,7 @@ import Partners from './pages/Partners/Partners';
 import Settings from './pages/Profile/Settings';
 import MyOrdersList from './pages/MyOrders/MyOrdersList';
 import MyOrderDetail from './pages/MyOrders/MyOrders';
+import TrackOrder from './pages/MyOrders/TrackOrder';
 
 
 import { CartProvider } from './context/CartContext';
@@ -82,6 +83,7 @@ const AppContent = () => {
                   {/* User Profile Routes */}
                   <Route path="/my-orders" element={<MyOrdersList />} />
                   <Route path="/my-orders/:id" element={<MyOrderDetail />} />
+                  <Route path="/track-order/:id" element={<TrackOrder />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/profile/settings" element={<Settings />} />
 
