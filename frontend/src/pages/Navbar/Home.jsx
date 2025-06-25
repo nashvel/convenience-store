@@ -7,6 +7,8 @@ import ProductCard from '../../components/ProductCard';
 import { LOGO_ASSET_URL } from '../../config';
 import NashSvg from '../../assets/nash.svg';
 import slugify from '../../utils/slugify';
+import ProductCardSkeleton from '../../components/Skeletons/ProductCardSkeleton';
+import StoreCardSkeleton from '../../components/Skeletons/StoreCardSkeleton';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -26,7 +28,49 @@ const Home = () => {
   const restaurants = stores.filter(store => store.store_type === 'restaurant');
 
   if (loading) {
-    return <div className="flex items-center justify-center h-[calc(100vh-80px)]">Loading products...</div>;
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 animate-pulse">
+        {/* Hero Skeleton */}
+        <section className="grid md:grid-cols-2 items-center gap-12 mb-20 md:mb-24">
+          <div className="md:order-1">
+            <div className="h-12 bg-gray-300 rounded w-3/4 mb-5"></div>
+            <div className="h-6 bg-gray-300 rounded mb-8"></div>
+            <div className="h-6 bg-gray-300 rounded w-5/6 mb-8"></div>
+            <div className="flex gap-4">
+              <div className="h-12 bg-gray-300 rounded w-32"></div>
+              <div className="h-12 bg-gray-300 rounded w-32"></div>
+            </div>
+          </div>
+          <div className="md:order-2">
+            <div className="rounded-lg shadow-lg w-full h-96 bg-gray-300"></div>
+          </div>
+        </section>
+
+        {/* Featured Products Skeleton */}
+        <section className="mb-16">
+          <div className="h-8 bg-gray-300 rounded w-1/4 mb-6"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)}
+          </div>
+        </section>
+
+        {/* Stores Skeleton */}
+        <section className="mb-16">
+          <div className="h-8 bg-gray-300 rounded w-1/4 mb-6"></div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[...Array(6)].map((_, i) => <StoreCardSkeleton key={i} />)}
+          </div>
+        </section>
+
+        {/* Restaurants Skeleton */}
+        <section className="mb-16">
+          <div className="h-8 bg-gray-300 rounded w-1/4 mb-6"></div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[...Array(6)].map((_, i) => <StoreCardSkeleton key={i} />)}
+          </div>
+        </section>
+      </div>
+    );
   }
 
   if (error) {

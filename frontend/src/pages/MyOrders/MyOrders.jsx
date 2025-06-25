@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, PRODUCT_ASSET_URL } from '../../config';
 import CancelOrderModal from '../../components/Modals/CancelOrderModal';
+import MyOrderDetailSkeleton from '../../components/Skeletons/MyOrderDetailSkeleton';
 
 const MyOrders = () => {
   const { id } = useParams();
@@ -68,7 +69,7 @@ const MyOrders = () => {
     }
   };
 
-  if (loading) return <p className="text-center mt-20">Loading order details...</p>;
+  if (loading) return <MyOrderDetailSkeleton />;
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
   if (!order) return <p className="text-center mt-20">Order not found.</p>;
 

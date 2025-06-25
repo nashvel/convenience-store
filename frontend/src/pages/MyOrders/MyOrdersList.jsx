@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config';
+import OrderListSkeleton from '../../components/Skeletons/OrderListSkeleton';
 
 const MyOrdersList = () => {
   const { user } = useAuth();
@@ -49,7 +50,7 @@ const MyOrdersList = () => {
     }
   };
 
-  if (loading) return <p className="text-center mt-20">Loading your orders...</p>;
+  if (loading) return <OrderListSkeleton />;
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
 
   return (

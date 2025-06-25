@@ -5,6 +5,7 @@ import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import ScrollToTopButton from '../../components/ScrollToTopButton';
 import { FaSearch } from 'react-icons/fa';
+import ProductCardSkeleton from '../../components/Skeletons/ProductCardSkeleton';
 
 const Products = () => {
   const location = useLocation();
@@ -141,7 +142,11 @@ const Products = () => {
           <p className="text-sm text-gray-500 mb-4">{filteredProducts.length} products found</p>
 
           {loading ? (
-            <div className="text-center py-10">Loading products...</div>
+            <div className="animate-pulse">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+                {[...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)}
+              </div>
+            </div>
           ) : error ? (
             <div className="text-center py-10 text-red-500">Error: {error}</div>
           ) : filteredProducts.length > 0 ? (

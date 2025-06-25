@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { FaSearch, FaMapMarkerAlt, FaDirections, FaShareAlt } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { LOGO_ASSET_URL } from '../../config';
+import StorePageSkeleton from '../../components/Skeletons/StorePageSkeleton';
 
 const StorePage = () => {
   const { storeId } = useParams();
@@ -45,7 +46,7 @@ const StorePage = () => {
     }
   };
 
-  if (loading) return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">Loading store...</div>;
+  if (loading) return <StorePageSkeleton />;
   if (error) return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center text-red-500">Error: {error}</div>;
   if (!store) return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">Store not found.</div>;
 

@@ -6,6 +6,7 @@ import { StoreContext } from '../../context/StoreContext';
 import Reviews from '../../components/Reviews';
 import ProductCard from '../../components/ProductCard';
 import { PRODUCT_ASSET_URL } from '../../config';
+import ProductDetailsSkeleton from '../../components/Skeletons/ProductDetailsSkeleton';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -34,7 +35,7 @@ const ProductDetails = () => {
   };
 
   if (loading) {
-    return <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center"><h2>Loading...</h2></div>;
+    return <ProductDetailsSkeleton />;
   }
 
   if (error) {

@@ -13,6 +13,7 @@ import axios from 'axios';
 import AddressModal from '../../components/Modals/AddressModal';
 import Checkout from '../../components/Checkout/Checkout';
 import StoreLocation from '../../components/Cart/StoreLocation';
+import CartSkeleton from '../../components/Skeletons/CartSkeleton';
 
 const Cart = () => {
   const { 
@@ -23,7 +24,8 @@ const Cart = () => {
     subtotal,
     tax,
     total,
-    totalItems: cartCount 
+    totalItems: cartCount,
+    loading: cartLoading
   } = useContext(CartContext);
 
   const formatPrice = (price) => {
@@ -31,7 +33,7 @@ const Cart = () => {
     return numericPrice.toFixed(2);
   };
 
-  const { stores } = useContext(StoreContext);
+  const { stores, loading: storesLoading } = useContext(StoreContext);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -116,6 +118,10 @@ const Cart = () => {
   };
 
   const checkoutTotal = total + (shippingOption === 'door_to_door' ? 5.00 : 0.00);
+
+  if (cartLoading || storesLoading) {
+    return <CartSkeleton />;
+  }
 
   return (
     <motion.div 

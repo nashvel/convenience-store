@@ -4,11 +4,21 @@ import { StoreContext } from '../../context/StoreContext';
 import { ASSET_BASE_URL } from '../../config';
 import { motion } from 'framer-motion';
 import slugify from '../../utils/slugify';
+import StoreCardSkeleton from '../../components/Skeletons/StoreCardSkeleton';
 
 const Stores = () => {
   const { stores, loading, error } = useContext(StoreContext);
 
-  if (loading) return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">Loading stores...</div>;
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10 md:pt-24 md:pb-16 animate-pulse">
+        <div className="h-10 bg-gray-300 rounded w-1/3 mx-auto mb-12"></div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[...Array(6)].map((_, i) => <StoreCardSkeleton key={i} />)}
+        </div>
+      </div>
+    );
+  }
   if (error) return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center text-red-500">Error: {error}</div>;
 
   return (
