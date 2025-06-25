@@ -54,10 +54,10 @@ const Checkout = ({
             <h3 className="text-lg font-semibold mb-5">Order Summary</h3>
             <div className="mb-4 max-h-52 overflow-y-auto">
               {Object.entries(groupedCart).map(([storeId, group]) => (
-                <div key={storeId} className="mb-4 last:mb-0">
+                <div key={`store-${storeId}`} className="mb-4 last:mb-0">
                   <h4 className="text-base font-semibold mb-2">{group.storeName}</h4>
                   {group.items.map(item => (
-                    <div key={item.id} className="flex justify-between py-2 border-b border-dashed border-gray-200 last:border-b-0">
+                    <div key={`item-${item.id}`} className="flex justify-between py-2 border-b border-dashed border-gray-200 last:border-b-0">
                       <span>{item.name} &times; {item.quantity}</span>
                       <span>₱{formatPrice(item.price * item.quantity)}</span>
                     </div>

@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes, FaBolt } from 'react-icons/fa';
 import { StoreContext } from '../../context/StoreContext';
 import Reviews from '../../components/Reviews';
 import ProductCard from '../../components/ProductCard';
@@ -10,6 +10,7 @@ import ProductDetailsSkeleton from '../../components/Skeletons/ProductDetailsSke
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { allProducts, stores, loading, error, isFavorite, toggleFavorite, addToCart } = useContext(StoreContext);
 
   const [quantity, setQuantity] = useState(1);
@@ -24,6 +25,13 @@ const ProductDetails = () => {
   const handleAddToCart = () => {
     if (product) {
       addToCart(product, quantity);
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (product) {
+      addToCart(product, quantity);
+      navigate('/cart');
     }
   };
 
@@ -135,14 +143,24 @@ const ProductDetails = () => {
                 +
               </button>
             </div>
-            <button 
-              onClick={handleAddToCart} 
-              disabled={isOutOfStock}
-              className="flex-1 flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
-            >
-              <FaShoppingCart />
-              Add to Cart
-            </button>
+            <div className="flex-1 flex flex-col sm:flex-row gap-4">
+              <button 
+                onClick={handleAddToCart} 
+                disabled={isOutOfStock}
+                className="flex-1 flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+              >
+                <FaShoppingCart />
+                Add to Cart
+              </button>
+              <button 
+                onClick={handleBuyNow} 
+                disabled={isOutOfStock}
+                className="flex-1 flex items-center justify-center gap-3 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+              >
+                <FaBolt />
+                Buy Now
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2 text-sm">

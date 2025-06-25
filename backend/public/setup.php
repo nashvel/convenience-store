@@ -177,8 +177,10 @@ try {
             user_id INT(11) UNSIGNED NOT NULL,
             message TEXT NOT NULL,
             link VARCHAR(255) NULL,
+            type VARCHAR(50) NOT NULL,
             is_read BOOLEAN DEFAULT FALSE,
             created_at DATETIME NULL,
+            updated_at DATETIME NULL,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     ");

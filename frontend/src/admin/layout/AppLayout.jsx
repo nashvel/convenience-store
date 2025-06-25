@@ -9,20 +9,24 @@ const LayoutContent = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
   return (
-    <div className="min-h-screen xl:flex">
-      <div>
-        <AppSidebar />
-        <Backdrop />
-      </div>
-      <div
-        className={`flex-1 transition-all duration-300 ease-in-out ${
-          isExpanded || isHovered ? "lg:ml-[290px]" : "lg:ml-[90px]"
-        } ${isMobileOpen ? "ml-0" : ""}`}
-      >
-        <AppHeader />
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
-          <Outlet />
-        </div>
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-1">
+        <div className="flex h-full">
+          <div className={`transition-all duration-300 ease-in-out ${
+            isExpanded || isHovered ? "lg:w-[290px]" : "lg:w-[90px]"
+          } ${isMobileOpen ? "w-full" : "w-0"}`}>
+            <AppSidebar />
+            <Backdrop />
+          </div>
+          <div className="flex-1 flex flex-col">
+            <AppHeader />
+            <div className="flex-1 overflow-y-auto">
+              <div className="mx-auto max-w-(--breakpoint-2xl) md:p-6">
+                <Outlet />
+              </div>
+            </div>
+          </div>
+        </div>  
       </div>
     </div>
   );

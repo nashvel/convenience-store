@@ -104,6 +104,7 @@ const Cart = () => {
       if (response.data.success) {
         toast.success('Order placed successfully! Thank you for your purchase.');
         clearCart();
+        console.log('[Cart.jsx] Dispatching newNotification event.');
         eventEmitter.dispatch('newNotification');
         navigate('/my-orders');
       } else {

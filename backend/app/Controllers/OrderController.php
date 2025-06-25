@@ -7,6 +7,7 @@ use CodeIgniter\API\ResponseTrait;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use App\Models\ProductModel;
+use App\Models\NotificationModel;
 
 class OrderController extends ResourceController
 {
@@ -124,13 +125,32 @@ class OrderController extends ResourceController
             // Add a notification for the user
             $message = "Your order #{$orderId} has been placed and is pending review. You will receive an email once it's accepted.";
             $link = "/orders/" . $orderId;
-            $notificationData = [
+            $notificationModel = new \App\Models\NotificationModel();
+            $notificationModel->save([
                 'user_id' => $userId,
                 'message' => $message,
                 'link' => $link,
+                'type' => 'order_placed',
                 'created_at' => date('Y-m-d H:i:s')
-            ];
-            $db->table('notifications')->insert($notificationData);
+            ]);
+
+            // Dispatch event for real-time notification
+            // Instead of using headers, let's use a more reliable method
+            $this->response->setJSON([
+                'success' => true,
+                'message' => 'Order created successfully',
+                'orderId' => $orderId,
+                'notification' => [
+                    'type' => 'newNotification'
+                ]
+            ]);
+            
+            // Also send a message event for the frontend
+            $this->response->setHeader('Content-Type', 'application/json');
+            $this->response->setHeader('Access-Control-Allow-Origin', '*');
+            $this->response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+            $this->response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            $this->response->setHeader('Access-Control-Allow-Credentials', 'true');
 
             // Send email to store owner
             $storeOwner = $db->table('stores')
@@ -160,8 +180,11 @@ class OrderController extends ResourceController
                          . "<p>You have received a new order. Here are the details:</p>"
                          . "<ul>";
 
+                $total = 0;
                 foreach ($cartItems as $item) {
-                    $message .= "<li>{$item['name']} (x{$item['quantity']}) - Total: ₱" . number_format($item['price'] * $item['quantity'], 2) . "</li>";
+                    $itemTotal = $item['price'] * $item['quantity'];
+                    $total += $itemTotal;
+                    $message .= "<li>{$item['name']} (x{$item['quantity']}) - Total: ₱" . number_format($itemTotal, 2) . "</li>";
                 }
 
                                 $message .= "</ul>"

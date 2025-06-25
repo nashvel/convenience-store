@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaShoppingCart, FaHome, FaStore, FaUser, FaBars, FaTimes, FaBuilding, FaBell, FaChevronDown, FaShoppingBag } from 'react-icons/fa';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-import { CartContext } from '../context/CartContext';
-import { StoreContext } from '../context/StoreContext';
-import { UIContext } from '../context/UIContext';
 import { useAuth } from '../context/AuthContext';
+import { CartContext } from '../context/CartContext';
+import { useNotifications } from '../context/NotificationContext';
+import { UIContext } from '../context/UIContext';
+import { StoreContext } from '../context/StoreContext';
 import eventEmitter from '../utils/event-emitter';
 
 const Navbar = () => {
@@ -18,12 +19,12 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { totalItems } = useContext(CartContext);
+  const { totalItems: cartCount } = useContext(CartContext);
+  const { unreadCount } = useNotifications();
   const { categories, priceRange, handlePriceChange } = useContext(StoreContext);
   const { isPageScrolled } = useContext(UIContext);
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const categoryParam = queryParams.get('category');
-  const [notificationCount, setNotificationCount] = useState(0);
 
   const dashboardPath = user ? {
     'admin': '/admin/dashboard',
@@ -31,32 +32,7 @@ const Navbar = () => {
     'rider': '/rider/dashboard'
   }[user.role] : null;
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (user) {
-        try {
-                    const response = await axios.get(`${API_BASE_URL}/notifications?userId=${user.id}`, { withCredentials: true });
-          if (response.data.success) {
-            const unreadCount = response.data.notifications.filter(n => !n.is_read).length;
-            setNotificationCount(unreadCount);
-          }
-        } catch (error) {
-          console.error('Failed to fetch notifications:', error);
-        }
-      }
-    };
-
-    if (user) {
-      fetchNotifications();
-      const interval = setInterval(fetchNotifications, 30000);
-      eventEmitter.subscribe('newNotification', fetchNotifications);
-
-      return () => {
-        clearInterval(interval);
-        eventEmitter.unsubscribe('newNotification', fetchNotifications);
-      };
-    }
-  }, [user]);
+  
 
   useEffect(() => {
     const handleScroll = () => {
@@ -165,19 +141,19 @@ const Navbar = () => {
 
             <Link to="/cart" className="relative text-gray-700 hover:text-blue-600">
               <FaShoppingCart size={20} />
-              {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-xs rounded-full">{totalItems}</span>
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-xs rounded-full">{cartCount}</span>
               )}
             </Link>
 
-            {user && (
-              <Link to="/notifications" className="relative text-gray-700 hover:text-blue-600">
-                <FaBell size={20} />
-                {notificationCount > 0 && (
-                  <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 bg-red-600 text-white text-xs rounded-full">{notificationCount}</span>
-                )}
-              </Link>
-            )}
+            <NavLink to="/notifications" className="relative text-gray-600 hover:text-primary transition-colors">
+              <FaBell className="w-6 h-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </NavLink>
 
             {user ? (
               <Dropdown trigger={<button className="flex items-center gap-1.5 text-gray-700"><FaUser size={20} /></button>}>

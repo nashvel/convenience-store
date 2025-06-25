@@ -1,16 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../config';
+import { useNotifications } from '../../context/NotificationContext';
 import NotificationSkeleton from '../../components/Skeletons/NotificationSkeleton';
 import { FaBell, FaCheckCircle, FaTimesCircle, FaInfoCircle, FaShoppingBag } from 'react-icons/fa';
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const { user } = useAuth();
+  const { notifications, loading, unreadCount, markAllAsRead } = useNotifications();
 
   const getOrderId = (message) => {
     const match = message.match(/order #(\d+)/i);
@@ -31,32 +26,12 @@ const Notifications = () => {
     return <FaInfoCircle className="text-gray-500" />;
   };
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setError('');
-        setLoading(true);
-                const response = await axios.get(`${API_BASE_URL}/notifications?userId=${user.id}`);
-        if (response.data.success) {
-          setNotifications(response.data.notifications);
-        } else {
-          setError(response.data.message || 'Failed to fetch notifications.');
-        }
-      } catch (err) {
-        setError('An error occurred while fetching notifications.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, [user]);
+    useEffect(() => {
+    if (unreadCount > 0) {
+      markAllAsRead();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unreadCount]);
 
   const NotificationItem = ({ notification }) => {
     const orderId = getOrderId(notification.message);
@@ -90,7 +65,7 @@ const Notifications = () => {
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
           <p className="text-sm text-gray-500 mt-1">
-            You have {notifications.filter(n => !n.is_read).length} unread notifications.
+            You have {unreadCount} unread notifications.
           </p>
         </header>
 
@@ -98,12 +73,6 @@ const Notifications = () => {
           <div className="divide-y divide-gray-200">
             {loading ? (
               Array.from({ length: 5 }).map((_, index) => <NotificationSkeleton key={index} />)
-            ) : error ? (
-              <div className="p-8 text-center">
-                <FaTimesCircle className="mx-auto h-12 w-12 text-red-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">An error occurred</h3>
-                <p className="mt-1 text-sm text-gray-500">{error}</p>
-              </div>
             ) : notifications.length > 0 ? (
               notifications.map(notification => (
                 <NotificationItem key={notification.id} notification={notification} />

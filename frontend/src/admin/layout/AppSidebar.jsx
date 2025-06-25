@@ -22,40 +22,41 @@ const navItems = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [
-      { name: "Ecommerce", path: "/", pro: false },
-      { name: "Analytics", path: "/analytics", pro: true },
-      { name: "Marketing", path: "/marketing", pro: true },
-      { name: "CRM", path: "/crm", pro: true },
-      { name: "Stocks", path: "/stocks", pro: true, new: true },
-      { name: "SaaS", path: "/saas", pro: true, new: true },
-    ],
-  },
-  {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
+    path: "/admin",
   },
   {
     icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
+    name: "User Management",
+    subItems: [
+      { name: "User Profiles", path: "/admin/user-profiles", pro: false },
+      { name: "User Roles", path: "/admin/user-roles", pro: false },
+      { name: "Add Client", path: "/admin/add-client", pro: false },
+      { name: "Add Rider", path: "/admin/add-rider", pro: false }
+    ],
   },
   {
-    icon: <ListIcon />, // Using ListIcon as a placeholder for the Task icon
-    name: "Task",
-    subItems: [{ name: "Task List", path: "/tasks", pro: false }],
+    icon: <PlugInIcon />,
+    name: "App Management",
+    subItems: [
+      { name: "Site Content", path: "/admin/site-content", pro: false },
+      { name: "Branding", path: "/admin/branding", pro: false },
+      { name: "About Us", path: "/admin/about-us", pro: false }
+    ],
   },
   {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-  },
-  {
-    name: "Tables",
     icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
+    name: "Chat Management",
+    subItems: [
+      { name: "Admin Chat", path: "/admin/chat/admin", pro: false },
+      { name: "Client Chat", path: "/admin/chat/client", pro: false },
+      { name: "Store Chat", path: "/admin/chat/store", pro: false }
+    ],
   },
+  {
+    icon: <BoxCubeIcon />,
+    name: "Blank Page",
+    path: "/admin/blank",
+  }
 ];
 
 const othersItems = [];

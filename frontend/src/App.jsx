@@ -32,6 +32,7 @@ import TrackOrder from './pages/MyOrders/TrackOrder';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { StoreProvider } from './context/StoreContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 
 
@@ -44,8 +45,9 @@ const AppContent = () => {
 
   return (
     <AuthProvider>
-      <CartProvider>
-        <StoreProvider>
+      <NotificationProvider>
+        <CartProvider>
+          <StoreProvider>
           <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
             <ToastContainer
               position="bottom-right"
@@ -98,7 +100,8 @@ const AppContent = () => {
             {!isSellerRoute && !isAdminRoute && <Footer />}
           </div>
         </StoreProvider>
-      </CartProvider>
+        </CartProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 };
