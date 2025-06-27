@@ -1,16 +1,18 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../context/NotificationContext';
 import NotificationSkeleton from '../../components/Skeletons/NotificationSkeleton';
 import { FaBell, FaCheckCircle, FaTimesCircle, FaInfoCircle, FaShoppingBag } from 'react-icons/fa';
 
 const Notifications = () => {
-  const { notifications, loading, unreadCount, markAllAsRead } = useNotifications();
-
-  const getOrderId = (message) => {
-    const match = message.match(/order #(\d+)/i);
-    return match ? match[1] : null;
-  };
+  const {
+    notifications,
+    loading,
+    unreadCount,
+    markAllNotificationsAsRead,
+    markNotificationAsRead
+  } = useNotifications();
+  const navigate = useNavigate();
 
   const getNotificationIcon = (message) => {
     const lowerCaseMessage = message.toLowerCase();
@@ -26,17 +28,22 @@ const Notifications = () => {
     return <FaInfoCircle className="text-gray-500" />;
   };
 
-    useEffect(() => {
-    if (unreadCount > 0) {
-      markAllAsRead();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unreadCount]);
-
   const NotificationItem = ({ notification }) => {
-    const orderId = getOrderId(notification.message);
-    const content = (
-      <div className={`flex items-start p-4 transition-colors duration-200 hover:bg-gray-50 ${!notification.is_read ? 'bg-blue-50' : 'bg-white'}`}>
+    const isUnread = !notification.is_read || notification.is_read === 'false' || notification.is_read === '0';
+
+    const handleNotificationClick = () => {
+      if (isUnread) {
+        markNotificationAsRead(notification.id);
+      }
+      if (notification.link) {
+        navigate(notification.link);
+      }
+    };
+
+    return (
+      <div
+        onClick={handleNotificationClick}
+        className={`flex items-start p-4 transition-colors duration-200 cursor-pointer ${isUnread ? 'bg-blue-50' : 'bg-white'}`}>
         <div className="flex-shrink-0 w-8 text-center pt-1">
           {getNotificationIcon(notification.message)}
         </div>
@@ -44,18 +51,10 @@ const Notifications = () => {
           <p className="text-sm text-gray-700">{notification.message}</p>
           <small className="text-xs text-gray-500">{new Date(notification.created_at).toLocaleString()}</small>
         </div>
-        {!notification.is_read && (
+        {isUnread && (
           <div className="w-2 h-2 bg-blue-500 rounded-full self-center ml-4"></div>
         )}
       </div>
-    );
-
-    return orderId ? (
-      <Link to={`/my-orders/${orderId}`} className="no-underline text-inherit block">
-        {content}
-      </Link>
-    ) : (
-      content
     );
   };
 
@@ -63,7 +62,17 @@ const Notifications = () => {
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllNotificationsAsRead}
+                className="text-sm font-medium text-blue-600 hover:text-blue-500 disabled:opacity-50"
+                disabled={loading}>
+                Mark all as read
+              </button>
+            )}
+          </div>
           <p className="text-sm text-gray-500 mt-1">
             You have {unreadCount} unread notifications.
           </p>

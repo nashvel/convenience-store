@@ -146,14 +146,12 @@ const Navbar = () => {
               )}
             </Link>
 
-            <NavLink to="/notifications" className="relative text-gray-600 hover:text-primary transition-colors">
+                        <Link to="/notifications" className="relative text-gray-600 hover:text-primary transition-colors">
               <FaBell className="w-6 h-6" />
               {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full">
-                  {unreadCount}
-                </span>
+                <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
               )}
-            </NavLink>
+            </Link>
 
             {user ? (
               <Dropdown trigger={<button className="flex items-center gap-1.5 text-gray-700"><FaUser size={20} /></button>}>

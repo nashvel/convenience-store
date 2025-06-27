@@ -41,6 +41,8 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
 
         // Notifications
         $routes->get('notifications', 'NotificationController::index');
+        $routes->post('notifications/mark-as-read', 'NotificationController::markAllAsRead');
+        $routes->post('notifications/mark-as-read/(:num)', 'NotificationController::markAsRead/$1');
 
         // Orders
         $routes->get('orders', 'OrderController::index');
