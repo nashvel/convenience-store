@@ -27,6 +27,7 @@ import Settings from './pages/Profile/Settings';
 import MyOrdersList from './pages/MyOrders/MyOrdersList';
 import MyOrderDetail from './pages/MyOrders/MyOrders';
 import TrackOrder from './pages/MyOrders/TrackOrder';
+import PatchNotes from './pages/PatchNotes';
 
 
 import { CartProvider } from './context/CartContext';
@@ -63,12 +64,13 @@ const AppContent = () => {
               progressClassName="bg-blue-600"
             />
             {!isSellerRoute && !isAdminRoute && <Navbar />}
-            <div className={location.pathname.startsWith('/products') ? 'h-28' : 'h-16'} />
+            {!isSellerRoute && !isAdminRoute && <div className={location.pathname.startsWith('/products') ? 'h-28' : 'h-16'} />}
             <main className="flex-1">
               <AnimatePresence mode="wait">
                 <Routes>
                   {/* Client Routes */}
                   <Route path="/" element={<Home />} />
+                  <Route path="/patch-notes" element={<PatchNotes />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/product/:id/:productName" element={<ProductDetails />} />
                   <Route path="/cart" element={<Cart />} />

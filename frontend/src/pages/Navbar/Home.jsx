@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
-import { FaStar, FaShoppingBag, FaArrowRight, FaStore, FaMobileAlt, FaDownload } from 'react-icons/fa';
+import { FaStar, FaShoppingBag, FaArrowRight, FaStore, FaMobileAlt, FaDownload, FaRegNewspaper } from 'react-icons/fa';
 import ProductCard from '../../components/ProductCard';
 import { LOGO_ASSET_URL } from '../../config';
 import NashSvg from '../../assets/nash.svg';
@@ -113,6 +113,9 @@ const Home = () => {
             <button onClick={handleGetAppClick} className={secondaryButtonClasses}>
               Get the App <FaDownload />
             </button>
+            <Link to="/patch-notes" className={secondaryButtonClasses}>
+              Patch Notes <FaRegNewspaper />
+            </Link>
           </motion.div>
         </div>
         <motion.div 
@@ -231,6 +234,7 @@ const Home = () => {
           <img src={NashSvg} alt="Nash App" className="w-64 h-auto" />
         </div>
       </section>
+
 
     </motion.div>
   );

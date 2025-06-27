@@ -1,16 +1,10 @@
 import { Link } from "react-router";
+import PropTypes from 'prop-types';
 
-interface BreadcrumbProps {
-  pageTitle: string;
-}
-
-const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
+const PageBreadcrumb = ({ pageTitle }) => {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <h2
-        className="text-xl font-semibold text-gray-800 dark:text-white/90"
-        x-text="pageName"
-      >
+    <div className="flex flex-col md:flex-row md:items-center md:justify-start gap-3 mb-6">
+      <h2 className="text-xl font-semibold text-gray-800 dark:text-white/90 md:mr-4">
         {pageTitle}
       </h2>
       <nav>
@@ -39,13 +33,17 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
               </svg>
             </Link>
           </li>
-          <li className="text-sm text-gray-800 dark:text-white/90">
+          <li className="text-sm font-medium text-blue-600 dark:text-blue-400">
             {pageTitle}
           </li>
         </ol>
       </nav>
     </div>
   );
+};
+
+PageBreadcrumb.propTypes = {
+  pageTitle: PropTypes.string.isRequired,
 };
 
 export default PageBreadcrumb;

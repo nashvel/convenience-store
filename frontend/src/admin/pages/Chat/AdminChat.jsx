@@ -1,69 +1,138 @@
-import React, { useState } from 'react';
-import PageMeta from "../../components/common/PageMeta";
-import Card from "../../components/common/ComponentCard";
-import Button from "../../components/ui/button/Button";
+import React, { useState, useEffect, useRef } from 'react';
+import { SearchIcon, PhoneIcon, VideoCameraIcon, PaperClipIcon, EmojiHappyIcon, PaperAirplaneIcon } from '@heroicons/react/solid';
+
+const mockConversations = {
+  1: [
+    { text: 'Hello, I need assistance with my store setup.', sender: 'client', time: '15 mins ago' },
+    { text: 'Of course, how can I help?', sender: 'me', time: '14 mins ago' },
+  ],
+  2: [
+    { text: 'There is an issue with a recent order.', sender: 'client', time: '1 hour ago' },
+  ],
+  3: [
+    { text: 'Thank you for your help!', sender: 'client', time: '3 hours ago' },
+  ],
+};
+
+const mockClients = [
+  { id: 1, name: 'John Doe', avatar: 'https://via.placeholder.com/100/4CAF50/FFFFFF?Text=JD', lastMessage: 'Hello, I need assistance...', time: '15 mins', online: true },
+  { id: 2, name: 'Jane Smith', avatar: 'https://via.placeholder.com/100/2196F3/FFFFFF?Text=JS', lastMessage: 'There is an issue with an order.', time: '1 hour', online: false },
+  { id: 3, name: 'Peter Jones', avatar: 'https://via.placeholder.com/100/9C27B0/FFFFFF?Text=PJ', lastMessage: 'Thank you for your help!', time: '3 hours', online: true },
+];
 
 const AdminChat = () => {
-  const [messages, setMessages] = useState([]);
+  const [clients, setClients] = useState(mockClients);
+  const [selectedClient, setSelectedClient] = useState(clients[0]);
+  const [messages, setMessages] = useState(mockConversations[selectedClient.id] || []);
   const [newMessage, setNewMessage] = useState('');
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    setMessages(mockConversations[selectedClient.id] || []);
+  }, [selectedClient]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (newMessage.trim()) {
-      setMessages([...messages, { text: newMessage, sender: 'admin' }]);
+      setMessages([...messages, { text: newMessage, sender: 'me', time: 'Just now' }]);
       setNewMessage('');
     }
   };
 
   return (
-    <>
-      <PageMeta title="Admin Chat" description="Admin chat interface" />
-      <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-6">Admin Chat</h1>
-        
-        <Card className="mb-6">
-          <div className="p-6 h-[500px] flex flex-col">
-            <div className="flex-1 overflow-y-auto space-y-4">
-              {messages.map((msg, index) => (
-                <div key={index} className={`p-3 rounded-lg ${msg.sender === 'admin' ? 'bg-blue-50 ml-auto' : 'bg-gray-50 mr-auto'}`}>
-                  <p className="text-sm">{msg.text}</p>
-                </div>
-              ))}
+    <div className="h-full p-6 flex flex-col">
+      <div className="flex flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+        {/* Sidebar */}
+        <div className="w-1/3 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Chats</h2>
+            <div className="relative mt-4">
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input type="text" placeholder="Search clients..." className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
-            <form onSubmit={handleSendMessage} className="mt-4 flex gap-2">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message..."
-                className="flex-1 p-2 border rounded-md"
-              />
-              <Button type="submit">Send</Button>
-            </form>
           </div>
-        </Card>
+          <div className="flex-1 overflow-y-auto">
+            {clients.map(client => (
+              <div key={client.id} onClick={() => setSelectedClient(client)} className={`flex items-center p-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${selectedClient.id === client.id ? 'bg-blue-50 dark:bg-blue-900/50' : ''}`}>
+                <div className="relative">
+                  <img src={client.avatar} alt={client.name} className="w-12 h-12 rounded-full" />
+                  {client.online && <span className="absolute bottom-0 right-0 block h-3 w-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></span>}
+                </div>
+                <div className="ml-4 flex-1">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-semibold text-gray-800 dark:text-white">{client.name}</h3>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{client.time}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{client.lastMessage}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        <Card>
-          <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Active Chats</h2>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-white">C</span>
+        {/* Chat Area */}
+        <div className="w-2/3 flex flex-col">
+          {selectedClient ? (
+            <>
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center">
+                  <img src={selectedClient.avatar} alt={selectedClient.name} className="w-10 h-10 rounded-full" />
+                  <div className="ml-3">
+                    <h3 className="font-semibold text-gray-800 dark:text-white">{selectedClient.name}</h3>
+                    <span className="text-xs text-green-500">Online</span>
+                  </div>
                 </div>
-                <span>Client Chat #1</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                  <span className="text-white">S</span>
+                <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
+                  <PhoneIcon className="w-6 h-6 cursor-pointer hover:text-blue-500" />
+                  <VideoCameraIcon className="w-6 h-6 cursor-pointer hover:text-blue-500" />
                 </div>
-                <span>Store Chat #1</span>
               </div>
-            </div>
-          </div>
-        </Card>
+
+              <div className="flex-1 p-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+                <div className="space-y-6">
+                  {messages.map((msg, index) => (
+                    <div key={index} className={`flex items-end gap-3 ${msg.sender === 'me' ? 'flex-row-reverse' : ''}`}>
+                      {msg.sender !== 'me' && <img src={selectedClient.avatar} alt="avatar" className="w-8 h-8 rounded-full" />}
+                      <div className={`px-4 py-3 rounded-xl max-w-md ${msg.sender === 'me' ? 'bg-blue-500 text-white rounded-br-none' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-bl-none'}`}>
+                        <p>{msg.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                   <div ref={chatEndRef} />
+                </div>
+              </div>
+
+              <div className="p-4 bg-white border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                <form onSubmit={handleSendMessage} className="flex items-center space-x-4">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type a message..."
+                      className="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex space-x-4">
+                        <PaperClipIcon className="w-6 h-6 text-gray-500 dark:text-gray-400 cursor-pointer hover:text-blue-500" />
+                        <EmojiHappyIcon className="w-6 h-6 text-gray-500 dark:text-gray-400 cursor-pointer hover:text-blue-500" />
+                    </div>
+                  </div>
+                  <button type="submit" className="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <PaperAirplaneIcon className="w-6 h-6 transform rotate-45" />
+                  </button>
+                </form>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">Select a conversation to start chatting</div>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

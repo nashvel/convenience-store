@@ -35,6 +35,35 @@ const navItems = [
     ],
   },
   {
+    icon: <BoxCubeIcon />,
+    name: "Product Management",
+    subItems: [
+      { name: "Product List", path: "/admin/product-list", pro: false },
+      { name: "Approval Queue", path: "/admin/approval-queue", pro: false },
+    ],
+  },
+  {
+    icon: <PieChartIcon />,
+    name: "Sales & Analytics",
+    subItems: [
+      { name: "Sales Overview", path: "/admin/sales-overview", pro: false },
+      { name: "Client Reports", path: "/admin/client-reports", pro: false },
+      { name: "Rider Earnings", path: "/admin/rider-earnings", pro: false },
+      { name: "Best Sellers", path: "/admin/best-sellers", pro: false },
+    ],
+  },
+  {
+    icon: <PageIcon />,
+    name: "Settings",
+    subItems: [
+      { name: "General Settings", path: "/admin/settings-general", pro: false },
+      { name: "API & Logging", path: "/admin/settings-api", pro: false },
+      { name: "Review Management", path: "/admin/settings-reviews", pro: false },
+      { name: "Blacklist", path: "/admin/settings-blacklist", pro: false },
+      { name: "Delivery Rates", path: "/admin/settings-delivery-rates", pro: false },
+    ],
+  },
+  {
     icon: <PlugInIcon />,
     name: "App Management",
     subItems: [
