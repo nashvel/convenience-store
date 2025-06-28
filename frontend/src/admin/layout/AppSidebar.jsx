@@ -30,7 +30,9 @@ const navItems = [
     subItems: [
       { name: "User Profiles", path: "/admin/user-profiles", pro: false },
       { name: "User Roles", path: "/admin/user-roles", pro: false },
-      { name: "Add Client", path: "/admin/add-client", pro: false },
+      { name: "Clients", path: "/admin/clients", pro: false },
+      { name: "Customers", path: "/admin/customers", pro: false },
+      { name: "Riders", path: "/admin/riders", pro: false },
       { name: "Add Rider", path: "/admin/add-rider", pro: false }
     ],
   },

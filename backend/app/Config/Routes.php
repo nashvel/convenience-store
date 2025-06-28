@@ -6,6 +6,7 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');
+$routes->get('/uploads/logos/(:segment)', 'FileController::serveLogo/$1', ['filter' => 'cors']);
 
 $routes->group('api', ['filter' => 'cors'], function ($routes) {
     // Publicly accessible routes
@@ -24,6 +25,12 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
     });
 
     // Protected routes that require authentication
+    $routes->group('admin', ['filter' => 'auth'], function($routes) {
+        $routes->get('clients', 'AdminController::getClients');
+        $routes->get('customers', 'AdminController::getCustomers');
+        $routes->get('riders', 'AdminController::getRiders');
+    });
+
     $routes->group('', ['filter' => 'auth'], function($routes) {
         // User Addresses
         $routes->get('addresses', 'AddressController::getAddresses');

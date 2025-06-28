@@ -24,7 +24,7 @@ const Home = () => {
     }
   };
 
-  const featuredProducts = [...allProducts].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)).slice(0, 4);
+  const featuredProducts = [...allProducts].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)).slice(0, 10);
   const convenienceStores = stores.filter(store => store.store_type === 'convenience');
   const restaurants = stores.filter(store => store.store_type === 'restaurant');
 
@@ -133,7 +133,7 @@ const Home = () => {
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FaStar className="text-yellow-400"/> Featured Products</h2>
           <Link to="/products" className="text-primary font-medium hover:underline">View All</Link>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-3">
           {featuredProducts.map((product) => <ProductCard key={product.id} product={product} />)}
         </div>
       </section>
@@ -145,7 +145,7 @@ const Home = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {categories.map((category) => (
             <motion.div key={category.id} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
-              <Link to={`/products?category=${category.name}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg">
+              <Link to={`/products?category=${category.name}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg aspect-square">
                 <i className={`fa fa-${category.icon} text-3xl text-primary mb-3`}></i>
                 <h3 className="font-semibold text-gray-700">{category.name}</h3>
               </Link>

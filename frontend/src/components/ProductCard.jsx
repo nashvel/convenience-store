@@ -22,7 +22,7 @@ const ProductCard = ({ product }) => {
       className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full group"
     >
       <Link to={`/product/${product.id}/${slugify(product.name)}`} className="block">
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative w-full aspect-square overflow-hidden">
           <img 
             src={`${PRODUCT_ASSET_URL}/${product.image}`}
             alt={product.name} 
@@ -38,21 +38,21 @@ const ProductCard = ({ product }) => {
           )}
         </div>
       </Link>
-      <div className="p-4 flex flex-col flex-grow">
-        <p className="text-xs text-gray-500 uppercase font-semibold mb-1">{store ? store.name : 'Unknown Store'}</p>
-        <h3 className="text-sm font-semibold text-gray-800 mb-2 truncate">{product.name}</h3>
+      <div className="p-2 flex flex-col flex-grow">
+        <p className="text-[10px] text-gray-500 uppercase font-semibold mb-1">{store ? store.name : 'Unknown Store'}</p>
+        <h3 className="text-xs font-semibold text-gray-800 mb-1 truncate">{product.name}</h3>
         <div className="mt-auto flex justify-between items-center">
-           <p className="text-lg font-bold text-blue-600">
+           <p className="text-base font-bold text-blue-600">
             {product.discount > 0 ? (
-              <span className="flex items-baseline gap-2">
+              <span className="flex items-baseline gap-1">
                 ₱{Number(product.price * (1 - product.discount / 100)).toFixed(2)}
-                <span className="text-sm text-gray-500 line-through">₱{Number(product.price).toFixed(2)}</span>
+                <span className="text-xs text-gray-500 line-through">₱{Number(product.price).toFixed(2)}</span>
               </span>
             ) : (
               `₱${Number(product.price).toFixed(2)}`
             )}
           </p>
-          <div className="flex items-center text-sm text-gray-600">
+          <div className="flex items-center text-xs text-gray-600">
             <FaStar className="text-yellow-400 mr-1" /> {product.rating}
           </div>
         </div>

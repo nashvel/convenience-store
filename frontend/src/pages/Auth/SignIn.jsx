@@ -38,16 +38,7 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (email === 'admin@test.com' && password === 'admin1234') {
-      const adminUser = {
-        first_name: 'Admin',
-        last_name: 'User',
-        role: 'admin',
-      };
-      login(adminUser);
-      navigate('/admin/dashboard');
-      return;
-    }
+
 
     setLoading(true);
     setError('');
@@ -69,7 +60,7 @@ const SignIn = () => {
         case 'customer': navigate('/'); break;
         case 'client': navigate('/seller/dashboard'); break;
         case 'rider': navigate('/rider/dashboard'); break;
-        case 'admin': navigate('/admin/dashboard'); break;
+        case 'admin': navigate('/admin'); break;
         default: navigate('/');
       }
     } catch (err) {
