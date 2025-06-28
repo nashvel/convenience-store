@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence } from 'framer-motion';
+import ScrollToTop from './utils/ScrollToTop';
 
 
 
@@ -111,6 +112,7 @@ const AppContent = () => {
 // Forcing a full re-compile to fix a caching issue.
 const App = () => (
   <Router>
+        <ScrollToTop />
     <AppContent />
   </Router>
 );

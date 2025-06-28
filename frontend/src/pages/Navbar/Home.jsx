@@ -9,6 +9,7 @@ import NashSvg from '../../assets/nash.svg';
 import slugify from '../../utils/slugify';
 import ProductCardSkeleton from '../../components/Skeletons/ProductCardSkeleton';
 import StoreCardSkeleton from '../../components/Skeletons/StoreCardSkeleton';
+import RestaurantBanner from '../../components/RestaurantBanner';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const Home = () => {
               <div className="h-12 bg-gray-300 rounded w-32"></div>
             </div>
           </div>
-          <div className="md:order-2">
+          <div className="md:col-span-2 md:order-2">
             <div className="rounded-lg shadow-lg w-full h-96 bg-gray-300"></div>
           </div>
         </section>
@@ -83,22 +84,22 @@ const Home = () => {
 
   return (
     <motion.div
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <section className="grid md:grid-cols-2 items-center gap-12 mb-20 md:mb-24">
-        <div className="md:order-1 text-center md:text-left">
+      <section className="grid md:grid-cols-5 items-center gap-6 mb-12 md:mb-16">
+        <div className="md:col-span-3 md:order-1 text-center md:text-left">
           <motion.h1 
-            className="text-4xl md:text-5xl font-bold leading-tight mb-5 text-gray-800"
+            className="text-xl md:text-2xl font-bold leading-tight mb-1 text-gray-800"
             initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }}
           >
             Quick and Easy <span className="text-primary">Shopping & Food Delivery</span> at Your Fingertips
           </motion.h1>
           <motion.p 
-            className="text-lg text-gray-600 mb-8"
+            className="text-sm text-gray-600 mb-4"
             initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}
           >
             Order your favorite convenience store items and restaurant meals with just a few clicks.
@@ -108,23 +109,24 @@ const Home = () => {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.5 }}
           >
             <Link to={categories.length > 0 ? `/products?category=${categories[0].name}` : '/products'} className={primaryButtonClasses}>
-              Shop Now <FaArrowRight />
+              Shop Now <FaArrowRight className="ml-2" />
             </Link>
             <button onClick={handleGetAppClick} className={secondaryButtonClasses}>
-              Get the App <FaDownload />
+              Get the App <FaDownload className="ml-2" />
             </button>
             <Link to="/patch-notes" className={secondaryButtonClasses}>
-              Patch Notes <FaRegNewspaper />
+              Patch Notes <FaRegNewspaper className="ml-2" />
             </Link>
           </motion.div>
         </div>
-        <motion.div 
-          className="md:order-2"
-          initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}
-        >
-          <img src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Convenience Store" className="rounded-lg shadow-lg w-full h-auto" />
-        </motion.div>
+        <div className="md:col-span-2 md:order-2">
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, duration: 0.7 }}>
+            <img src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Convenience Store" className="rounded-lg shadow-lg w-full h-auto" />
+          </motion.div>
+        </div>
       </section>
+
+      <RestaurantBanner />
 
       <section className="mb-16">
         <div className="flex justify-between items-center mb-6">
@@ -171,7 +173,7 @@ const Home = () => {
         </section>
       )}
 
-      {restaurants && restaurants.length > 0 && (
+      {restaurants.length > 0 && (
         <section className="mb-16">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FaShoppingBag className="text-primary" /> Order Food</h2>
