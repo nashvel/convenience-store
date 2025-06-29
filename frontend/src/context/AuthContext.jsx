@@ -40,6 +40,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (newUserDetails) => {
+    if (user && user.token) {
+      const updatedUser = { ...user, ...newUserDetails, token: user.token };
+      const userDetailsToStore = { ...user, ...newUserDetails };
+      delete userDetailsToStore.token; // Don't store token in the user object in localStorage
+
+      localStorage.setItem('user', JSON.stringify(userDetailsToStore));
+      setUser(updatedUser);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
@@ -47,7 +58,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

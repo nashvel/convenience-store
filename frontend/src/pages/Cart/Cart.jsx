@@ -7,31 +7,27 @@ import { FaTrash, FaArrowLeft, FaShoppingCart } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { CartContext } from '../../context/CartContext';
 import { StoreContext } from '../../context/StoreContext';
-import { PRODUCT_ASSET_URL } from '../../config';
-import { API_BASE_URL } from '../../config';
+import { PRODUCT_ASSET_URL, API_BASE_URL } from '../../config';
 import axios from 'axios';
-import AddressModal from '../../components/Modals/AddressModal';
 import Checkout from '../../components/Checkout/Checkout';
 import StoreLocation from '../../components/Cart/StoreLocation';
 import CartSkeleton from '../../components/Skeletons/CartSkeleton';
 
 const Cart = () => {
-  const { 
-    cartItems, 
-    removeFromCart, 
-    updateQuantity, 
-    clearCart, 
+  const {
+    cartItems,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
     subtotal,
-    tax,
+
     total,
     totalItems: cartCount,
-    loading: cartLoading
+    loading: cartLoading,
+    selectedItems,
+    toggleItemSelection,
+    toggleSelectAll,
   } = useContext(CartContext);
-
-  const formatPrice = (price) => {
-    const numericPrice = Number(price) || 0;
-    return numericPrice.toFixed(2);
-  };
 
   const { stores, loading: storesLoading } = useContext(StoreContext);
   const { user } = useAuth();
@@ -43,48 +39,69 @@ const Cart = () => {
   const [deliveryAddress, setDeliveryAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cod');
 
+  const formatPrice = (price) => {
+    const numericPrice = Number(price) || 0;
+    return numericPrice.toFixed(2);
+  };
+
   const groupedCart = cartItems.reduce((acc, item) => {
     const storeId = item.store_id;
     if (!acc[storeId]) {
       const store = stores.find(s => s.id === storeId);
       acc[storeId] = {
         storeName: store ? store.name : 'Unknown Store',
-        items: []
+        items: [],
       };
     }
     acc[storeId].items.push(item);
     return acc;
   }, {});
 
-  const storeIds = Object.keys(groupedCart);
-  const pickupStore = storeIds.length === 1 ? stores.find(s => s.id === parseInt(storeIds[0])) : null;
+  const selectedCartItems = cartItems.filter(item => selectedItems.includes(item.cartItemId));
 
+  const selectedGroupedCart = selectedCartItems.reduce((acc, item) => {
+    const storeId = item.store_id;
+    if (!acc[storeId]) {
+      const store = stores.find(s => s.id === storeId);
+      acc[storeId] = {
+        storeName: store ? store.name : 'Unknown Store',
+        items: [],
+      };
+    }
+    acc[storeId].items.push(item);
+    return acc;
+  }, {});
 
+  const selectedStoreIds = [...new Set(selectedCartItems.map(item => item.store_id))];
+  const selectedStores = stores.filter(store => selectedStoreIds.includes(store.id));
 
+  const shippingFee = shippingOption === 'door_to_door'
+    ? selectedStores.reduce((acc, store) => acc + (Number(store.delivery_fee) || 5.00), 0)
+    : 0.00;
 
-  
+  const checkoutTotal = total + shippingFee;
+  const pickupStore = selectedStoreIds.length === 1 ? stores.find(s => s.id === parseInt(selectedStoreIds[0])) : null;
+
   const handleCheckout = async (e) => {
     e.preventDefault();
-
     if (!user) {
       toast.error('You must be logged in to place an order.');
+      return;
+    }
+    if (selectedItems.length === 0) {
+      toast.error('Please select items to checkout.');
+      return;
+    }
+    if (shippingOption === 'door_to_door' && (!deliveryAddress || (!deliveryAddress.province && !deliveryAddress.line1))) {
+      toast.error('Please provide a delivery address for door-to-door shipping.');
       return;
     }
 
     setIsSubmitting(true);
 
-    if (shippingOption === 'door_to_door' && (!deliveryAddress || (!deliveryAddress.province && !deliveryAddress.line1))) {
-      toast.error('Please provide a delivery address for door-to-door shipping.');
-      setIsSubmitting(false);
-      return;
-    }
-
-    const shippingFee = shippingOption === 'door_to_door' ? 5.00 : 0.00;
-    const finalTotal = total + shippingFee;
-
     const orderData = {
       userId: user.id,
-      cartItems: cartItems,
+      cartItems: selectedCartItems,
       shippingInfo: {
         ...deliveryAddress,
         name: `${user.first_name} ${user.last_name}`,
@@ -94,17 +111,15 @@ const Cart = () => {
       shipping_method: shippingOption,
       shipping_fee: shippingFee,
       subtotal: subtotal,
-      tax: tax,
-      total: finalTotal,
+
+      total: checkoutTotal,
     };
 
     try {
-            const response = await axios.post(`${API_BASE_URL}/orders`, orderData);
-
+      const response = await axios.post(`${API_BASE_URL}/orders`, orderData);
       if (response.data.success) {
-        toast.success('Order placed successfully! Thank you for your purchase.');
+        toast.success('Order placed successfully!');
         clearCart();
-        console.log('[Cart.jsx] Dispatching newNotification event.');
         eventEmitter.dispatch('newNotification');
         navigate('/my-orders');
       } else {
@@ -118,14 +133,12 @@ const Cart = () => {
     }
   };
 
-  const checkoutTotal = total + (shippingOption === 'door_to_door' ? 5.00 : 0.00);
-
   if (cartLoading || storesLoading) {
     return <CartSkeleton />;
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -145,52 +158,68 @@ const Cart = () => {
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 bg-white rounded-lg shadow-md">
-              {Object.entries(groupedCart).map(([storeId, group]) => (
-                <div key={storeId} className="p-6 border-b last:border-b-0">
-                  <h3 className="text-xl font-semibold mb-4">{group.storeName}</h3>
-                  {group.items.map(item => (
-                    <div key={item.cartItemId} className="flex items-center gap-4 py-4 border-b last:border-b-0">
-                      <img src={`${PRODUCT_ASSET_URL}/${item.image}`} alt={item.name} className="w-20 h-20 object-cover rounded-md" />
-                      <div className="flex-grow">
-                        <h4 className="font-semibold">{item.name}</h4>
-                        <p className="text-sm text-gray-500">Price: ₱{formatPrice(item.price)}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                                                <button onClick={() => updateQuantity(item.cartItemId, Number(item.quantity) - 1)} className="px-2 py-1 border rounded-md">-</button>
-                        <span>{item.quantity}</span>
-                                                <button onClick={() => updateQuantity(item.cartItemId, Number(item.quantity) + 1)} className="px-2 py-1 border rounded-md">+</button>
-                      </div>
-                      <p className="font-semibold w-24 text-right">₱{formatPrice(item.price * item.quantity)}</p>
-                      <button onClick={() => removeFromCart(item.cartItemId)} className="text-red-500 hover:text-red-700">
-                        <FaTrash />
-                      </button>
-                    </div>
-                  ))}
+              <div className="p-6 border-b">
+                <div className="flex items-center gap-3 mb-4">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary"
+                    checked={cartItems.length > 0 && selectedItems.length === cartItems.length}
+                    onChange={toggleSelectAll}
+                  />
+                  <h3 className="text-xl font-semibold">Select All Items</h3>
                 </div>
-              ))}
+              </div>
+              {Object.entries(groupedCart).map(([storeId, group]) => {
+                return (
+                  <div key={storeId} className="p-6 border-b last:border-b-0">
+                    <h3 className="text-xl font-semibold mb-4">{group.storeName}</h3>
+                    {group.items.map(item => (
+                      <div key={item.cartItemId} className="flex items-center gap-4 py-4 border-b last:border-b-0">
+                        <input
+                          type="checkbox"
+                          className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary"
+                          checked={selectedItems.includes(item.cartItemId)}
+                          onChange={() => toggleItemSelection(item.cartItemId)}
+                        />
+                        <img src={`${PRODUCT_ASSET_URL}/${item.image}`} alt={item.name} className="w-20 h-20 object-cover rounded-md" />
+                        <div className="flex-grow">
+                          <h4 className="font-semibold">{item.name}</h4>
+                          <p className="text-sm text-gray-500">Price: ₱{formatPrice(item.price)}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => updateQuantity(item.cartItemId, Number(item.quantity) - 1)} className="px-2 py-1 border rounded-md">-</button>
+                          <span>{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.cartItemId, Number(item.quantity) + 1)} className="px-2 py-1 border rounded-md">+</button>
+                        </div>
+                        <p className="font-semibold w-24 text-right">₱{formatPrice(item.price * item.quantity)}</p>
+                        <button onClick={() => removeFromCart(item.cartItemId)} className="text-red-500 hover:text-red-700">
+                          <FaTrash />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
             </div>
 
             <div className="bg-gray-50 rounded-lg shadow-md p-6 sticky top-24">
-              <h3 className="text-xl font-semibold mb-6">Order Summary</h3>
+              <h3 className="text-xl font-semibold mb-6">Order Summary (Selected)</h3>
               <div className="space-y-3 text-gray-600">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span className="font-medium text-gray-800">₱{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Tax</span>
-                  <span className="font-medium text-gray-800">₱{formatPrice(tax)}</span>
-                </div>
+
                 <hr className="my-4" />
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
                   <span className="text-primary">₱{formatPrice(total)}</span>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsCheckingOut(true)} 
+              <button
+                onClick={() => setIsCheckingOut(true)}
                 className="w-full mt-6 bg-primary text-white py-3 rounded-md font-semibold hover:bg-primary-dark transition-all disabled:opacity-50"
-                disabled={cartCount === 0}
+                disabled={cartCount === 0 || selectedItems.length === 0}
               >
                 Proceed to Checkout
               </button>
@@ -211,11 +240,11 @@ const Cart = () => {
               <StoreLocation store={pickupStore} />
             </div>
           )}
-          <Checkout 
+          <Checkout
             user={user}
-            groupedCart={groupedCart}
+            groupedCart={selectedGroupedCart}
             subtotal={subtotal}
-            tax={tax}
+
             shippingOption={shippingOption}
             setShippingOption={setShippingOption}
             deliveryAddress={deliveryAddress}
@@ -228,6 +257,7 @@ const Cart = () => {
             checkoutTotal={checkoutTotal}
             formatPrice={formatPrice}
             pickupStore={pickupStore}
+            selectedStores={selectedStores}
           />
         </>
       )}

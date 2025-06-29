@@ -66,6 +66,7 @@ try {
             line1 VARCHAR(255) NOT NULL,
             line2 VARCHAR(255) NULL,
             city VARCHAR(100) NOT NULL,
+            province VARCHAR(100) NOT NULL,
             zip_code VARCHAR(20) NOT NULL,
             latitude DECIMAL(10, 8) NULL,
             longitude DECIMAL(11, 8) NULL,
@@ -150,23 +151,24 @@ try {
         )
     ");
 
-    // Create orders table (depends on users and stores)
+    // Create orders table (depends on users, stores, and user_addresses)
     $mysqli->query("
         CREATE TABLE orders (
             id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             customer_id INT(11) UNSIGNED NOT NULL,
             store_id INT(11) UNSIGNED NOT NULL,
             rider_id INT(11) UNSIGNED NULL,
+            delivery_address_id INT(11) UNSIGNED NOT NULL,
             status ENUM('pending', 'accepted', 'rejected', 'in_transit', 'delivered', 'cancelled') DEFAULT 'pending',
             total_amount DECIMAL(10,2) NOT NULL,
-            delivery_address TEXT NOT NULL,
             payment_method VARCHAR(50) NOT NULL DEFAULT 'cod',
             delivery_fee DECIMAL(10,2) NOT NULL,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
             FOREIGN KEY (customer_id) REFERENCES users(id),
             FOREIGN KEY (store_id) REFERENCES stores(id),
-            FOREIGN KEY (rider_id) REFERENCES users(id)
+            FOREIGN KEY (rider_id) REFERENCES users(id),
+            FOREIGN KEY (delivery_address_id) REFERENCES user_addresses(id)
         )
     ");
 
@@ -376,6 +378,13 @@ try {
         ({$roles['admin']}, 'nashvelbusiness@gmail.com', '$password_hash', 'Admin', 'User', '111111111', TRUE, NOW())
     ");
     $admin_id = $mysqli->insert_id;
+
+    // Insert a default address for the Admin User
+    $mysqli->query("
+        INSERT INTO user_addresses (user_id, label, is_default, full_name, phone, line1, city, province, zip_code, created_at)
+        VALUES
+        ($admin_id, 'Office', TRUE, 'Admin User', '111111111', '456 Admin Ave', 'Tagoloan', 'Misamis Oriental', '12345', NOW())
+    ");
 
     // Insert Clients
     $mysqli->query("

@@ -24,8 +24,23 @@ class OrderController extends ResourceController
 
         $db = \Config\Database::connect();
         try {
-            $query = $db->table('orders')->select('orders.*, users.first_name, users.last_name')
-                        ->join('users', 'users.id = orders.customer_id');
+            $query = $db->table('orders')
+                    ->select('
+                        orders.*, 
+                        users.first_name, 
+                        users.last_name,
+                        user_addresses.latitude,
+                        user_addresses.longitude,
+                        user_addresses.line1,
+                        user_addresses.line2,
+                        user_addresses.city,
+                        user_addresses.province,
+                        user_addresses.zip_code,
+                        user_addresses.full_name as delivery_full_name,
+                        user_addresses.phone as delivery_phone
+                    ')
+                    ->join('users', 'users.id = orders.customer_id')
+                    ->join('user_addresses', 'user_addresses.id = orders.delivery_address_id', 'left');
 
             if ($userId) {
                 $query->where('orders.customer_id', $userId);
@@ -94,7 +109,6 @@ class OrderController extends ResourceController
 
             // For simplicity, we'll use the store_id from the first cart item.
             $storeId = $cartItems[0]['store_id'];
-            $deliveryAddress = json_encode($shippingInfo);
 
             // Insert into orders table
             $orderData = [
@@ -102,7 +116,7 @@ class OrderController extends ResourceController
                 'store_id' => $storeId,
                 'total_amount' => $totalAmount,
                 'status' => 'pending',
-                'delivery_address' => $deliveryAddress,
+                'delivery_address_id' => $shippingInfo['id'], // Use the address ID
                 'payment_method' => $data['payment_method'] ?? 'cod',
                 'delivery_fee' => $shippingFee,
                 'created_at' => date('Y-m-d H:i:s')

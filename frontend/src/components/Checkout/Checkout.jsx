@@ -9,7 +9,6 @@ const Checkout = ({
   user,
   groupedCart,
   subtotal,
-  tax,
   shippingOption,
   setShippingOption,
   deliveryAddress,
@@ -21,7 +20,8 @@ const Checkout = ({
   setIsCheckingOut,
   checkoutTotal,
   formatPrice,
-  pickupStore
+  pickupStore,
+  selectedStores = []
 }) => {
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -71,14 +71,13 @@ const Checkout = ({
                 <span>Subtotal</span>
                 <span className="font-medium text-gray-800">₱{formatPrice(subtotal)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Tax</span>
-                <span className="font-medium text-gray-800">₱{formatPrice(tax)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Shipping Fee</span>
-                <span className="font-medium text-gray-800">₱{formatPrice(shippingOption === 'door_to_door' ? 5.00 : 0.00)}</span>
-              </div>
+
+              {shippingOption === 'door_to_door' && selectedStores && selectedStores.map(store => (
+                <div key={store.id} className="flex justify-between">
+                  <span>Shipping from {store.name}</span>
+                                    <span className="font-medium text-gray-800">₱{formatPrice(Number(store.delivery_fee) || 5.00)}</span>
+                </div>
+              ))}
               <hr className="my-4" />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>

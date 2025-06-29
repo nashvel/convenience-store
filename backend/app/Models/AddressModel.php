@@ -21,6 +21,7 @@ class AddressModel extends Model
         'line1',
         'line2',
         'city',
+        'province',
         'zip_code',
         'latitude',
         'longitude',

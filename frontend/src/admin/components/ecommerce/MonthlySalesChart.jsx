@@ -2,9 +2,12 @@ import Chart from "react-apexcharts";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from 'axios';
+import { API_BASE_URL } from '../../../config';
+import Skeleton from "../common/Skeleton";
 
-export default function MonthlySalesChart() {
+export default function MonthlySalesChart({ storeId }) {
   const options = {
     colors: ["#465fff"],
     chart: {
@@ -84,13 +87,35 @@ export default function MonthlySalesChart() {
       },
     },
   };
-  const series = [
+  const [series, setSeries] = useState([
     {
       name: "Sales",
-      data: [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112],
+      data: [],
     },
-  ];
+  ]);
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSalesData = async () => {
+      setLoading(true);
+      try {
+        const url = storeId
+          ? `${API_BASE_URL}/admin/monthly-sales?store_id=${storeId}`
+          : `${API_BASE_URL}/admin/monthly-sales`;
+        
+        const response = await axios.get(url, { withCredentials: true });
+        setSeries([{ name: "Sales", data: response.data }]);
+      } catch (error) {
+        console.error("Error fetching monthly sales:", error);
+        setSeries([{ name: "Sales", data: Array(12).fill(0) }]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSalesData();
+  }, [storeId]);
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -132,7 +157,11 @@ export default function MonthlySalesChart() {
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="-ml-5 min-w-[650px] xl:min-w-full pl-2">
-          <Chart options={options} series={series} type="bar" height={180} />
+          {loading ? (
+            <Skeleton className="h-[180px] w-full" />
+          ) : (
+            <Chart options={options} series={series} type="bar" height={180} />
+          )}
         </div>
       </div>
     </div>

@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, PRODUCT_ASSET_URL } from '../../config';
 import CancelOrderModal from '../../components/Modals/CancelOrderModal';
 import MyOrderDetailSkeleton from '../../components/Skeletons/MyOrderDetailSkeleton';
+import { toast } from 'react-toastify';
 
 const MyOrders = () => {
   const { id } = useParams();
@@ -14,6 +15,7 @@ const MyOrders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   useEffect(() => {
     if (!user) {
@@ -24,7 +26,7 @@ const MyOrders = () => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-                const response = await axios.get(`${API_BASE_URL}/orders/${id}`);
+        const response = await axios.get(`${API_BASE_URL}/orders/${id}`);
         if (response.data.success) {
           setOrder(response.data.order);
         } else {
@@ -41,16 +43,43 @@ const MyOrders = () => {
     fetchOrder();
   }, [id, user, navigate]);
 
+  const cancellableItems = order?.status === 'pending' ? order.items : [];
+
+  const toggleItemSelection = (itemId) => {
+    setSelectedItems((prev) =>
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItems.length === cancellableItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(cancellableItems.map((item) => item.id));
+    }
+  };
+
   const handleConfirmCancel = async () => {
+    if (selectedItems.length === 0) {
+      toast.error('Please select at least one item to cancel.');
+      setIsModalOpen(false);
+      return;
+    }
     try {
-      const response = await axios.put(`${API_BASE_URL}/orders/cancel/${id}`);
+      const response = await axios.put(`${API_BASE_URL}/orders/cancel/${id}`, {
+        itemIds: selectedItems,
+      });
       if (response.data.success) {
-        setOrder({ ...order, status: 'cancelled' });
+        toast.success('Selected items have been cancelled.');
+        setOrder(response.data.order);
+        setSelectedItems([]);
       } else {
-        setError('Failed to cancel order.');
+        toast.error(response.data.message || 'Failed to cancel selected items.');
       }
     } catch (err) {
-      setError('An error occurred while cancelling the order.');
+      toast.error('An error occurred while cancelling the items.');
       console.error(err);
     } finally {
       setIsModalOpen(false);
@@ -92,10 +121,31 @@ const MyOrders = () => {
       </div>
 
       <h3 className="mt-8 mb-4 pb-2 border-b-2 border-gray-200 text-xl font-semibold">Items</h3>
+      
+      {order.status === 'pending' && cancellableItems.length > 0 && (
+        <div className="flex items-center gap-3 p-3">
+          <input
+            type="checkbox"
+            className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary"
+            checked={selectedItems.length === cancellableItems.length}
+            onChange={toggleSelectAll}
+          />
+          <label className="text-lg font-medium">Select All</label>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         {order.items.map(item => (
-          <div key={item.id} className="flex justify-between p-3 bg-gray-50 rounded-lg">
+          <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center">
+              {order.status === 'pending' && (
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary mr-4"
+                  checked={selectedItems.includes(item.id)}
+                  onChange={() => toggleItemSelection(item.id)}
+                />
+              )}
               <img src={`${PRODUCT_ASSET_URL}/${item.image}`} alt={item.name} className="w-16 h-16 object-cover rounded-lg mr-4" />
               <span>{item.name} (x{item.quantity})</span>
             </div>
@@ -111,8 +161,10 @@ const MyOrders = () => {
         {order.status === 'pending' && (
           <button 
             onClick={() => setIsModalOpen(true)} 
-            className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold transition hover:bg-red-700">
-            Cancel Order
+            className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={selectedItems.length === 0}
+          >
+            Cancel Selected Items
           </button>
         )}
       </div>

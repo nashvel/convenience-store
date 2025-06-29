@@ -7,6 +7,8 @@ use App\Models\StoreModel;
 use App\Models\SettingsModel;
 use App\Models\ProductModel;
 use App\Models\CategoryModel;
+use App\Models\OrderModel;
+use App\Models\AddressModel;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
 
@@ -19,6 +21,8 @@ class AdminController extends ResourceController
     protected $settingsModel;
     protected $productModel;
     protected $categoryModel;
+    protected $orderModel;
+    protected $addressModel;
 
     public function __construct()
     {
@@ -27,6 +31,8 @@ class AdminController extends ResourceController
         $this->settingsModel = new SettingsModel();
         $this->productModel = new ProductModel();
         $this->categoryModel = new CategoryModel();
+        $this->orderModel = new OrderModel();
+        $this->addressModel = new AddressModel();
     }
 
     public function getClients()
@@ -48,7 +54,7 @@ class AdminController extends ResourceController
         }
     }
 
-    public function getCustomers()
+        public function getCustomers()
     {
         try {
             $customers = $this->userModel
@@ -283,5 +289,156 @@ class AdminController extends ResourceController
             log_message('error', '[ERROR] {exception}', ['exception' => $e]);
             return $this->failServerError('An unexpected error occurred while fetching categories.');
         }
+    }
+
+    public function getMonthlySales()
+    {
+        $storeId = $this->request->getGet('store_id');
+        $orderModel = new OrderModel();
+
+        $builder = $orderModel->select('SUM(total_price) as total_sales, MONTH(created_at) as month')
+                               ->where('status', 'completed')
+                               ->groupBy('MONTH(created_at)');
+
+        if ($storeId) {
+            $builder->where('store_id', $storeId);
+        }
+
+        $salesData = $builder->findAll();
+
+        $monthlySales = array_fill(1, 12, 0);
+        foreach ($salesData as $row) {
+            $monthlySales[(int)$row['month']] = (float)$row['total_sales'];
+        }
+
+        return $this->respond(array_values($monthlySales));
+    }
+
+    public function getProfile()
+    {
+        try {
+            $session = session();
+            $userId = $session->get('id');
+
+            if (!$userId) {
+                return $this->failUnauthorized('User not logged in.');
+            }
+
+            $user = $this->userModel
+                ->select('users.*, user_addresses.line1, user_addresses.city, user_addresses.zip_code')
+                ->join('user_addresses', 'user_addresses.user_id = users.id', 'left')
+                ->where('users.id', $userId)
+                ->first();
+
+            if (!$user) {
+                return $this->failNotFound('User not found.');
+            }
+
+            // Restructure the data to have a nested address object
+            $address = [
+                'line1' => $user['line1'],
+                'city' => $user['city'],
+                'zip_code' => $user['zip_code'],
+            ];
+
+            // Remove the flat address fields from the main user array
+            unset($user['line1'], $user['city'], $user['zip_code']);
+
+            // Add the nested address object. If no address exists, the values will be null.
+            $user['address'] = !empty(array_filter($address)) ? $address : null;
+
+            return $this->respond($user);
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('An unexpected error occurred.');
+        }
+    }
+
+    public function updateProfile()
+    {
+        try {
+            $session = session();
+            $userId = $session->get('id');
+
+            if (!$userId) {
+                return $this->failUnauthorized('User not logged in.');
+            }
+
+            $data = $this->request->getJSON(true);
+
+            $userData = [
+                'first_name' => $data['first_name'] ?? null,
+                'last_name'  => $data['last_name'] ?? null,
+                'email'      => $data['email'] ?? null,
+                'phone'      => $data['phone'] ?? null,
+                'bio'        => $data['bio'] ?? null,
+            ];
+
+            $addressData = [
+                'line1'    => $data['line1'] ?? null,
+                'city'     => $data['city'] ?? null,
+                'zip_code' => $data['zipCode'] ?? null,
+            ];
+
+            $this->userModel->update($userId, array_filter($userData, fn($v) => $v !== null));
+
+            $existingAddress = $this->addressModel->where('user_id', $userId)->first();
+            if ($existingAddress) {
+                $this->addressModel->update($existingAddress['id'], array_filter($addressData, fn($v) => $v !== null));
+            } else {
+                $this->addressModel->insert(array_merge(['user_id' => $userId], $addressData));
+            }
+
+            $updatedUser = $this->userModel
+                ->select('users.*, user_addresses.line1, user_addresses.city, user_addresses.zip_code')
+                ->join('user_addresses', 'user_addresses.user_id = users.id', 'left')
+                ->where('users.id', $userId)
+                ->first();
+
+            if ($updatedUser) {
+                $address = [
+                    'line1' => $updatedUser['line1'],
+                    'city' => $updatedUser['city'],
+                    'zip_code' => $updatedUser['zip_code'],
+                ];
+                unset($updatedUser['line1'], $updatedUser['city'], $updatedUser['zip_code']);
+                $updatedUser['address'] = !empty(array_filter($address)) ? $address : null;
+            }
+
+            return $this->respondUpdated($updatedUser, 'Profile updated successfully.');
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('An unexpected error occurred while updating the profile.');
+        }
+    }
+
+    public function getStatistics()
+    {
+        $storeId = $this->request->getGet('store_id');
+        $orderModel = new OrderModel();
+
+        $builder = $orderModel->select('SUM(total_price) as total_sales, SUM(total_price - delivery_fee) as total_revenue, MONTH(created_at) as month')
+                               ->where('status', 'completed')
+                               ->groupBy('MONTH(created_at)');
+
+        if ($storeId) {
+            $builder->where('store_id', $storeId);
+        }
+
+        $statsData = $builder->findAll();
+
+        $monthlySales = array_fill(1, 12, 0);
+        $monthlyRevenue = array_fill(1, 12, 0);
+
+        foreach ($statsData as $row) {
+            $month = (int)$row['month'];
+            $monthlySales[$month] = (float)$row['total_sales'];
+            $monthlyRevenue[$month] = (float)$row['total_revenue'];
+        }
+
+        return $this->respond([
+            'sales' => array_values($monthlySales),
+            'revenue' => array_values($monthlyRevenue)
+        ]);
     }
 }

@@ -1,25 +1,67 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import PageBreadcrumb from "../components/common/PageBreadCrumb";
 import UserMetaCard from "../components/UserProfile/UserMetaCard";
 import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import UserAddressCard from "../components/UserProfile/UserAddressCard";
 import PageMeta from "../components/common/PageMeta";
+import { useAuth } from '../../context/AuthContext';
 
 export default function UserProfiles() {
+  const { user: authUser, updateUser } = useAuth();
+  const [user, setUser] = useState(authUser);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('/api/admin/profile', { withCredentials: true });
+        setUser(response.data);
+        updateUser(response.data);
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+        // Keep existing authUser data on failure
+        setUser(authUser);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+    // We only want to run this on mount, not when authUser changes during the session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSaveSuccess = (updatedUserData) => {
+    setUser(updatedUserData);
+    updateUser(updatedUserData);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <div>Failed to load user profile. Please try refreshing the page.</div>;
+  }
+
   return (
     <>
-      <PageMeta
-        title="React.js Profile Dashboard | TailAdmin - Next.js Admin Dashboard Template"
-        description="This is React.js Profile Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
-      />
+      <PageMeta title="Admin Profile" />
       <PageBreadcrumb pageTitle="Profile" />
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-        <h3 className="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
+      <div className="container mx-auto p-4 md:p-6 lg:p-8">
+        <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
           Profile
         </h3>
         <div className="space-y-6">
-          <UserMetaCard />
-          <UserInfoCard />
-          <UserAddressCard />
+          <UserMetaCard user={user} onSaveSuccess={handleSaveSuccess} />
+          <UserInfoCard user={user} onSaveSuccess={handleSaveSuccess} />
+          <UserAddressCard user={user} onSaveSuccess={handleSaveSuccess} />
         </div>
       </div>
     </>

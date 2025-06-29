@@ -1,7 +1,11 @@
+import { useState, useEffect } from 'react';
 import Chart from "react-apexcharts";
 import ChartTab from "../common/ChartTab";
+import axios from 'axios';
+import { API_BASE_URL } from '../../../config';
+import Skeleton from "../common/Skeleton";
 
-export default function StatisticsChart() {
+export default function StatisticsChart({ storeId }) {
   const options = {
     legend: {
       show: false, // Hide legend
@@ -100,16 +104,40 @@ export default function StatisticsChart() {
     },
   };
 
-  const series = [
-    {
-      name: "Sales",
-      data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
-    },
-    {
-      name: "Revenue",
-      data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
-    },
-  ];
+  const [series, setSeries] = useState([
+    { name: "Sales", data: [] },
+    { name: "Revenue", data: [] },
+  ]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      setLoading(true);
+      try {
+        const url = storeId
+          ? `${API_BASE_URL}/admin/statistics?store_id=${storeId}`
+          : `${API_BASE_URL}/admin/statistics`;
+
+        const response = await axios.get(url, { withCredentials: true });
+        const { sales, revenue } = response.data;
+
+        setSeries([
+          { name: "Sales", data: sales },
+          { name: "Revenue", data: revenue },
+        ]);
+      } catch (error) {
+        console.error('Error fetching statistics:', error);
+        setSeries([
+          { name: "Sales", data: Array(12).fill(0) },
+          { name: "Revenue", data: Array(12).fill(0) },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatistics();
+  }, [storeId]);
   return (
     <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
@@ -128,7 +156,11 @@ export default function StatisticsChart() {
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="min-w-[1000px] xl:min-w-full">
-          <Chart options={options} series={series} type="area" height={310} />
+          {loading ? (
+            <Skeleton className="h-[310px] w-full" />
+          ) : (
+            <Chart options={options} series={series} type="area" height={310} />
+          )}
         </div>
       </div>
     </div>

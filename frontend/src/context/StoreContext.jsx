@@ -48,7 +48,11 @@ export const StoreProvider = ({ children }) => {
       let fetchedStores = [];
       try {
         const storesRes = await fetchStores();
-        fetchedStores = storesRes.data;
+        const rawStores = storesRes.data || [];
+        fetchedStores = rawStores.map(store => ({
+          ...store,
+          delivery_fee: parseFloat(store.delivery_fee) || 0,
+        }));
         const [productsRes, categoriesRes] = await Promise.all([
           fetchAllProducts(),
           fetchCategories(),

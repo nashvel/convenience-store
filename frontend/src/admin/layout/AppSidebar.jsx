@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import axios from 'axios';
+import { API_BASE_URL } from "../../config";
 import { Link, useLocation } from "react-router";
 
 // Assume these icons are imported from an icon library
@@ -28,7 +30,6 @@ const navItems = [
     icon: <UserCircleIcon />,
     name: "User Management",
     subItems: [
-      { name: "User Profiles", path: "/admin/user-profiles", pro: false },
       { name: "User Roles", path: "/admin/user-roles", pro: false },
       { name: "Clients", path: "/admin/clients", pro: false },
       { name: "Customers", path: "/admin/customers", pro: false },
@@ -93,6 +94,23 @@ const AppSidebar = () => {
   const [openSubmenu, setOpenSubmenu] = useState(null);
   const [subMenuHeight, setSubMenuHeight] = useState({});
   const subMenuRefs = useRef({});
+  const [settings, setSettings] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/public-settings`);
+        setSettings(response.data);
+      } catch (error) {
+        console.error('Error fetching public settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
 
   const isActive = useCallback(
     (path) => location.pathname === path,
@@ -264,22 +282,9 @@ const AppSidebar = () => {
       >
         <Link to="/">
           {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
+            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
+              {loading ? 'Loading...' : (settings.app_name || 'TailAdmin')}
+            </h1>
           ) : (
             <img
               src="/images/logo/logo-icon.svg"

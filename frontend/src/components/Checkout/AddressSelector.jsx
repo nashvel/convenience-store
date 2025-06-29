@@ -116,6 +116,7 @@ const AddressSelector = ({ onSelectAddress, user }) => {
         <div className="text-center p-4 border-2 border-dashed rounded-lg">
           <p className="text-gray-600">You don't have a delivery address yet.</p>
           <button 
+            type="button"
             onClick={handleAddNewAddress} 
             className="mt-2 text-primary font-semibold hover:underline"
           >
@@ -137,6 +138,7 @@ const AddressSelector = ({ onSelectAddress, user }) => {
             <p className="text-gray-600">Please select a delivery address.</p>
           )}
           <button 
+            type="button"
             onClick={() => setIsSelectionModalOpen(true)} 
             className="text-primary font-semibold hover:underline flex-shrink-0 ml-4"
           >

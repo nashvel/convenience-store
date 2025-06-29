@@ -46,6 +46,10 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
     $routes->delete('products/(:num)', 'AdminController::deleteProduct/$1');
     $routes->post('products/update/(:num)', 'AdminController::updateProduct/$1');
     $routes->get('categories', 'AdminController::getCategories');
+    $routes->get('profile', 'AdminController::getProfile');
+    $routes->put('profile', 'AdminController::updateProfile');
+    $routes->get('monthly-sales', 'AdminController::getMonthlySales');
+    $routes->get('statistics', 'AdminController::getStatistics');
     });
 
     $routes->group('', ['filter' => 'auth'], function($routes) {

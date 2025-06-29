@@ -6,7 +6,7 @@ const Settings = () => {
   const { user } = useAuth();
 
   const dashboardPath = user ? {
-    'admin': '/admin',
+    'admin': '/admin/dashboard',
     'client': '/seller/dashboard',
     'rider': '/rider/dashboard'
   }[user.role] : null;

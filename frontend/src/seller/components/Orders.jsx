@@ -1,76 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FaBoxOpen, FaCreditCard, FaMapMarkerAlt, FaMotorcycle, FaCheck, FaTimes, FaTags, FaRulerCombined, FaInfoCircle, FaSpinner } from 'react-icons/fa';
+import { FaSpinner, FaMapMarkerAlt, FaCheck, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import AssignRiderModal from './modals/AssignRiderModal';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, PRODUCT_ASSET_URL } from '../../config';
 
 const TabButton = ({ label, count, isActive, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-colors duration-200 focus:outline-none ${
-      isActive
-        ? 'border-primary text-primary'
-        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-    }`}
-  >
-    {label} <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${isActive ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}`}>{count}</span>
-  </button>
+    <button
+        onClick={onClick}
+        className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-colors duration-200 focus:outline-none ${
+            isActive
+                ? 'border-primary text-primary'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+        }`}
+    >
+        {label} <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${isActive ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}`}>{count}</span>
+    </button>
 );
 
-const InfoItem = ({ icon, text }) => (
-  <div className="flex items-center gap-3 text-sm text-gray-600">
-    <div className="w-5 text-center text-gray-400">{icon}</div>
-    <span>{text}</span>
-  </div>
-);
+const Pagination = ({ itemsPerPage, totalItems, paginate, currentPage }) => {
+    const pageNumbers = [];
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-const OrderCard = ({ order, onAccept, onDecline, isTransaction = false }) => {
-    const customerName = `${order.first_name} ${order.last_name}`;
-    const deliveryAddress = JSON.parse(order.delivery_address);
-    const fullAddress = `${deliveryAddress.address}, ${deliveryAddress.city}, ${deliveryAddress.zipCode}`;
+    for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+    }
+
+    if (totalPages <= 1) {
+        return null;
+    }
 
     return (
-        <div className="bg-white rounded-xl shadow-md p-6 flex flex-col gap-5 transition-shadow duration-300 hover:shadow-lg">
-            <div className="flex justify-between items-start">
-                <h3 className="font-bold text-gray-800 text-lg">#{order.id}</h3>
-                <p className="text-gray-600 font-semibold">{customerName}</p>
-            </div>
-            
-            <div className="flex flex-col gap-4 border-t border-b border-gray-100 py-4 max-h-48 overflow-y-auto">
-                {order.items.map((item, index) => (
-                    <div key={index} className="flex gap-4 items-center">
-                        <img src={`${PRODUCT_ASSET_URL}/${item.product_image}`} alt={item.product_name} className="w-16 h-16 rounded-lg object-cover border border-gray-200" />
-                        <div className="flex-grow">
-                            <p className="font-bold text-gray-800">{item.product_name}</p>
-                            <InfoItem icon={<FaBoxOpen />} text={`Quantity: ${item.quantity}`} />
-                            <InfoItem icon={<FaTags />} text={`Price: ₱${Number(item.price).toFixed(2)}`} />
-                        </div>
-                    </div>
+        <nav className="mt-6 flex justify-center">
+            <ul className="inline-flex items-center -space-x-px">
+                <li>
+                    <button
+                        onClick={() => paginate(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                </li>
+                {pageNumbers.map(number => (
+                    <li key={number}>
+                        <button
+                            onClick={() => paginate(number)}
+                            className={`px-3 py-2 leading-tight border border-gray-300 ${
+                                currentPage === number
+                                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700'
+                                    : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'
+                            }`}
+                        >
+                            {number}
+                        </button>
+                    </li>
                 ))}
-            </div>
-
-            <div className="flex flex-col gap-3">
-                <InfoItem icon={<FaCreditCard />} text={`Total: ₱${Number(order.total_amount).toFixed(2)}`} />
-                <InfoItem icon={<FaMapMarkerAlt />} text={fullAddress} />
-                {!isTransaction && (
-                    <div className="flex items-center gap-3">
-                        <div className="w-5 text-center text-gray-400"><FaMotorcycle /></div>
-                        <select className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-light outline-none">
-                            <option value="">Assign Rider</option>
-                            {/* Rider assignment logic to be implemented */}
-                        </select>
-                    </div>
-                )}
-            </div>
-
-            {!isTransaction && (
-                <div className="flex gap-4 mt-auto pt-4 border-t border-gray-100">
-                    <button onClick={() => onAccept(order.id)} className="w-full py-2.5 px-4 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-2"><FaCheck /> Accept</button>
-                    <button onClick={() => onDecline(order.id)} className="w-full py-2.5 px-4 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"><FaTimes /> Decline</button>
-                </div>
-            )}
-        </div>
+                <li>
+                    <button
+                        onClick={() => paginate(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </li>
+            </ul>
+        </nav>
     );
 };
 
@@ -80,6 +77,12 @@ const Orders = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { user } = useAuth();
+    const [currentPage, setCurrentPage] = useState(1);
+    const [expandedOrderId, setExpandedOrderId] = useState(null);
+    const itemsPerPage = 20;
+    const [isRiderModalOpen, setIsRiderModalOpen] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    const [selectedRider, setSelectedRider] = useState('');
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -93,7 +96,8 @@ const Orders = () => {
                 setLoading(true);
                 const response = await axios.get(`${API_BASE_URL}/orders?store_id=${user.store_id}`);
                 if (response.data.success) {
-                    setOrders(response.data.orders);
+                    const sortedOrders = response.data.orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    setOrders(sortedOrders);
                 } else {
                     setError(response.data.message || 'Failed to fetch orders.');
                     toast.error(response.data.message || 'Failed to fetch orders.');
@@ -130,11 +134,44 @@ const Orders = () => {
         }
     };
 
-    const handleAccept = (orderId) => updateOrderStatus(orderId, 'accepted');
+    const handleOpenRiderModal = (orderId) => {
+        setSelectedOrderId(orderId);
+        setIsRiderModalOpen(true);
+        setSelectedRider(mockRiders[0]?.id || '');
+    };
+
+    const handleConfirmRiderAssignment = async () => {
+        if (!selectedRider) {
+            toast.error('Please select a rider.');
+            return;
+        }
+        await updateOrderStatus(selectedOrderId, 'accepted');
+        setIsRiderModalOpen(false);
+        setSelectedOrderId(null);
+        setSelectedRider('');
+    };
     const handleDecline = (orderId) => updateOrderStatus(orderId, 'rejected');
+    const handleToggleDetails = (orderId) => setExpandedOrderId(prevId => (prevId === orderId ? null : orderId));
+
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        setCurrentPage(1);
+    };
 
     const incomingOrders = orders.filter(order => order.status === 'pending');
     const transactionOrders = orders.filter(order => order.status !== 'pending' && order.status !== 'rejected');
+
+    const activeOrders = activeTab === 'incoming' ? incomingOrders : transactionOrders;
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = activeOrders.slice(indexOfFirstItem, indexOfLastItem);
+    
+    const paginate = (pageNumber) => {
+        if (pageNumber > 0 && pageNumber <= Math.ceil(activeOrders.length / itemsPerPage)) {
+            setCurrentPage(pageNumber);
+        }
+    };
 
     if (loading) {
         return (
@@ -148,47 +185,161 @@ const Orders = () => {
         return <div className="p-8 text-red-500 text-center">{error}</div>;
     }
 
+    const mockRiders = [
+        { id: 'rider1', name: 'Rider 1' },
+        { id: 'rider2', name: 'Rider 2' },
+        { id: 'rider3', name: 'Rider 3' },
+    ];
+
+    const StatusBadge = ({ status }) => {
+        const statusStyles = {
+            pending: 'bg-yellow-100 text-yellow-800',
+            accepted: 'bg-blue-100 text-blue-800',
+            in_transit: 'bg-indigo-100 text-indigo-800',
+            delivered: 'bg-green-100 text-green-800',
+            cancelled: 'bg-red-100 text-red-800',
+            rejected: 'bg-gray-100 text-gray-800',
+        };
+        return (
+            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+            </span>
+        );
+    };
+
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
             <h1 className="text-3xl font-bold text-gray-800 mb-6">Orders Management</h1>
             <div className="border-b border-gray-200">
                 <div className="flex -mb-px">
-                    <TabButton label="Incoming Orders" count={incomingOrders.length} isActive={activeTab === 'incoming'} onClick={() => setActiveTab('incoming')} />
-                    <TabButton label="Transactions" count={transactionOrders.length} isActive={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')} />
+                    <TabButton label="Incoming Orders" count={incomingOrders.length} isActive={activeTab === 'incoming'} onClick={() => handleTabChange('incoming')} />
+                    <TabButton label="Transactions" count={transactionOrders.length} isActive={activeTab === 'transactions'} onClick={() => handleTabChange('transactions')} />
                 </div>
             </div>
 
             <div className="mt-8">
-                {activeTab === 'incoming' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {incomingOrders.length > 0 ? (
-                            incomingOrders.map((order) => (
-                                <OrderCard key={order.id} order={order} onAccept={handleAccept} onDecline={handleDecline} />
-                            ))
-                        ) : (
-                            <p className="col-span-full text-center text-gray-500">No incoming orders.</p>
-                        )}
-                    </div>
-                )}
-
-                {activeTab === 'transactions' && (
-                    <div>
-                        <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-4 rounded-md mb-6 flex items-center gap-3">
-                            <FaInfoCircle className="text-xl" />
-                            <p className="font-semibold">This section shows all processed orders.</p>
-                        </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {transactionOrders.length > 0 ? (
-                                transactionOrders.map((order) => (
-                                    <OrderCard key={order.id} order={order} isTransaction={true} />
-                                ))
+                <div className="overflow-x-auto bg-white rounded-lg shadow">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {currentItems.length > 0 ? (
+                                currentItems.map((order) => {
+                                    const customerName = `${order.first_name} ${order.last_name}`;
+                                    const isExpanded = expandedOrderId === order.id;
+                                    return (
+                                        <React.Fragment key={order.id}>
+                                            <tr>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customerName}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.created_at).toLocaleDateString()}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{Number(order.total_amount).toFixed(2)}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <StatusBadge status={order.status} />
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    {order.status === 'pending' ? (
+                                                        <div className="flex items-center gap-3">
+                                                            <button onClick={() => handleOpenRiderModal(order.id)} className="flex items-center gap-1 text-green-600 hover:text-green-900"><FaCheck /> Accept</button>
+                                                            <button onClick={() => handleDecline(order.id)} className="flex items-center gap-1 text-red-600 hover:text-red-900"><FaTimes /> Decline</button>
+                                                            <button onClick={() => handleToggleDetails(order.id)} className="flex items-center gap-1 text-indigo-600 hover:text-indigo-900 ml-2">
+                                                                {isExpanded ? <><FaChevronUp /> Hide</> : <><FaChevronDown /> Details</>}
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button onClick={() => handleToggleDetails(order.id)} className="flex items-center gap-1 text-indigo-600 hover:text-indigo-900">
+                                                            {isExpanded ? <><FaChevronUp /> Hide Details</> : <><FaChevronDown /> View Details</>}
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                            {isExpanded && (
+                                                <tr>
+                                                    <td colSpan="6" className="p-4 bg-gray-50">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                            <div className="p-4 bg-white rounded-lg shadow-inner">
+                                                                <h4 className="text-md font-semibold mb-3 text-gray-700">Order Items</h4>
+                                                                <div className="flex flex-col gap-4">
+                                                                    {order.items.map((item, index) => (
+                                                                        <div key={index} className="flex gap-4 items-center">
+                                                                            <img src={`${PRODUCT_ASSET_URL}/${item.product_image}`} alt={item.product_name} className="w-16 h-16 rounded-lg object-cover border border-gray-200" />
+                                                                            <div className="flex-grow">
+                                                                                <p className="font-bold text-gray-800">{item.product_name}</p>
+                                                                                <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                                                                                <p className="text-sm text-gray-500">Price: ₱{Number(item.price).toFixed(2)}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                            <div className="p-4 bg-white rounded-lg shadow-inner">
+                                                                <h4 className="text-md font-semibold mb-3 text-gray-700">Delivery Details</h4>
+                                                                <div className="text-sm text-gray-600">
+                                                                    <p className="font-bold">{order.delivery_full_name}</p>
+                                                                    <p>{order.delivery_phone}</p>
+                                                                    <p>{order.line1}, {order.line2 ? `${order.line2}, ` : ''}</p>
+                                                                    <p>{order.city}, {order.province} {order.zip_code}</p>
+                                                                </div>
+                                                                <div className="mt-4">
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            if (order.latitude && order.longitude) {
+                                                                                window.open(`https://www.google.com/maps/search/?api=1&query=${order.latitude},${order.longitude}`, '_blank');
+                                                                            } else {
+                                                                                const address = `${order.line1}, ${order.line2 || ''}, ${order.city}, ${order.province}, ${order.zip_code}`;
+                                                                                const query = encodeURIComponent(address);
+                                                                                window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                                                                                toast.info('Coordinates not available, searching by address instead.');
+                                                                            }
+                                                                        }}
+                                                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                                                                    >
+                                                                        <FaMapMarkerAlt className="mr-2 -ml-1 h-5 w-5" />
+                                                                        Get Directions
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })
                             ) : (
-                                <p className="col-span-full text-center text-gray-500">No transactions yet.</p>
+                                <tr>
+                                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                                        No {activeTab === 'incoming' ? 'incoming orders' : 'transactions'} found.
+                                    </td>
+                                </tr>
                             )}
-                        </div>
-                    </div>
-                )}
+                        </tbody>
+                    </table>
+                </div>
+                <Pagination
+                    itemsPerPage={itemsPerPage}
+                    totalItems={activeOrders.length}
+                    paginate={paginate}
+                    currentPage={currentPage}
+                />
             </div>
+
+            <AssignRiderModal
+                isOpen={isRiderModalOpen}
+                onClose={() => setIsRiderModalOpen(false)}
+                onConfirm={handleConfirmRiderAssignment}
+                riders={mockRiders}
+                selectedRider={selectedRider}
+                onRiderChange={(e) => setSelectedRider(e.target.value)}
+            />
         </div>
     );
 };
