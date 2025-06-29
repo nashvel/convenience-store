@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaArrowRight } from 'react-icons/fa';
+import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 // Placeholder image URLs - I will replace these with the actual images
 const CAT_DELIVERY_URL = '/images/icons/cat.png';
@@ -10,6 +12,26 @@ const BACKGROUND_URL = 'https://images.unsplash.com/photo-1517248135467-4c7edcad
 const DRINK_URL = 'https://pngimg.com/uploads/cocacola/cocacola_PNG24.png';
 
 const RestaurantBanner = () => {
+  const [settings, setSettings] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+                const response = await axios.get(`${API_BASE_URL}/public-settings`);
+        setSettings(response.data);
+      } catch (error) {
+        console.error('Error fetching public settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  const bannerText = settings.restaurant_banner_text || 'Explore our Restaurants with a delivery at your fingertips';
+
   return (
     <section className="relative p-6 md:p-10 my-12">
       <div 
@@ -24,7 +46,7 @@ const RestaurantBanner = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          Quick and Easy Shopping & Food Delivery at Your Fingertips
+          {loading ? 'Loading...' : bannerText}
         </motion.h2>
         <motion.div
           initial={{ opacity: 0, y: 20 }}

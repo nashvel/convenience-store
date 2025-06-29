@@ -148,9 +148,16 @@ class AdminController extends ResourceController
         try {
             $data = $this->request->getJSON(true);
 
-            foreach ($data as $key => $value) {
-                // Basic validation to ensure we are updating existing keys
-                if (is_string($key) && (is_string($value) || is_numeric($value) || is_bool($value))) {
+            // The frontend sends data nested under a 'settings' key.
+            $settings = $data['settings'] ?? null;
+
+            if (!$settings || !is_array($settings)) {
+                return $this->fail('Invalid data format. Expected a "settings" object.', 400);
+            }
+
+            foreach ($settings as $key => $value) {
+                // Allow strings, numbers, booleans, and null values.
+                if (is_string($key) && (is_string($value) || is_numeric($value) || is_bool($value) || is_null($value))) {
                     $this->settingsModel->where('key', $key)->set('value', $value)->update();
                 }
             }

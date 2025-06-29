@@ -23,8 +23,61 @@ const Navbar = () => {
   const { unreadCount } = useNotifications();
   const { categories, priceRange, handlePriceChange } = useContext(StoreContext);
   const { isPageScrolled } = useContext(UIContext);
+  const [settings, setSettings] = useState({});
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/public-settings`);
+        setSettings(response.data);
+      } catch (error) {
+        console.error('Failed to fetch public settings for Navbar:', error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const categoryParam = queryParams.get('category');
+
+  const renderAppName = (name) => {
+    const appName = name || 'NashQuickMart';
+    let part1 = appName;
+    let part2 = '';
+
+    // Try to split by the first uppercase letter after the start
+    let splitIndex = -1;
+    for (let i = 1; i < appName.length; i++) {
+      if (appName[i] >= 'A' && appName[i] <= 'Z') {
+        splitIndex = i;
+        break;
+      }
+    }
+
+    if (splitIndex !== -1) {
+      part1 = appName.substring(0, splitIndex);
+      part2 = appName.substring(splitIndex);
+    } else {
+      // If no uppercase, try to split by the first space
+      const spaceIndex = appName.indexOf(' ');
+      if (spaceIndex !== -1) {
+        part1 = appName.substring(0, spaceIndex);
+        part2 = appName.substring(spaceIndex + 1);
+      } else {
+        // As a last resort, split near the middle
+        const mid = Math.ceil(appName.length / 2);
+        part1 = appName.substring(0, mid);
+        part2 = appName.substring(mid);
+      }
+    }
+
+    return (
+      <span className="text-2xl font-bold text-gray-900">
+        {part1}
+        <span className="text-blue-600">{part2}</span>
+      </span>
+    );
+  };
 
   const dashboardPath = user ? {
     'admin': '/admin',
@@ -127,7 +180,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex-shrink-0">
-            <span className="text-2xl font-bold text-gray-900">Nash<span className="text-blue-600">Quick</span>Mart</span>
+            {renderAppName(settings.app_name)}
           </Link>
 
           <div className="hidden md:flex items-center space-x-2">

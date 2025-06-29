@@ -6,7 +6,7 @@ import EditProductModal from './EditProductModal';
 import ProductListSkeleton from './ProductListSkeleton';
 import axios from '../../../api/axios-config';
 import { toast } from 'react-toastify';
-import { PRODUCT_ASSET_URL } from '../../../config';
+const PRODUCT_ASSET_URL = process.env.REACT_APP_PRODUCT_ASSET_URL || 'http://localhost:8080/uploads/products';
 
 const getStockStatus = (stock) => {
   if (stock > 10) return { text: 'In Stock', className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' };

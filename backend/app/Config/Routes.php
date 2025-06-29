@@ -10,6 +10,7 @@ $routes->get('/uploads/logos/(:segment)', 'FileController::serveLogo/$1', ['filt
 
 $routes->group('api', ['filter' => 'cors'], function ($routes) {
     // Publicly accessible routes
+    $routes->get('public-settings', 'SettingsController::getPublicSettings');
     $routes->resource('categories', ['controller' => 'CategoryController']);
     $routes->resource('stores', ['controller' => 'StoreController']);
     $routes->resource('products', ['controller' => 'ProductController']);

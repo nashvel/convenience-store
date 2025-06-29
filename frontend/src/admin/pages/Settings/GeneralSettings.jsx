@@ -52,26 +52,29 @@ const SettingsLinkCard = ({ icon, name, description, to }) => (
 );
 
 // Card for social media integrations
-const IntegrationCard = ({ icon, name, description, isConnected, onManage }) => (
-    <div className="bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-                <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
-                    {React.cloneElement(icon, { className: "h-6 w-6" })}
-                </div>
-                <div>
-                    <h3 className="font-bold text-gray-800 dark:text-white">{name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+const IntegrationCard = ({ icon, name, description, isConnected, onManage, url }) => (
+    <div className="bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-6 flex flex-col justify-between">
+        <div>
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                    <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
+                        {React.cloneElement(icon, { className: "h-6 w-6" })}
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-gray-800 dark:text-white">{name}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+                    </div>
                 </div>
             </div>
-            {isConnected && (
-                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                    <CheckCircleIcon className="h-5 w-5" />
-                    <span className="font-semibold">Connected</span>
+            {isConnected && url && (
+                <div className="mt-2 mb-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Connected to: <a href={url} target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline truncate block" title={url}>{url}</a>
+                    </p>
                 </div>
             )}
         </div>
-        <button onClick={onManage} className="w-full font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-left">
+        <button onClick={onManage} className="w-full font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-left mt-auto">
             {isConnected ? 'Manage' : 'Connect'}
         </button>
     </div>
@@ -290,6 +293,7 @@ const GeneralSettings = () => {
                 name="Facebook"
                 description="Connect your Facebook page"
                 isConnected={!!settings.facebook_url}
+                url={settings.facebook_url}
                 onManage={() => handleManageSocial('facebook_url', 'Facebook')}
               />
               <IntegrationCard
@@ -297,6 +301,7 @@ const GeneralSettings = () => {
                 name="X (Twitter)"
                 description="Connect your X profile"
                 isConnected={!!settings.twitter_url}
+                url={settings.twitter_url}
                 onManage={() => handleManageSocial('twitter_url', 'X (Twitter)')}
               />
               <IntegrationCard
@@ -304,6 +309,7 @@ const GeneralSettings = () => {
                 name="Instagram"
                 description="Connect your Instagram profile"
                 isConnected={!!settings.instagram_url}
+                url={settings.instagram_url}
                 onManage={() => handleManageSocial('instagram_url', 'Instagram')}
               />
             </div>
@@ -324,6 +330,14 @@ const GeneralSettings = () => {
                           <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">App Description</label>
                               <textarea name="app_description" value={settings.app_description || ''} onChange={handleInputChange} rows="4" className="w-full rounded-md border border-gray-300 bg-white py-3 px-4 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"></textarea>
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Main Banner Text</label>
+                              <textarea name="main_banner_text" value={settings.main_banner_text || ''} onChange={handleInputChange} rows="2" className="w-full rounded-md border border-gray-300 bg-white py-3 px-4 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"></textarea>
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Restaurant Banner Text</label>
+                              <textarea name="restaurant_banner_text" value={settings.restaurant_banner_text || ''} onChange={handleInputChange} rows="2" className="w-full rounded-md border border-gray-300 bg-white py-3 px-4 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"></textarea>
                           </div>
                       </div>
                   </div>

@@ -1,4 +1,6 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
@@ -14,6 +16,20 @@ import RestaurantBanner from '../../components/RestaurantBanner';
 const Home = () => {
   const navigate = useNavigate();
   const { allProducts, stores, loading, error, categories } = useContext(StoreContext);
+  const [settings, setSettings] = useState({});
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/public-settings`);
+        setSettings(response.data);
+      } catch (error) {
+        console.error('Failed to fetch public settings for Home:', error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
 
   const handleGetAppClick = (e) => {
     e.preventDefault();
@@ -28,37 +44,64 @@ const Home = () => {
   const convenienceStores = stores.filter(store => store.store_type === 'convenience');
   const restaurants = stores.filter(store => store.store_type === 'restaurant');
 
+  const bannerText = settings.main_banner_text || 'Your Everyday Essentials, Delivered.';
+  const appDescription = settings.app_description || 'Quick and Easy Shopping at Your Fingertips. Order your favorite convenience store items with just a few clicks.';
+
+  let bannerPart1 = bannerText;
+  let bannerPart2 = '';
+  const middleIndex = Math.floor(bannerText.length / 2);
+  const splitIndex = bannerText.indexOf(' ', middleIndex);
+
+  if (splitIndex !== -1) {
+    bannerPart1 = bannerText.substring(0, splitIndex);
+    bannerPart2 = bannerText.substring(splitIndex);
+  }
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 animate-pulse">
         {/* Hero Skeleton */}
-        <section className="grid md:grid-cols-2 items-center gap-12 mb-20 md:mb-24">
-          <div className="md:order-1">
-            <div className="h-12 bg-gray-300 rounded w-3/4 mb-5"></div>
-            <div className="h-6 bg-gray-300 rounded mb-8"></div>
+        <section className="grid md:grid-cols-5 items-center gap-6 mb-12 md:mb-16">
+          <div className="md:col-span-3">
+            <div className="h-14 bg-gray-300 rounded w-3/4 mb-6"></div>
+            <div className="h-6 bg-gray-300 rounded w-full mb-8"></div>
             <div className="h-6 bg-gray-300 rounded w-5/6 mb-8"></div>
             <div className="flex gap-4">
-              <div className="h-12 bg-gray-300 rounded w-32"></div>
-              <div className="h-12 bg-gray-300 rounded w-32"></div>
+              <div className="h-12 bg-gray-300 rounded-lg w-32"></div>
+              <div className="h-12 bg-gray-300 rounded-lg w-32"></div>
+              <div className="h-12 bg-gray-300 rounded-lg w-32"></div>
             </div>
           </div>
-          <div className="md:col-span-2 md:order-2">
+          <div className="md:col-span-2">
             <div className="rounded-lg shadow-lg w-full h-96 bg-gray-300"></div>
           </div>
         </section>
+        
+        {/* Restaurant Banner Skeleton */}
+        <div className="h-48 bg-gray-300 rounded-2xl mb-16"></div>
 
         {/* Featured Products Skeleton */}
         <section className="mb-16">
           <div className="h-8 bg-gray-300 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)}
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-3">
+            {[...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)}
           </div>
+        </section>
+
+        {/* Categories Skeleton */}
+        <section className="mb-16">
+            <div className="h-8 bg-gray-300 rounded w-1/4 mb-6"></div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {[...Array(6)].map((_, i) => (
+                    <div key={i} className="bg-gray-300 rounded-lg aspect-square"></div>
+                ))}
+            </div>
         </section>
 
         {/* Stores Skeleton */}
         <section className="mb-16">
           <div className="h-8 bg-gray-300 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[...Array(6)].map((_, i) => <StoreCardSkeleton key={i} />)}
           </div>
         </section>
@@ -66,7 +109,7 @@ const Home = () => {
         {/* Restaurants Skeleton */}
         <section className="mb-16">
           <div className="h-8 bg-gray-300 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[...Array(6)].map((_, i) => <StoreCardSkeleton key={i} />)}
           </div>
         </section>
@@ -93,16 +136,17 @@ const Home = () => {
       <section className="grid md:grid-cols-5 items-center gap-6 mb-12 md:mb-16">
         <div className="md:col-span-3 md:order-1 text-center md:text-left">
           <motion.h1 
-            className="text-xl md:text-2xl font-bold leading-tight mb-1 text-gray-800"
+            className="text-4xl md:text-6xl font-extrabold leading-tight animate-fade-in-down"
             initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }}
           >
-            Quick and Easy <span className="text-primary">Shopping & Food Delivery</span> at Your Fingertips
+            <span className="text-primary">{bannerPart1}</span>
+            <span className="text-gray-800 dark:text-white">{bannerPart2}</span>
           </motion.h1>
           <motion.p 
-            className="text-sm text-gray-600 mb-4"
+            className="text-lg text-gray-600 dark:text-gray-300 mt-4 mb-8"
             initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}
           >
-            Order your favorite convenience store items and restaurant meals with just a few clicks.
+            {appDescription}
           </motion.p>
           <motion.div 
             className="flex gap-4 justify-center md:justify-start"

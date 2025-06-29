@@ -353,7 +353,9 @@ try {
         ('facebook_url', '', NOW()),
         ('twitter_url', '', NOW()),
         ('instagram_url', '', NOW()),
-        ('api_logging', 'true', NOW())
+        ('api_logging', 'true', NOW()),
+        ('restaurant_banner_text', 'Explore our Restaurants with a delivery at your fingertips', NOW()),
+        ('main_banner_text', 'Your Everyday Essentials, Delivered.', NOW())
     ");
 
     // --- SEEDING DATA ---
@@ -371,17 +373,17 @@ try {
     // Insert Admin
     $mysqli->query("
         INSERT INTO users (role_id, email, password_hash, first_name, last_name, phone, is_verified, created_at) VALUES
-        ({$roles['admin']}, 'admin@example.com', '$password_hash', 'Admin', 'User', '111111111', TRUE, NOW())
+        ({$roles['admin']}, 'nashvelbusiness@gmail.com', '$password_hash', 'Admin', 'User', '111111111', TRUE, NOW())
     ");
     $admin_id = $mysqli->insert_id;
 
     // Insert Clients
     $mysqli->query("
         INSERT INTO users (role_id, email, password_hash, first_name, last_name, phone, is_verified, created_at) VALUES
-        ({$roles['client']}, 'client1@example.com', '$password_hash', 'John', 'Doe', '1234567890', TRUE, NOW()),
-        ({$roles['client']}, 'client2@example.com', '$password_hash', 'Jane', 'Smith', '0987654321', TRUE, NOW()),
-        ({$roles['client']}, 'client3@example.com', '$password_hash', 'Peter', 'Jones', '1122334455', TRUE, NOW()),
-        ({$roles['client']}, 'client4@example.com', '$password_hash', 'Mary', 'Jane', '5566778899', TRUE, NOW())
+        ({$roles['client']}, 'zereffdraken@gmail.com', '$password_hash', 'Jay', 'Nashvel', '1234567890', TRUE, NOW()),
+        ({$roles['client']}, 'nozelikari@gmail.com', '$password_hash', 'Ann', 'Angel', '0987654321', TRUE, NOW()),
+        ({$roles['client']}, 'yutarosalad3@gmail.com', '$password_hash', 'Ash', 'Keion', '1122334455', TRUE, NOW()),
+        ({$roles['client']}, 'akaliii.me@gmail.com', '$password_hash', 'Kent', 'Russel', '5566778899', TRUE, NOW())
     ");
     $client1_id = $mysqli->insert_id;
     $client2_id = $client1_id + 1;
