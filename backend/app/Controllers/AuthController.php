@@ -9,6 +9,7 @@ use App\Models\UserModel;
 use App\Models\RolesModel;
 use App\Models\VerificationModel;
 use CodeIgniter\HTTP\RedirectResponse;
+use Firebase\JWT\JWT;
 
 class AuthController extends ResourceController
 {
@@ -196,8 +197,30 @@ class AuthController extends ResourceController
                 $this->session->set($sessionData);
                 log_message('info', 'Session set for user: ' . $user['email']);
 
-                $token = bin2hex(random_bytes(32));
-                
+                // JWT Generation
+                $key = getenv('jwt.secret');
+                if (!$key) {
+                    log_message('error', 'JWT Secret Key is not configured. Please set jwt.secret in your .env file.');
+                    return $this->failServerError('Server configuration error: JWT secret is not set.');
+                }
+                $iat = time(); // Issued at
+                $exp_seconds = getenv('jwt.expiration') ?: 3600; // Default to 1 hour if not set
+                $exp = $iat + (int)$exp_seconds; // Expiration time
+
+                $payload = [
+                    'iss' => base_url(), // Issuer
+                    'aud' => base_url(), // Audience
+                    'iat' => $iat,
+                    'exp' => $exp,
+                    'data' => [
+                        'id'    => $user['id'],
+                        'email' => $user['email'],
+                        'role'  => $role['name'],
+                    ]
+                ];
+
+                $token = JWT::encode($payload, $key, 'HS256');
+
                 $userData = $sessionData;
                 unset($userData['logged_in']);
 

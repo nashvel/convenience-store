@@ -28,7 +28,23 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
     $routes->group('admin', ['filter' => 'auth'], function($routes) {
         $routes->get('clients', 'AdminController::getClients');
         $routes->get('customers', 'AdminController::getCustomers');
+        $routes->put('customers/(:num)', 'AdminController::updateCustomer/$1');
+        $routes->post('customers/(:num)/blacklist', 'AdminController::toggleBlacklist/$1');
+
+        // Rider Management
+        $routes->put('riders/(:num)', 'AdminController::updateRider/$1');
+        $routes->post('riders/(:num)/blacklist', 'AdminController::toggleBlacklist/$1');
         $routes->get('riders', 'AdminController::getRiders');
+
+        // Settings Management
+        $routes->get('settings', 'AdminController::getSettings');
+        $routes->post('settings', 'AdminController::updateSettings');
+
+        // Product Management
+        $routes->get('products', 'AdminController::getProducts');
+    $routes->delete('products/(:num)', 'AdminController::deleteProduct/$1');
+    $routes->post('products/update/(:num)', 'AdminController::updateProduct/$1');
+    $routes->get('categories', 'AdminController::getCategories');
     });
 
     $routes->group('', ['filter' => 'auth'], function($routes) {

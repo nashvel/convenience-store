@@ -53,8 +53,8 @@ const SignIn = () => {
       });
 
       const { token, user } = response.data;
-      login(user);
-      localStorage.setItem('token', token);
+      // The login function expects an object containing the user details and the token.
+      login({ ...user, token });
 
       switch (user.role) {
         case 'customer': navigate('/'); break;

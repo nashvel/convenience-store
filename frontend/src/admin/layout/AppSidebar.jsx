@@ -57,13 +57,7 @@ const navItems = [
   {
     icon: <PageIcon />,
     name: "Settings",
-    subItems: [
-      { name: "General Settings", path: "/admin/settings-general", pro: false },
-      { name: "API & Logging", path: "/admin/settings-api", pro: false },
-      { name: "Review Management", path: "/admin/settings-reviews", pro: false },
-      { name: "Blacklist", path: "/admin/settings-blacklist", pro: false },
-      { name: "Delivery Rates", path: "/admin/settings-delivery-rates", pro: false },
-    ],
+    path: "/admin/settings-general",
   },
   {
     icon: <PlugInIcon />,

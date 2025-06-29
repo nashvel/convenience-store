@@ -27,7 +27,7 @@ const Navbar = () => {
   const categoryParam = queryParams.get('category');
 
   const dashboardPath = user ? {
-    'admin': '/admin/dashboard',
+    'admin': '/admin',
     'client': '/seller/dashboard',
     'rider': '/rider/dashboard'
   }[user.role] : null;
