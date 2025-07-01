@@ -41,10 +41,10 @@ const Navbar = () => {
   const categoryParam = queryParams.get('category');
 
   const renderAppName = (name) => {
-    const appName = name || 'NashQuickMart';
+    const appName = name || ' ';
     let part1 = appName;
     let part2 = '';
-
+    
     // Try to split by the first uppercase letter after the start
     let splitIndex = -1;
     for (let i = 1; i < appName.length; i++) {

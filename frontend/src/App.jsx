@@ -52,7 +52,7 @@ const AppContent = () => {
           <StoreProvider>
           <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
             <ToastContainer
-              position="bottom-right"
+              position="top-center"
               autoClose={3000}
               hideProgressBar={false}
               newestOnTop={false}

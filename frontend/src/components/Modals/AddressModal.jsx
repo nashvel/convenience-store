@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 const AddressModal = ({ isOpen, onClose, onSave, initialAddress, addressLabel }) => {
   const [address, setAddress] = useState({});
   const [isLocating, setIsLocating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setAddress(initialAddress || {
@@ -64,13 +65,21 @@ const AddressModal = ({ isOpen, onClose, onSave, initialAddress, addressLabel })
     );
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!address.full_name || !address.province || !address.city || !address.zipCode || !address.phone) {
       toast.error('Please fill in all required address fields.');
       return;
     }
-    onSave(address);
+    setIsSaving(true);
+    try {
+      await onSave(address);
+    } catch (error) {
+      console.error('Error saving address:', error);
+      toast.error('Failed to save address. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const backdropVariants = {
@@ -149,7 +158,15 @@ const AddressModal = ({ isOpen, onClose, onSave, initialAddress, addressLabel })
 
               <div className="mt-6 flex justify-end gap-4">
                 <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="button" onClick={handleSave} className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">Save Address</button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark disabled:opacity-50"
+                  disabled={isSaving}
+                >
+                  {isSaving ? <FaSpinner className="animate-spin mr-2" /> : null}
+                  Save Address
+                </button>
               </div>
             
           </motion.div>
