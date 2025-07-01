@@ -213,6 +213,7 @@ const Navbar = () => {
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
                 {dashboardPath && <DropdownItem to={dashboardPath}>Manage</DropdownItem>}
+                <DropdownItem to="/my-orders">My Orders</DropdownItem>
                 <DropdownItem to="/profile/settings">Settings</DropdownItem>
                 <div className="border-t border-gray-200 my-1"></div>
                 <DropdownItem onClick={logout}>Sign Out</DropdownItem>
