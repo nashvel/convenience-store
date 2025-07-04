@@ -28,7 +28,7 @@ const ResetPassword = () => {
             await axios.post(`${API_BASE_URL}/auth/reset-password/${token}`, { password });
       setMessage('Password has been reset successfully. Redirecting to sign in...');
       setIsError(false);
-      setTimeout(() => navigate('/signin'), 2000);
+      setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
       setMessage(error.response?.data?.message || 'Failed to reset password. The link may be invalid or expired.');
       setIsError(true);
@@ -88,7 +88,7 @@ const ResetPassword = () => {
           </div>
         </form>
         <div className="text-sm text-center">
-            <Link to="/signin" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
               Back to Sign In
             </Link>
         </div>

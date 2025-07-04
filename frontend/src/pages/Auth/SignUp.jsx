@@ -47,7 +47,7 @@ const SignUp = () => {
       if (response.data.status === 'success') {
         setError('Verification email sent! Please check your email.');
         setIsSuccess(true);
-        setTimeout(() => navigate('/signin', { replace: true }), 2000);
+        setTimeout(() => navigate('/login', { replace: true }), 2000);
       } else {
         setError(response.data?.message || 'An error occurred during signup');
         setIsSuccess(false);
@@ -93,7 +93,7 @@ const SignUp = () => {
         <div className="text-sm text-center">
           <p className="text-gray-600">
             Already have an account?{' '}
-            <Link to="/signin" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
               Sign In
             </Link>
           </p>

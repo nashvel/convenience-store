@@ -29,59 +29,54 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <footer className="bg-gray-50 text-gray-600">
+      <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          
           {/* About Section */}
-          <div className="space-y-4 md:col-span-2 lg:col-span-1">
-            <h3 className="text-2xl font-bold text-blue-500">{settings.app_name || 'NashQuickMart'}</h3>
-            <p className="text-gray-400 text-sm" style={{ whiteSpace: 'pre-line' }}>
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold text-primary">{settings.app_name || 'EcomXpert'}</h3>
+            <p className="text-sm">
               {settings.app_description || 'Your one-stop shop for quick and convenient shopping. Delivering quality products right to your doorstep.'}
             </p>
           </div>
 
-          {/* Quick Links Section */}
+          {/* Shop Links */}
           <div>
-            <h4 className="text-md font-semibold tracking-wider uppercase text-gray-400">Quick Links</h4>
+            <h4 className="font-semibold text-gray-800 tracking-wider uppercase">Shop</h4>
             <ul className="mt-4 space-y-3">
-              <li><Link to="/" className="text-gray-400 hover:text-white transition-colors">Home</Link></li>
-              <li><Link to="/products" className="text-gray-400 hover:text-white transition-colors">Products</Link></li>
-              <li><Link to="/stores" className="text-gray-400 hover:text-white transition-colors">Stores</Link></li>
-              <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/products" className="hover:text-primary transition-colors">All Products</Link></li>
+              <li><Link to="/stores" className="hover:text-primary transition-colors">Stores</Link></li>
+              <li><Link to="/promotions" className="hover:text-primary transition-colors">Promotions</Link></li>
             </ul>
           </div>
 
-          {/* Legal Section */}
+          {/* Support Links */}
           <div>
-            <h4 className="text-md font-semibold tracking-wider uppercase text-gray-400">Legal</h4>
+            <h4 className="font-semibold text-gray-800 tracking-wider uppercase">Support</h4>
             <ul className="mt-4 space-y-3">
-              <li><Link to="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms-of-service" className="text-gray-400 hover:text-white transition-colors">Terms of Service</Link></li>
-              <li><Link to="/shipping-policy" className="text-gray-400 hover:text-white transition-colors">Shipping Policy</Link></li>
+              <li><Link to="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
+              <li><Link to="/faq" className="hover:text-primary transition-colors">FAQ</Link></li>
+              <li><Link to="/my-orders" className="hover:text-primary transition-colors">My Orders</Link></li>
             </ul>
           </div>
 
           {/* Follow Us Section */}
           <div>
-            <h4 className="text-md font-semibold tracking-wider uppercase text-gray-400">Follow Us</h4>
+            <h4 className="font-semibold text-gray-800 tracking-wider uppercase">Follow Us</h4>
             <div className="flex mt-4 space-x-5">
               {socialLinks.map(({ name, key, icon: Icon }) => {
                 const url = settings[key];
-                const isEnabled = !!url;
+                const isEnabled = !!url && url !== '#';
+                if (!isEnabled) return null;
+
                 return (
                   <a
                     key={name}
-                    href={isEnabled ? url : '#'}
-                    target={isEnabled ? '_blank' : '_self'}
-                    rel={isEnabled ? 'noopener noreferrer' : undefined}
-                    aria-label={name}
-                    className={`transition-colors ${
-                      isEnabled
-                        ? 'text-gray-400 hover:text-white'
-                        : 'text-gray-600 cursor-not-allowed opacity-50'
-                    }`}
-                    onClick={!isEnabled ? (e) => e.preventDefault() : undefined}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit our ${name} page`}
+                    className="text-gray-400 hover:text-primary transition-colors"
                   >
                     <Icon size={22} />
                   </a>
@@ -89,16 +84,15 @@ const Footer = () => {
               })}
             </div>
           </div>
-
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-10 border-t border-gray-800 pt-8 text-center">
-          <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} NashQuickMart. All Rights Reserved.</p>
+        <div className="mt-12 border-t border-gray-200 pt-8 text-center">
+          <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} {settings.app_name || 'EcomXpert'}. All Rights Reserved.</p>
         </div>
       </div>
     </footer>
   );
 };
 
-export default Footer;
+export default Footer

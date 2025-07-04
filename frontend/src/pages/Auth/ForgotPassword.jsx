@@ -72,7 +72,7 @@ const ForgotPassword = () => {
         <div className="text-sm text-center">
           <p className="text-gray-600">
             Remember your password?{' '}
-            <Link to="/signin" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
               Sign In
             </Link>
           </p>

@@ -19,14 +19,14 @@ const MyOrders = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/signin');
+      navigate('/login');
       return;
     }
 
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/orders/${id}`);
+        const response = await axios.get(`${API_BASE_URL}/my-orders/${id}`);
         if (response.data.success) {
           setOrder(response.data.order);
         } else {
@@ -68,7 +68,7 @@ const MyOrders = () => {
       return;
     }
     try {
-      const response = await axios.put(`${API_BASE_URL}/orders/cancel/${id}`, {
+      const response = await axios.put(`${API_BASE_URL}/my-orders/cancel/${id}`, {
         itemIds: selectedItems,
       });
       if (response.data.success) {

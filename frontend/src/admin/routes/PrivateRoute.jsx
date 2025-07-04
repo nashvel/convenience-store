@@ -9,7 +9,7 @@ const PrivateRoute = () => {
     return <div>Loading...</div>; 
   }
 
-  return user && user.role === 'admin' ? <Outlet /> : <Navigate to="/signin" replace />;
+  return user && user.role === 'admin' ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default PrivateRoute;

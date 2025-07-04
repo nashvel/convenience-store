@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config';
 import OrderListSkeleton from '../../components/Skeletons/OrderListSkeleton';
+import OrderCard from '../../components/OrderCard';
+import { FaShoppingBag } from 'react-icons/fa';
 
 const MyOrdersList = () => {
   const { user } = useAuth();
@@ -11,19 +13,21 @@ const MyOrdersList = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeFilter, setActiveFilter] = useState('All');
 
   useEffect(() => {
     if (!user) {
-      navigate('/signin');
+      navigate('/login');
       return;
     }
 
     const fetchOrders = async () => {
       try {
         setLoading(true);
-                const response = await axios.get(`${API_BASE_URL}/orders?userId=${user.id}`);
+        const response = await axios.get(`${API_BASE_URL}/orders?userId=${user.id}`);
         if (response.data.success) {
-          setOrders(response.data.orders);
+          const sortedOrders = response.data.orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          setOrders(sortedOrders);
         } else {
           setError('Failed to fetch orders.');
         }
@@ -38,58 +42,54 @@ const MyOrdersList = () => {
     fetchOrders();
   }, [user, navigate]);
 
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-500';
-      case 'accepted': return 'bg-green-500';
-      case 'shipped': return 'bg-blue-500';
-      case 'delivered': return 'bg-indigo-500';
-      case 'rejected':
-      case 'cancelled': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
+  const filterTabs = ['All', 'Pending', 'Shipped', 'Delivered', 'Cancelled'];
+
+  const filteredOrders = orders.filter(order => {
+    if (activeFilter === 'All') return true;
+    if (activeFilter === 'Shipped') return order.status === 'shipped' || order.status === 'accepted';
+    return order.status.toLowerCase() === activeFilter.toLowerCase();
+  });
 
   if (loading) return <OrderListSkeleton />;
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
 
   return (
-    <div className="max-w-4xl mx-auto my-20 p-6 bg-white rounded-xl shadow-lg">
-      <h2 className="text-center text-3xl font-bold mb-8">My Orders</h2>
-      {orders.length === 0 ? (
-        <p className="text-center text-gray-500">You haven't placed any orders yet.</p>
+    <div className="max-w-5xl mx-auto my-12 px-4 sm:px-6 lg:px-8">
+      <h1 className="text-center text-4xl font-extrabold mb-8 text-gray-800">My Orders</h1>
+
+      <div className="mb-8 flex justify-center border-b border-gray-200">
+        <nav className="-mb-px flex space-x-6" aria-label="Tabs">
+          {filterTabs.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveFilter(tab)}
+              className={`${activeFilter === tab ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              {tab}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {filteredOrders.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredOrders.map(order => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+        </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left">
-            <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="p-4 font-semibold">Order ID</th>
-                <th className="p-4 font-semibold">Date</th>
-                <th className="p-4 font-semibold">Total</th>
-                <th className="p-4 font-semibold">Status</th>
-                <th className="p-4"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map(order => (
-                <tr key={order.id} className="border-b border-gray-100 last:border-b-0">
-                  <td className="p-4">#{order.id}</td>
-                  <td className="p-4">{new Date(order.created_at).toLocaleDateString()}</td>
-                  <td className="p-4">₱{parseFloat(order.total_amount || 0).toFixed(2)}</td>
-                  <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-white text-xs font-semibold capitalize ${getStatusClass(order.status)}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <Link to={`/my-orders/${order.id}`} className="bg-primary text-white px-4 py-2 rounded-lg font-semibold transition hover:bg-primary-dark">
-                      View Details
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="text-center py-16 px-6 bg-white rounded-xl shadow-md">
+          <FaShoppingBag className="mx-auto h-16 w-16 text-gray-400" />
+          <h3 className="mt-4 text-xl font-semibold text-gray-800">No orders found</h3>
+          <p className="mt-2 text-gray-500">
+            You don't have any {activeFilter !== 'All' ? activeFilter.toLowerCase() : ''} orders yet.
+          </p>
+          <Link
+            to="/products"
+            className="mt-6 inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition-all"
+          >
+            Start Shopping
+          </Link>
         </div>
       )}
     </div>

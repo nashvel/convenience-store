@@ -14,7 +14,7 @@ export default function UserDropdown() {
 
   const handleLogout = () => {
     logout();
-    navigate('/signin');
+    navigate('/login');
     closeDropdown();
   };
 

@@ -173,9 +173,8 @@ export const fetchProductsByCategory = async (category) => {
 };
 
 export const fetchCategories = async () => {
-
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return mockCategories;
+    const response = await apiClient.get('/categories/nested');
+    return response.data;
 };
 
 export const searchProducts = async (query) => {

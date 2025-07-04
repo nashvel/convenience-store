@@ -4,3 +4,4 @@ export const API_BASE_URL = '/api';
 export const ASSET_BASE_URL = 'http://localhost:8080';
 export const LOGO_ASSET_URL = `${ASSET_BASE_URL}/uploads/logos`; //store logo path
 export const PRODUCT_ASSET_URL = `${ASSET_BASE_URL}/uploads/products`; //product image path
+export const BANNER_ASSET_URL = `${ASSET_BASE_URL}/uploads/banners`; //store banner path

@@ -5,10 +5,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence } from 'framer-motion';
 import ScrollToTop from './utils/ScrollToTop';
 
-
-
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import CategorySidebar from './components/CategorySidebar';
+import CategoryNavbar from './components/CategoryNavbar';
 
 import Home from './pages/Navbar/Home';
 import Products from './pages/Products/Products';
@@ -17,7 +17,7 @@ import Cart from './pages/Cart/Cart';
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
 import ForgotPassword from './pages/Auth/ForgotPassword';
-import Notifications from './pages/Navbar/Notifications';
+
 import StoresListPage from './pages/Stores/StoresListPage';
 import RestaurantsPage from './pages/Restaurants/Restaurants';
 import StorePage from './pages/Stores/StorePage';
@@ -28,91 +28,134 @@ import Settings from './pages/Profile/Settings';
 import MyOrdersList from './pages/MyOrders/MyOrdersList';
 import MyOrderDetail from './pages/MyOrders/MyOrders';
 import TrackOrder from './pages/MyOrders/TrackOrder';
+import PromotionsPage from './pages/Promotions/PromotionsPage';
 import PatchNotes from './pages/PatchNotes';
-
+import FAQPage from './pages/FAQPage';
+import ContactPage from './pages/ContactPage';
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { StoreProvider } from './context/StoreContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { UIProvider } from './context/UIContext';
+import { ChatProvider, useChat } from './context/ChatContext';
+import ChatPopup from './components/ChatPopup';
 
+const AllRoutes = () => (
+  <AnimatePresence mode="wait">
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/patch-notes" element={<PatchNotes />} />
+      <Route path="/faq" element={<FAQPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/products" element={<Products />} />
+      <Route path="/product/:id/:productName" element={<ProductDetails />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/stores" element={<StoresListPage />} />
+      <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
+      <Route path="/restaurants" element={<RestaurantsPage />} />
+      <Route path="/promotions" element={<PromotionsPage />} />
+      <Route path="/partners" element={<Partners />} />
+      <Route path="/login" element={<SignIn />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/my-orders" element={<MyOrdersList />} />
+      <Route path="/my-orders/:id" element={<MyOrderDetail />} />
+      <Route path="/track-order/:id" element={<TrackOrder />} />
 
+      <Route path="/profile/settings" element={<Settings />} />
+      <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
+      <Route path="/admin/*" element={<AdminApp />} />
+    </Routes>
+  </AnimatePresence>
+);
 
+const MainLayout = ({ children }) => {
+  const { openChats, closeChat, toggleMinimizeChat } = useChat();
+  const location = useLocation();
+  const showSidebar = location.pathname.startsWith('/products');
+  const showCategoryNavbar = location.pathname.startsWith('/products');
 
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        toastClassName="bg-white text-gray-800 font-semibold rounded-xl shadow-lg"
+        progressClassName="bg-red-500"
+      />
+      <Navbar />
+      {showCategoryNavbar && <CategoryNavbar />}
+      <div className="flex flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-1">
+          {showSidebar && (
+            <aside className="w-80 flex-shrink-0 sticky top-24 h-[calc(100vh-6rem)] overflow-y-auto pr-6 border-r border-gray-200">
+              <CategorySidebar />
+            </aside>
+          )}
+          <main className={`flex-1 ${showSidebar ? 'pl-6' : ''}`}>
+            {children}
+          </main>
+        </div>
+      </div>
+      <Footer />
+      <div className="fixed bottom-0 right-4 flex flex-row-reverse items-end gap-4 z-50">
+        {openChats.map(chat => (
+          <ChatPopup key={chat.id} chat={chat} onClose={closeChat} onToggleMinimize={toggleMinimizeChat} />
+        ))}
+      </div>
+    </div>
+  );
+};
 
-const AppContent = () => {
+const AppLayout = () => {
   const location = useLocation();
   const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
   const isAdminRoute = location.pathname.startsWith('/admin');
 
+  if (isSellerRoute || isAdminRoute) {
+    return (
+      <main className="flex-1">
+        <AllRoutes />
+      </main>
+    );
+  }
+
+  return (
+    <MainLayout>
+      <AllRoutes />
+    </MainLayout>
+  );
+};
+
+const AppContent = () => {
   return (
     <AuthProvider>
-      <NotificationProvider>
-        <CartProvider>
+      <CartProvider>
+        <NotificationProvider>
           <StoreProvider>
-          <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
-            <ToastContainer
-              position="top-center"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              toastClassName="bg-white text-gray-800 font-semibold rounded-xl shadow-lg"
-              progressClassName="bg-blue-600"
-            />
-            {!isSellerRoute && !isAdminRoute && <Navbar />}
-            {!isSellerRoute && !isAdminRoute && <div className={location.pathname.startsWith('/products') ? 'h-28' : 'h-16'} />}
-            <main className="flex-1">
-              <AnimatePresence mode="wait">
-                <Routes>
-                  {/* Client Routes */}
-                  <Route path="/" element={<Home />} />
-                  <Route path="/patch-notes" element={<PatchNotes />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/product/:id/:productName" element={<ProductDetails />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/stores" element={<StoresListPage />} />
-                  <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
-                  <Route path="/restaurants" element={<RestaurantsPage />} />
-                  <Route path="/partners" element={<Partners />} />
-
-                  {/* User Authentication Routes */}
-                  <Route path="/signin" element={<SignIn />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-
-                  {/* User Profile Routes */}
-                  <Route path="/my-orders" element={<MyOrdersList />} />
-                  <Route path="/my-orders/:id" element={<MyOrderDetail />} />
-                  <Route path="/track-order/:id" element={<TrackOrder />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/profile/settings" element={<Settings />} />
-
-                  {/* Seller Dashboard Routes */}
-                  <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
-
-                  {/* Admin Dashboard Routes */}
-                  <Route path="/admin/*" element={<AdminApp />} />
-                </Routes>
-              </AnimatePresence>
-            </main>
-            {!isSellerRoute && !isAdminRoute && <Footer />}
-          </div>
-        </StoreProvider>
-        </CartProvider>
-      </NotificationProvider>
+            <UIProvider>
+              <ChatProvider>
+                <AppLayout />
+              </ChatProvider>
+            </UIProvider>
+          </StoreProvider>
+        </NotificationProvider>
+      </CartProvider>
     </AuthProvider>
   );
 };
 
-// Forcing a full re-compile to fix a caching issue.
 const App = () => (
   <Router>
-        <ScrollToTop />
+    <ScrollToTop />
     <AppContent />
   </Router>
 );

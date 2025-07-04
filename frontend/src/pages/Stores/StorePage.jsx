@@ -1,25 +1,35 @@
-import React, { useState, useContext, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useContext, useMemo, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import { motion } from 'framer-motion';
-import { FaSearch, FaMapMarkerAlt, FaDirections, FaShareAlt } from 'react-icons/fa';
+import { FaSearch, FaMapMarkerAlt, FaDirections, FaShareAlt, FaCommentDots, FaStar, FaClock, FaTimesCircle, FaBoxOpen, FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { LOGO_ASSET_URL } from '../../config';
 import StorePageSkeleton from '../../components/Skeletons/StorePageSkeleton';
+import { useChat } from '../../context/ChatContext';
+import ScrollToTopButton from '../../components/ScrollToTopButton';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const StorePage = () => {
+  const { openChat } = useChat();
   const { storeId } = useParams();
   const { stores, allProducts: products, loading, error } = useContext(StoreContext);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState('best-sellers');
+  
+  const [sortOption, setSortOption] = useLocalStorage(`store-${storeId}-sort`, 'best-sellers');
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearchQuery = useDebounce(searchInput, 300);
+
+  const [isSorting, setIsSorting] = useState(false);
 
   const store = useMemo(() => (stores || []).find(s => s.id == storeId), [stores, storeId]);
 
   const storeProducts = useMemo(() => {
     let filtered = (products || []).filter(p => p.store_id == storeId);
-    if (searchQuery) {
-      const lowercasedQuery = searchQuery.toLowerCase();
+    
+    if (debouncedSearchQuery) {
+      const lowercasedQuery = debouncedSearchQuery.toLowerCase();
       filtered = filtered.filter(p =>
         p.name.toLowerCase().includes(lowercasedQuery) ||
         (p.description && p.description.toLowerCase().includes(lowercasedQuery))
@@ -34,7 +44,15 @@ const StorePage = () => {
       case 'best-sellers': default: sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0)); break;
     }
     return sorted;
-  }, [products, storeId, searchQuery, sortOption]);
+  }, [products, storeId, debouncedSearchQuery, sortOption]);
+
+  const handleSortChange = (newSortOption) => {
+    setIsSorting(true);
+    setTimeout(() => {
+      setSortOption(newSortOption);
+      setIsSorting(false);
+    }, 300); // Simulate loading for better UX
+  };
 
   const handleShare = async () => {
     try {
@@ -53,10 +71,17 @@ const StorePage = () => {
   const logoUrl = store.logo ? `${LOGO_ASSET_URL}/${store.logo}` : '';
 
   return (
-    <motion.div
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10 md:pt-24 md:pb-16"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
-    >
+    <div className="pt-20 pb-10 md:pt-24 md:pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+        <Link to="/stores" className="inline-flex items-center gap-2 text-sm text-gray-600 font-semibold hover:text-primary transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+          Back to All Stores
+        </Link>
+      </div>
+      <motion.div
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
+      >
       <div 
         className="relative text-center mb-10 p-16 rounded-lg overflow-hidden bg-gray-500 bg-blend-multiply"
         style={{ backgroundImage: `url(${logoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
@@ -68,18 +93,45 @@ const StorePage = () => {
         </div>
       </div>
       
-      <div className="flex flex-wrap justify-between items-center bg-white p-4 rounded-lg shadow-md mb-8 gap-4">
-        <div className="flex items-center gap-2 text-gray-700 font-medium">
-          <FaMapMarkerAlt className="text-primary" /> {store.address}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-lg shadow-md mb-8 gap-6">
+        <div>
+          <div className="flex items-center gap-3 text-gray-800 font-semibold text-lg">
+            <FaMapMarkerAlt className="text-primary mt-1" />
+            <span>{store.address}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-3 text-gray-600">
+            <div className="flex items-center gap-1.5">
+              <FaStar className="text-yellow-400" />
+              <span className="font-bold text-gray-800">{store.rating?.toFixed(1) || 'New'}</span>
+              <span className="text-sm">({store.num_reviews || 0} reviews)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <FaClock className="text-gray-400" />
+              <span className="text-sm">Open until 9:00 PM</span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={handleShare} title="Copy link" className="flex items-center justify-center bg-secondary text-white h-10 w-10 rounded-md transition-all duration-200 hover:bg-secondary-dark hover:scale-105">
+        <div className="flex items-center gap-3 self-start md:self-center flex-shrink-0">
+          <button onClick={handleShare} title="Copy link" aria-label="Share store link" className="flex items-center justify-center bg-gray-200 text-gray-700 h-10 w-10 rounded-full transition-all duration-200 hover:bg-gray-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
             <FaShareAlt />
+          </button>
+          <button 
+            onClick={() => {
+              if (typeof openChat === 'function') {
+                openChat({ id: `store-${store.id}`, name: store.name, avatar: logoUrl, active: true });
+              } else {
+                console.error('Chat function not available');
+                toast.error('Messaging is temporarily unavailable.');
+              }
+            }}
+            className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full font-semibold transition-colors duration-200 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          >
+            <FaCommentDots /> Message
           </button>
           <a 
             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`}
             target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-md font-semibold transition-colors duration-200 hover:bg-primary-dark"
+            className="inline-flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-full font-semibold transition-colors duration-200 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <FaDirections /> Get Directions
           </a>
@@ -89,20 +141,29 @@ const StorePage = () => {
       <h2 className="text-3xl font-bold text-gray-800 mb-6 pb-3 border-b-2 border-primary">Products</h2>
 
       <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
-        <div className="relative flex-grow max-w-md">
-          <input
+                <div className="relative flex-grow max-w-md">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><FaSearch /></span>
+                    <input
             type="text"
             placeholder="Search products in this store..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
           />
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><FaSearch /></span>
+          {searchInput && (
+            <button 
+              onClick={() => setSearchInput('')} 
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label="Clear search"
+            >
+              <FaTimesCircle />
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <select 
             value={sortOption} 
-            onChange={(e) => setSortOption(e.target.value)}
+            onChange={(e) => handleSortChange(e.target.value)}
             className="p-2 border border-gray-300 rounded-lg cursor-pointer focus:ring-primary focus:border-primary"
           >
             <option value="best-sellers">Best Sellers</option>
@@ -113,14 +174,27 @@ const StorePage = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {storeProducts.length > 0 ? (
-          storeProducts.map(product => <ProductCard key={product.id} product={product} />)
-        ) : (
-          <p className="col-span-full text-center text-gray-500">This store has no products yet.</p>
+                        <div className="relative min-h-[400px]">
+        {isSorting && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10 rounded-lg">
+            <FaSpinner className="animate-spin text-primary text-5xl" />
+          </div>
         )}
+        <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 transition-all duration-300 ${isSorting ? 'blur-sm opacity-50' : ''}`}>
+          {storeProducts.length > 0 ? (
+            storeProducts.map(product => <ProductCard key={product.id} product={product} />)
+          ) : (
+            <div className="col-span-full text-center py-16 px-6 bg-gray-50 rounded-lg">
+              <FaBoxOpen className="mx-auto text-5xl text-gray-400 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700">No Products Found</h3>
+              <p className="text-gray-500 mt-2">This store hasn't listed any products yet. Please check back later!</p>
+            </div>
+          )}
+        </div>
       </div>
-    </motion.div>
+      <ScrollToTopButton />
+      </motion.div>
+    </div>
   );
 };
 

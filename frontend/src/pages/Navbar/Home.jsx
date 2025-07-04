@@ -12,6 +12,7 @@ import slugify from '../../utils/slugify';
 import ProductCardSkeleton from '../../components/Skeletons/ProductCardSkeleton';
 import StoreCardSkeleton from '../../components/Skeletons/StoreCardSkeleton';
 import RestaurantBanner from '../../components/RestaurantBanner';
+import PromoBanner from '../../components/PromoBanner';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -43,6 +44,33 @@ const Home = () => {
   const featuredProducts = [...allProducts].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)).slice(0, 10);
   const convenienceStores = stores.filter(store => store.store_type === 'convenience');
   const restaurants = stores.filter(store => store.store_type === 'restaurant');
+
+  const categoryImageMap = {
+    'Books': '/images/cards/books.png',
+    'Electronics': '/images/cards/electronics.png',
+    'Fashion': '/images/cards/fashion.png',
+    'Foods': '/images/cards/foods.png',
+    'Home & Kitchen': '/images/cards/homeandkitchen.png',
+    'Sports & Outdoor': '/images/cards/sportsandoutdoor.png',
+  };
+
+  const brands = [
+    { name: 'Adidas', logo: '/images/brand/adidas.png' },
+    { name: 'Apple', logo: '/images/brand/apple.png' },
+    { name: 'H&M', logo: '/images/brand/h&m.png' },
+    { name: 'Levis', logo: '/images/brand/levis.png' },
+    { name: 'LG', logo: '/images/brand/lg.png' },
+    { name: 'Nike', logo: '/images/brand/nike.png' },
+    { name: 'Puma', logo: '/images/brand/puma.png' },
+    { name: 'Samsung', logo: '/images/brand/samsung.png' },
+    { name: 'Penshopee', logo: '/images/brand/penshopee.png' },
+    { name: 'Ciaobella', logo: '/images/brand/ciaobella.png' }
+  ];
+
+  const femaleWearsCategory = categories.flatMap(c => c.children).find(child => child.name.toLowerCase() === 'females wear');
+  const femaleWearsProducts = femaleWearsCategory 
+    ? allProducts.filter(p => p.category_id === femaleWearsCategory.id).slice(0, 6)
+    : [];
 
   const bannerText = settings.main_banner_text || 'Your Everyday Essentials, Delivered.';
   const appDescription = settings.app_description || 'Quick and Easy Shopping at Your Fingertips. Order your favorite convenience store items with just a few clicks.';
@@ -165,12 +193,54 @@ const Home = () => {
         </div>
         <div className="md:col-span-2 md:order-2">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, duration: 0.7 }}>
-            <img src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Convenience Store" className="rounded-lg shadow-lg w-full h-auto" />
+            <img src="images\cards\logo.png" alt="Convenience Store" className="rounded-lg shadow-lg w-full h-auto" />
           </motion.div>
         </div>
       </section>
 
-      <RestaurantBanner />
+            {/* Banners Section */}
+            <section className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12 md:mb-16">
+                                <div className="h-full lg:col-span-3">
+          <RestaurantBanner />
+        </div>
+                                                <div className="h-full lg:col-span-2">
+          <PromoBanner />
+        </div>
+      </section>
+
+      {/* Brands Section */}
+      <section className="mb-16">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Brands</h2>
+          <Link to="/brands" className="text-primary font-medium hover:underline">View All</Link>
+        </div>
+        <div className="relative">
+          <div className="flex overflow-x-auto space-x-6 pb-4 no-scrollbar">
+            {brands.map((brand) => (
+              <motion.div key={brand.name} className="flex-shrink-0 text-center" whileHover={{ y: -5 }}>
+                <Link to={`/products?brand=${brand.name}`} className="group">
+                  <div className="w-24 h-24 bg-white rounded-full shadow-md flex items-center justify-center transition-shadow duration-300 group-hover:shadow-lg">
+                    <img src={brand.logo} alt={brand.name} className="h-12 object-contain" />
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Female Wears Section */}
+      {femaleWearsProducts.length > 0 && (
+        <section className="mb-16">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Female Wears</h2>
+            <Link to={`/products?category=${encodeURIComponent(femaleWearsCategory.name)}`} className="text-primary font-medium hover:underline">View All</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {femaleWearsProducts.map((product) => <ProductCard key={product.id} product={product} />)}
+          </div>
+        </section>
+      )}
 
       <section className="mb-16">
         <div className="flex justify-between items-center mb-6">
@@ -189,9 +259,17 @@ const Home = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {categories.map((category) => (
             <motion.div key={category.id} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
-              <Link to={`/products?category=${category.name}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg aspect-square">
-                <i className={`fa fa-${category.icon} text-3xl text-primary mb-3`}></i>
-                <h3 className="font-semibold text-gray-700">{category.name}</h3>
+              <Link to={`/products?category=${category.name}`} className="group flex flex-col bg-white rounded-lg shadow transition-shadow duration-300 hover:shadow-lg overflow-hidden h-full">
+                <div className="relative h-40 w-full overflow-hidden">
+                  <img 
+                    src={categoryImageMap[category.name] || '/images/cards/card-01.png'} 
+                    alt={category.name} 
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-4 text-center flex-grow flex items-center justify-center">
+                  <h3 className="font-semibold text-gray-700">{category.name}</h3>
+                </div>
               </Link>
             </motion.div>
           ))}

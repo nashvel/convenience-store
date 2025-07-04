@@ -12,6 +12,9 @@ import axios from 'axios';
 import Checkout from '../../components/Checkout/Checkout';
 import StoreLocation from '../../components/Cart/StoreLocation';
 import CartSkeleton from '../../components/Skeletons/CartSkeleton';
+import EmptyCart from '../../components/Cart/EmptyCart';
+import CartItem from '../../components/Cart/CartItem';
+import OrderSummary from '../../components/Cart/OrderSummary';
 
 const Cart = () => {
   const {
@@ -20,7 +23,6 @@ const Cart = () => {
     updateQuantity,
     clearCart,
     subtotal,
-
     total,
     totalItems: cartCount,
     loading: cartLoading,
@@ -76,7 +78,7 @@ const Cart = () => {
   const selectedStores = stores.filter(store => selectedStoreIds.includes(store.id));
 
   const shippingFee = shippingOption === 'door_to_door'
-    ? selectedStores.reduce((acc, store) => acc + (Number(store.delivery_fee) || 5.00), 0)
+    ? selectedStores.reduce((acc, store) => acc + (Number(store.delivery_fee) || 0), 0)
     : 0.00;
 
   const checkoutTotal = total + shippingFee;
@@ -92,8 +94,8 @@ const Cart = () => {
       toast.error('Please select items to checkout.');
       return;
     }
-    if (shippingOption === 'door_to_door' && (!deliveryAddress || (!deliveryAddress.province && !deliveryAddress.line1))) {
-      toast.error('Please provide a delivery address for door-to-door shipping.');
+    if (shippingOption === 'door_to_door' && (!deliveryAddress || !deliveryAddress.line1)) {
+      toast.error('Please provide a complete delivery address.');
       return;
     }
 
@@ -111,7 +113,6 @@ const Cart = () => {
       shipping_method: shippingOption,
       shipping_fee: shippingFee,
       subtotal: subtotal,
-
       total: checkoutTotal,
     };
 
@@ -123,11 +124,11 @@ const Cart = () => {
         eventEmitter.dispatch('newNotification');
         navigate('/my-orders');
       } else {
-        toast.error(response.data.message || 'An error occurred while placing your order.');
+        toast.error(response.data.message || 'There was an error placing your order.');
       }
     } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error(error.response?.data?.message || 'An error occurred while placing your order.');
+      console.error('Order submission error:', error);
+      toast.error('Failed to place order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -142,123 +143,84 @@ const Cart = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="container mx-auto mt-10 mb-20 p-4 md:p-8"
+      className="container mx-auto px-4 sm:px-6 lg:px-8 py-8"
     >
-      <h1 className="text-4xl font-bold text-center mb-10">Your Shopping Cart</h1>
-
-      {cartCount === 0 && !isCheckingOut ? (
-        <div className="text-center">
-          <FaShoppingCart className="text-6xl text-gray-300 mx-auto mb-4" />
-          <p className="text-xl text-gray-500 mb-6">Your cart is empty.</p>
-          <Link to="/stores" className="bg-primary text-white px-6 py-3 rounded-md font-semibold hover:bg-primary-dark transition-all">
-            Continue Shopping
-          </Link>
-        </div>
-      ) : !isCheckingOut ? (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-2 bg-white rounded-lg shadow-md">
-              <div className="p-6 border-b">
-                <div className="flex items-center gap-3 mb-4">
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary"
-                    checked={cartItems.length > 0 && selectedItems.length === cartItems.length}
-                    onChange={toggleSelectAll}
-                  />
-                  <h3 className="text-xl font-semibold">Select All Items</h3>
-                </div>
-              </div>
-              {Object.entries(groupedCart).map(([storeId, group]) => {
-                return (
-                  <div key={storeId} className="p-6 border-b last:border-b-0">
-                    <h3 className="text-xl font-semibold mb-4">{group.storeName}</h3>
-                    {group.items.map(item => (
-                      <div key={item.cartItemId} className="flex items-center gap-4 py-4 border-b last:border-b-0">
-                        <input
-                          type="checkbox"
-                          className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary"
-                          checked={selectedItems.includes(item.cartItemId)}
-                          onChange={() => toggleItemSelection(item.cartItemId)}
-                        />
-                        <img src={`${PRODUCT_ASSET_URL}/${item.image}`} alt={item.name} className="w-20 h-20 object-cover rounded-md" />
-                        <div className="flex-grow">
-                          <h4 className="font-semibold">{item.name}</h4>
-                          <p className="text-sm text-gray-500">Price: ₱{formatPrice(item.price)}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => updateQuantity(item.cartItemId, Number(item.quantity) - 1)} className="px-2 py-1 border rounded-md">-</button>
-                          <span>{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.cartItemId, Number(item.quantity) + 1)} className="px-2 py-1 border rounded-md">+</button>
-                        </div>
-                        <p className="font-semibold w-24 text-right">₱{formatPrice(item.price * item.quantity)}</p>
-                        <button onClick={() => removeFromCart(item.cartItemId)} className="text-red-500 hover:text-red-700">
-                          <FaTrash />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="bg-gray-50 rounded-lg shadow-md p-6 sticky top-24">
-              <h3 className="text-xl font-semibold mb-6">Order Summary (Selected)</h3>
-              <div className="space-y-3 text-gray-600">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span className="font-medium text-gray-800">₱{formatPrice(subtotal)}</span>
-                </div>
-
-                <hr className="my-4" />
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span className="text-primary">₱{formatPrice(total)}</span>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsCheckingOut(true)}
-                className="w-full mt-6 bg-primary text-white py-3 rounded-md font-semibold hover:bg-primary-dark transition-all disabled:opacity-50"
-                disabled={cartCount === 0 || selectedItems.length === 0}
-              >
-                Proceed to Checkout
-              </button>
-            </div>
-          </div>
-          <div className="mt-8 flex justify-between">
-            <Link to="/stores" className="flex items-center gap-2 text-primary hover:underline">
-              <FaArrowLeft />
-              Continue Shopping
-            </Link>
-            <button onClick={clearCart} className="text-red-500 hover:underline">Clear Cart</button>
-          </div>
-        </>
+      {isCheckingOut ? (
+        <Checkout
+          user={user}
+          groupedCart={selectedGroupedCart}
+          subtotal={subtotal}
+          shippingOption={shippingOption}
+          setShippingOption={setShippingOption}
+          deliveryAddress={deliveryAddress}
+          setDeliveryAddress={setDeliveryAddress}
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          handleCheckout={handleCheckout}
+          isSubmitting={isSubmitting}
+          setIsCheckingOut={setIsCheckingOut}
+          checkoutTotal={checkoutTotal}
+          formatPrice={formatPrice}
+          pickupStore={pickupStore}
+          selectedStores={selectedStores}
+        />
+      ) : cartCount === 0 ? (
+        <EmptyCart />
       ) : (
         <>
-          {shippingOption === 'pick_up' && (
-            <div className="bg-white rounded-xl shadow-lg p-8 mt-8">
-              <StoreLocation store={pickupStore} />
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <h1 className="text-4xl font-extrabold text-gray-800 mb-4 md:mb-0">Your Shopping Cart</h1>
+            <Link to="/stores" className="text-primary font-semibold hover:underline">
+              Continue Shopping
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2 bg-white rounded-xl shadow-lg">
+              <div className="p-4 border-b flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                    checked={cartItems.length > 0 && selectedItems.length === cartItems.length}
+                    onChange={toggleSelectAll}
+                    id="select-all"
+                  />
+                  <label htmlFor="select-all" className="font-semibold text-gray-700 cursor-pointer">
+                    Select All ({selectedItems.length} / {cartCount} items)
+                  </label>
+                </div>
+                <button onClick={clearCart} className="text-sm font-semibold text-red-500 hover:text-red-700 transition-colors">
+                  Clear All
+                </button>
+              </div>
+              {Object.entries(groupedCart).map(([storeId, storeData]) => (
+                <div key={storeId} className="p-4 border-b last:border-b-0">
+                  <h3 className="font-bold text-lg text-gray-600 mb-3">{storeData.storeName}</h3>
+                  <div className="divide-y divide-gray-200">
+                    {storeData.items.map((item) => (
+                      <CartItem
+                        key={item.cartItemId}
+                        item={item}
+                        onUpdateQuantity={updateQuantity}
+                        onRemove={removeFromCart}
+                        onSelectItem={toggleItemSelection}
+                        isSelected={selectedItems.includes(item.cartItemId)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
-          <Checkout
-            user={user}
-            groupedCart={selectedGroupedCart}
-            subtotal={subtotal}
+            <OrderSummary
+              subtotal={subtotal}
+              shippingFee={shippingFee}
+              total={checkoutTotal}
+              onCheckout={() => setIsCheckingOut(true)}
+              selectedItemCount={selectedItems.length}
+            />
+          </div>
 
-            shippingOption={shippingOption}
-            setShippingOption={setShippingOption}
-            deliveryAddress={deliveryAddress}
-            setDeliveryAddress={setDeliveryAddress}
-            paymentMethod={paymentMethod}
-            setPaymentMethod={setPaymentMethod}
-            handleCheckout={handleCheckout}
-            isSubmitting={isSubmitting}
-            setIsCheckingOut={setIsCheckingOut}
-            checkoutTotal={checkoutTotal}
-            formatPrice={formatPrice}
-            pickupStore={pickupStore}
-            selectedStores={selectedStores}
-          />
+
         </>
       )}
 

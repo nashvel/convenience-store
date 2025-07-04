@@ -33,13 +33,13 @@ const RestaurantBanner = () => {
   const bannerText = settings.restaurant_banner_text || 'Explore our Restaurants with a delivery at your fingertips';
 
   return (
-    <section className="relative p-6 md:p-10 my-12">
+        <section className="relative p-6 md:p-10 h-full">
       <div 
         className="absolute inset-0 bg-cover bg-center rounded-2xl"
         style={{ backgroundImage: `url(${BACKGROUND_URL})` }}
       ></div>
       <div className="absolute inset-0 bg-black opacity-60 rounded-2xl"></div>
-      <div className="relative z-10 md:w-3/5">
+            <div className="relative z-10 md:w-3/5">
         <motion.h2 
           className="text-3xl md:text-4xl font-bold text-white leading-tight mb-4"
           initial={{ opacity: 0, y: -20 }}

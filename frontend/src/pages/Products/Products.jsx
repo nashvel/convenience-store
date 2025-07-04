@@ -1,80 +1,117 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import ScrollToTopButton from '../../components/ScrollToTopButton';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaTimes } from 'react-icons/fa';
 import ProductCardSkeleton from '../../components/Skeletons/ProductCardSkeleton';
+
+const categoryImageMap = {
+  'Books': '/images/cards/books.png',
+  'Electronics': '/images/cards/electronics.png',
+  'Fashion': '/images/cards/fashion.png',
+  'Foods': '/images/cards/foods.png',
+  'Home & Kitchen': '/images/cards/homeandkitchen.png',
+  'Sports & Outdoor': '/images/cards/sportsandoutdoor.png',
+};
 
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { allProducts: products, loading, error, categories, priceRange } = useContext(StoreContext);
+  const { allProducts: products, loading, error } = useContext(StoreContext);
 
-  const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const categoryParam = queryParams.get('category');
-  const dealsParam = queryParams.get('deals') === 'true';
-  const searchParam = queryParams.get('search');
-
-
-
-  const [sortOption, setSortOption] = useState(queryParams.get('sort') || 'best-sellers');
+  // State for controlled inputs, which get their initial value from the URL
+  const [searchTerm, setSearchTerm] = useState(new URLSearchParams(location.search).get('search') || '');
+  const [sortOption, setSortOption] = useState(new URLSearchParams(location.search).get('sort') || 'best-sellers');
   const [visibleCount, setVisibleCount] = useState(20);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [displayedProducts, setDisplayedProducts] = useState([]);
 
+  // When filters change, reset pagination
   useEffect(() => {
     setVisibleCount(20);
-  }, [categoryParam, searchParam, priceRange, sortOption, dealsParam]);
+  }, [location.search]);
 
-  const filteredProducts = useMemo(() => {
-    if (loading || error) return [];
+  // This effect handles the entire filtering process
+  useEffect(() => {
+    if (!products) return;
 
-    let result = [...products];
+    setIsFiltering(true);
 
-    const currentCategory = categoryParam || 'all';
-    if (currentCategory !== 'all') {
-      result = result.filter(product => product.category_name === currentCategory);
+    // A short delay to ensure the loading spinner is visible before heavy computation
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(location.search);
+      const category = params.get('category');
+      const onDeal = params.get('on_deal') === 'true';
+      const minPrice = params.get('min_price');
+      const maxPrice = params.get('max_price');
+      const search = params.get('search') || '';
+      const sort = params.get('sort') || 'best-sellers';
+
+      let tempProducts = [...products];
+
+      if (category) {
+        const categories = category.split(',');
+        tempProducts = tempProducts.filter(product => 
+          categories.some(cat => product.category_name === cat || product.parent_category_name === cat)
+        );
+      }
+      if (onDeal) {
+        tempProducts = tempProducts.filter(product => product.on_deal);
+      }
+      if (minPrice) {
+        tempProducts = tempProducts.filter(p => parseFloat(p.price) >= parseFloat(minPrice));
+      }
+      if (maxPrice) {
+        tempProducts = tempProducts.filter(p => parseFloat(p.price) <= parseFloat(maxPrice));
+      }
+      if (search) {
+        tempProducts = tempProducts.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+      }
+
+      switch (sort) {
+        case 'price-asc':
+          tempProducts.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+          break;
+        case 'price-desc':
+          tempProducts.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+          break;
+        case 'name-asc':
+          tempProducts.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case 'name-desc':
+          tempProducts.sort((a, b) => b.name.localeCompare(a.name));
+          break;
+        default:
+          break;
+      }
+      
+      setDisplayedProducts(tempProducts);
+      setIsFiltering(false);
+    }, 200); // A small delay to ensure spinner is visible
+
+    return () => clearTimeout(timer);
+  }, [location.search, products]);
+
+  // Calculate active filters instantly from the URL for responsive UI
+  const activeFilters = useMemo(() => {
+    const filters = [];
+    const params = new URLSearchParams(location.search);
+    const categoryParam = params.get('category');
+    if (categoryParam) {
+      categoryParam.split(',').forEach(cat => {
+        filters.push({ type: 'category', value: cat, label: cat, key: `cat-${cat}` });
+      });
     }
-
-    if (searchParam) {
-      const query = searchParam.toLowerCase();
-      result = result.filter(product => 
-        product.name.toLowerCase().includes(query) || 
-        product.description.toLowerCase().includes(query)
-      );
+    if (params.get('on_deal') === 'true') {
+      filters.push({ type: 'on_deal', value: 'true', label: 'On Deal', key: 'deal' });
     }
-
-    result = result.filter(product => {
-      const min = priceRange.min === '' || isNaN(priceRange.min) ? 0 : priceRange.min;
-      const max = priceRange.max === '' || isNaN(priceRange.max) ? Infinity : priceRange.max;
-      return product.price >= min && product.price <= max;
-    });
-
-    if (dealsParam) {
-      result = result.filter(product => product.discount > 0);
+    if (params.has('min_price') && params.has('max_price')) {
+      filters.push({ type: 'price', value: `${params.get('min_price')}-${params.get('max_price')}`, label: `₱${params.get('min_price')} - ₱${params.get('max_price')}`, key: 'price' });
     }
-
-    switch (sortOption) {
-      case 'price-asc':
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case 'name-asc':
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'name-desc':
-        result.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      case 'best-sellers':
-      default:
-        result.sort((a, b) => b.rating - a.rating);
-        break;
-    }
-
-    return result;
-  }, [products, categoryParam, searchParam, priceRange, sortOption, dealsParam, loading, error]);
+    return filters;
+  }, [location.search]);
 
 
 
@@ -87,7 +124,7 @@ const Products = () => {
         params.delete(key);
       }
     });
-    navigate(`${location.pathname}?${params.toString()}`);
+    navigate({ search: params.toString() }, { replace: true });
   };
 
   const handleSortChange = (e) => {
@@ -96,15 +133,30 @@ const Products = () => {
     updateURLParams({ sort: newSortOption });
   };
 
-  const handleCategoryChange = (category) => {
-    updateURLParams({ category: category === 'all' ? null : category });
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    updateURLParams({ search: searchTerm });
   };
 
-  const handleSearchChange = (e) => {
-    updateURLParams({ search: e.target.value });
+  const removeFilter = (filter) => {
+    const params = new URLSearchParams(location.search);
+    if (filter.type === 'category') {
+      const categories = params.get('category').split(',').filter(c => c !== filter.value);
+      if (categories.length > 0) {
+        params.set('category', categories.join(','));
+      } else {
+        params.delete('category');
+      }
+    } else {
+      params.delete(filter.type);
+    }
+    navigate({ search: params.toString() }, { replace: true });
   };
 
-  const currentCategory = categoryParam || 'all';
+  const clearAllFilters = () => {
+    navigate({ search: '' }, { replace: true });
+    setSearchTerm('');
+  };
 
   return (
     <motion.div
@@ -114,23 +166,46 @@ const Products = () => {
       transition={{ duration: 0.5 }}
       className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
     >
-      <div className="flex justify-between items-center mb-8">
-        <h4 className="text-3xl font-bold">Our Products</h4>
-      </div>
+      <div className="mb-8">
+        {/* Active Filters */}
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <AnimatePresence>
+            {activeFilters.map(filter => (
+              <motion.span
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  opacity: { duration: 0.15 },
+                  layout: { duration: 0.2, ease: 'easeInOut' }
+                }}
+                key={filter.key}
+                className="bg-blue-100 text-primary font-semibold px-3 py-1.5 rounded-full text-sm flex items-center shadow-sm flex-shrink-0"
+              >
+                {filter.label}
+                <button onClick={() => removeFilter(filter)} className="ml-2 text-primary hover:bg-blue-200 rounded-full p-0.5">
+                  <FaTimes size={12} />
+                </button>
+              </motion.span>
+            ))}
+          </AnimatePresence>
+        </div>
 
-      <main>
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <div className="relative w-full md:w-auto">
-              <FaSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Search products..." 
-                value={searchParam || ''}
-                onChange={handleSearchChange}
-                className="pl-10 p-2 border rounded-md w-full md:w-64"
-              />
-            </div>
-            <select value={sortOption} onChange={handleSortChange} className="p-2 border rounded-md w-full md:w-auto">
+        {/* Search and Sort */}
+        <div className="flex items-center gap-4">
+          <form onSubmit={handleSearchSubmit} className="relative flex-grow">
+            <FaSearch className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary pl-12 pr-4 py-3 shadow-sm"
+            />
+          </form>
+          <div className="w-full md:w-auto flex-shrink-0">
+            <select value={sortOption} onChange={handleSortChange} className="p-3 border border-gray-200 bg-gray-50 rounded-full w-full md:w-auto focus:ring-2 focus:ring-primary focus:outline-none h-[52px]">
               <option value="best-sellers">Best Sellers</option>
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>
@@ -138,38 +213,62 @@ const Products = () => {
               <option value="name-desc">Name: Z-A</option>
             </select>
           </div>
+        </div>
+      </div>
+      
+      {activeFilters.length > 0 && (
+        <div className="mb-6 flex justify-end">
+          <button onClick={clearAllFilters} className="text-sm text-primary hover:underline font-semibold">
+            Clear All Filters
+          </button>
+        </div>
+      )}
 
-          <p className="text-sm text-gray-500 mb-4">{filteredProducts.length} products found</p>
-
-          {loading ? (
-            <div className="animate-pulse">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
-                {[...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)}
-              </div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-10 text-red-500">Error: {error}</div>
-          ) : filteredProducts.length > 0 ? (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
-                {filteredProducts.slice(0, visibleCount).map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-              {visibleCount < filteredProducts.length && (
-                <div className="text-center mt-10">
-                  <button 
-                    onClick={() => setVisibleCount(prev => prev + 20)}
-                    className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Load More
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-10">No products match your criteria.</div>
+      <main className="relative min-h-[400px]">
+        <AnimatePresence>
+          {isFiltering && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-10 rounded-lg"
+            >
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </motion.div>
           )}
+        </AnimatePresence>
+
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+            {[...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)}
+          </div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-500">Error: {error}</div>
+        ) : displayedProducts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+              {displayedProducts.slice(0, visibleCount).map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+            {visibleCount < displayedProducts.length && (
+              <div className="text-center mt-10">
+                <button 
+                  onClick={() => setVisibleCount(prev => prev + 20)}
+                  className="bg-primary text-white font-semibold px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-20 bg-gray-50 rounded-lg">
+            <h3 className="text-2xl font-semibold text-gray-700">No Products Found</h3>
+            <p className="text-gray-500 mt-2">Try adjusting your filters or search term.</p>
+          </div>
+        )}
       </main>
       <ScrollToTopButton />
     </motion.div>

@@ -1,8 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { CartContext } from './CartContext';
 import { fetchStores } from '../api/storeApi';
-import { fetchAllProducts } from '../api/productApi';
-import { fetchCategories } from '../api';
+import { fetchAllProducts, fetchCategories } from '../api/productApi';
 
 
 export const StoreContext = createContext();
