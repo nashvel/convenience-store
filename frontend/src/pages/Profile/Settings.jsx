@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Settings = () => {
-  const { user } = useAuth();
+    const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const dashboardPath = user ? {
     'admin': '/admin/dashboard',
@@ -38,6 +39,11 @@ const Settings = () => {
     alert('Profile update functionality not yet implemented.');
   };
 
+    const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
     // TODO: Add API call to update password
@@ -49,14 +55,22 @@ const Settings = () => {
     <div className="p-4 sm:p-8 max-w-6xl mx-auto my-8 bg-gray-50 dark:bg-gray-900">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Account Settings</h1>
-        {dashboardPath && (
-          <Link 
-            to={dashboardPath} 
-            className="bg-blue-600 text-white px-4 py-2 text-sm font-bold rounded-md hover:bg-blue-700 transition-colors no-underline"
+        <div className="flex items-center gap-4">
+          {dashboardPath && (
+            <Link 
+              to={dashboardPath} 
+              className="bg-blue-600 text-white px-4 py-2 text-sm font-bold rounded-md hover:bg-blue-700 transition-colors no-underline"
+            >
+              Manage Dashboard
+            </Link>
+          )}
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 text-white px-4 py-2 text-sm font-bold rounded-md hover:bg-red-700 transition-colors"
           >
-            Manage Dashboard
-          </Link>
-        )}
+            Logout
+          </button>
+        </div>
       </header>
       
       <div className="flex flex-col lg:flex-row gap-8">

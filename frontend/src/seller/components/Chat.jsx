@@ -1,87 +1,217 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { FaPaperPlane, FaSearch, FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
-
-// Mock Data
-const mockContacts = [
-  { id: 1, name: 'Angel', avatar: 'https://i.pravatar.cc/150?u=alice' },
-  { id: 2, name: 'Nash', avatar: 'https://i.pravatar.cc/150?u=bob' },
-  { id: 3, name: 'Charlie', avatar: 'https://i.pravatar.cc/150?u=charlie' },
-  { id: 4, name: 'David', avatar: 'https://i.pravatar.cc/150?u=david' },
-  { id: 5, name: 'Eve', avatar: 'https://i.pravatar.cc/150?u=eve' },
-  { id: 6, name: 'Frank', avatar: 'https://i.pravatar.cc/150?u=frank' },
-  { id: 7, name: 'Grace', avatar: 'https://i.pravatar.cc/150?u=grace' },
-  { id: 8, name: 'Heidi', avatar: 'https://i.pravatar.cc/150?u=heidi' },
-];
-
-const mockMessages = {
-  1: [
-    { id: 1, sender: 'other', text: 'Hey, how are you?' },
-    { id: 2, sender: 'me', text: 'I am good, thanks! How about you?' },
-    { id: 3, sender: 'other', text: 'Doing great! Did you see the latest sales report?' },
-  ],
-  2: [{ id: 4, sender: 'other', text: 'Can we reschedule our meeting?' }],
-  3: [{ id: 5, sender: 'me', text: 'Project update is on the way.' }],
-  4: [], 5: [], 6: [], 7: [], 8: [],
-};
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { FaPaperPlane, FaSearch, FaImage, FaVideo, FaTimes, FaSpinner } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
+import { getChats, getMessages, sendMessage } from '../../api/chatApi';
+import { format } from 'date-fns';
 
 const Chat = () => {
-  const [selectedContact, setSelectedContact] = useState(mockContacts[0]);
-  const [messages, setMessages] = useState(mockMessages);
+  const { user } = useAuth();
+  
+  const [chats, setChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  
+  const [loadingChats, setLoadingChats] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  
   const [newMessage, setNewMessage] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [openMessageMenuId, setOpenMessageMenuId] = useState(null);
-  const [editingMessageId, setEditingMessageId] = useState(null);
-  const [editingMessageText, setEditingMessageText] = useState('');
+  
   const messageEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
+  // Fetch all conversations on component mount
+  useEffect(() => {
+    const fetchChats = async () => {
+      setLoadingChats(true);
+      try {
+        const fetchedChats = await getChats();
+        setChats(fetchedChats);
+      } catch (error) {
+        console.error("Failed to fetch chats", error);
+      } finally {
+        setLoadingChats(false);
+      }
+    };
+    fetchChats();
+  }, []);
+
+  const fetchMessages = useCallback(async (showLoading = true) => {
+    if (!selectedChat) return;
+
+    if (showLoading) {
+      setLoadingMessages(true);
+    }
+    try {
+      const fetchedMessages = await getMessages(selectedChat.id);
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+      
+      const formattedMessages = fetchedMessages.map(msg => ({
+        id: msg.id,
+        senderId: msg.sender_id,
+        text: msg.message,
+        timestamp: msg.created_at,
+        media: msg.media ? msg.media.map(m => ({
+          ...m,
+          media_url: `${API_URL}/${m.media_url}`
+        })) : [],
+      }));
+
+      setMessages(currentMessages => {
+        const currentServerMessages = currentMessages.filter(m => !m.isSending);
+        // Avoid re-render if server data hasn't changed
+        if (JSON.stringify(currentServerMessages) === JSON.stringify(formattedMessages)) {
+          return currentMessages;
+        }
+        const optimisticMessages = currentMessages.filter(m => m.isSending);
+        return [...formattedMessages, ...optimisticMessages];
+      });
+
+    } catch (error) {
+      console.error(`Failed to fetch messages for chat ${selectedChat.id}`, error);
+      if (showLoading) {
+        setMessages([]);
+      }
+    } finally {
+      if (showLoading) {
+        setLoadingMessages(false);
+      }
+    }
+  }, [selectedChat?.id]);
+
+  // Fetch messages when a chat is selected
+  useEffect(() => {
+    if (selectedChat) {
+      fetchMessages(true);
+    } else {
+      setMessages([]); // Clear messages when no chat is selected
+    }
+  }, [selectedChat, fetchMessages]);
+
+  // Poll for new messages every 3 seconds
+  useEffect(() => {
+    if (!selectedChat) return;
+
+    const intervalId = setInterval(() => {
+      fetchMessages(false);
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [selectedChat, fetchMessages]);
+
+  // Scroll to the bottom of the message list
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, selectedContact]);
+  }, [messages]);
 
-  const handleSend = () => {
-    if (newMessage.trim() === '' || !selectedContact) return;
-    const newMsg = { id: Date.now(), sender: 'me', text: newMessage };
-    const contactId = selectedContact.id;
-    const updatedMessages = {
-      ...messages,
-      [contactId]: [...(messages[contactId] || []), newMsg],
-    };
-    setMessages(updatedMessages);
-    setNewMessage('');
-  };
+  const handleSendMessage = async () => {
+    if ((!newMessage.trim() && selectedFiles.length === 0) || !selectedChat) return;
 
-  const handleEditMessage = (message) => {
-    setEditingMessageId(message.id);
-    setEditingMessageText(message.text);
-    setOpenMessageMenuId(null);
-  };
-
-  const handleSaveEdit = (contactId, messageId) => {
-    const newMessages = { ...messages };
-    const messageIndex = newMessages[contactId].findIndex(m => m.id === messageId);
-    if (messageIndex !== -1) {
-      newMessages[contactId][messageIndex].text = editingMessageText;
-      setMessages(newMessages);
+    const formData = new FormData();
+    if (newMessage.trim()) {
+      formData.append('text', newMessage.trim());
     }
-    setEditingMessageId(null);
-    setEditingMessageText('');
+    if (selectedFiles.length > 0) {
+      selectedFiles.forEach(file => {
+        formData.append('media[]', file);
+      });
+    }
+
+    const tempId = `temp_${Date.now()}`;
+    const optimisticMessage = {
+      id: tempId,
+      senderId: user.id,
+      text: newMessage.trim(),
+      timestamp: new Date().toISOString(),
+      isSending: true,
+      media: selectedFiles.map(file => ({
+        id: `temp_media_${Math.random()}`,
+        media_type: file.type.startsWith('image/') ? 'image' : 'video',
+        media_url: URL.createObjectURL(file),
+        isUploading: true,
+      })),
+    };
+
+    setMessages(prev => [...prev, optimisticMessage]);
+    setNewMessage('');
+    setSelectedFiles([]);
+
+    try {
+      const savedMessage = await sendMessage(selectedChat.id, formData);
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+      const formattedMessage = {
+        ...savedMessage,
+        senderId: savedMessage.sender_id,
+        text: savedMessage.message,
+        timestamp: savedMessage.created_at,
+        media: savedMessage.media.map(m => ({ ...m, media_url: `${API_URL}/${m.media_url}` }))
+      };
+      
+      setMessages(prev => prev.map(m => m.id === tempId ? formattedMessage : m));
+
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+    } finally {
+        // Clean up blob URLs
+        optimisticMessage.media.forEach(m => URL.revokeObjectURL(m.media_url));
+    }
   };
 
-  const handleCancelEdit = () => {
-    setEditingMessageId(null);
-    setEditingMessageText('');
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles(prev => [...prev, ...files].slice(0, 5));
+    e.target.value = null;
   };
 
-  const handleDeleteMessage = (contactId, messageId) => {
-    const newMessages = { ...messages };
-    newMessages[contactId] = newMessages[contactId].filter(m => m.id !== messageId);
-    setMessages(newMessages);
-    setOpenMessageMenuId(null);
+  const removeSelectedFile = (fileToRemove) => {
+    setSelectedFiles(prev => prev.filter(file => file !== fileToRemove));
   };
 
-  const filteredContacts = mockContacts.filter(contact =>
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const renderLastMessage = (lastMessage) => {
+    if (!lastMessage) {
+      return 'No messages yet';
+    }
+    if (lastMessage.message) {
+      return lastMessage.message;
+    }
+    if (lastMessage.media_type && typeof lastMessage.media_type === 'string') {
+      const isImage = lastMessage.media_type.startsWith('image');
+      return (
+        <span className="flex items-center gap-1">
+          {isImage ? <FaImage /> : <FaVideo />}
+          {isImage ? 'Image' : 'Video'}
+        </span>
+      );
+    }
+    // If last_message exists but has no text and no valid media_type
+    return '...';
+  };
+
+  const getAvatarUrl = (user) => {
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+    if (user && user.avatar && typeof user.avatar === 'string') {
+      if (user.avatar.startsWith('http')) {
+        return user.avatar;
+      }
+      return `${API_URL}/${user.avatar}`;
+    }
+    const userId = user ? user.id : 'default';
+    return `https://i.pravatar.cc/150?u=${userId}`;
+  };
+
+  const filteredChats = useMemo(() =>
+    chats.filter(chat => {
+      if (!chat.other_user) return false;
+      const fullName = `${chat.other_user.first_name} ${chat.other_user.last_name}`.toLowerCase();
+      return fullName.includes(searchTerm.toLowerCase());
+    }),
+    [chats, searchTerm]
   );
+
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
   return (
     <div className="flex h-[calc(100vh-120px)] bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -100,83 +230,118 @@ const Chat = () => {
           </div>
         </div>
         <div className="flex-grow overflow-y-auto">
-          {filteredContacts.map(contact => (
-            <div
-              key={contact.id}
-              onClick={() => setSelectedContact(contact)}
-              className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-100 ${selectedContact?.id === contact.id ? 'bg-primary-light' : ''}`}
-            >
-              <img src={contact.avatar} alt={contact.name} className="w-12 h-12 rounded-full" />
-              <span className="font-semibold text-gray-800">{contact.name}</span>
-            </div>
-          ))}
+          {loadingChats ? (
+            <div className="flex justify-center items-center h-full"><FaSpinner className="animate-spin text-primary" size={24} /></div>
+          ) : (
+            filteredChats.map(chat => (
+              <div
+                key={chat.id}
+                onClick={() => setSelectedChat(chat)}
+                className={`p-3 flex items-center gap-4 cursor-pointer rounded-lg transition-colors ${selectedChat?.id === chat.id ? 'bg-blue-100' : 'hover:bg-gray-100'}`}>
+                <div className="relative">
+                  <img src={getAvatarUrl(chat.other_user)} alt={(chat.other_user && chat.other_user.first_name) || 'User'} className="w-12 h-12 rounded-full" />
+                </div>
+                <div className="flex-grow overflow-hidden">
+                    <span className="font-semibold text-gray-800">{(chat.other_user && `${chat.other_user.first_name} ${chat.other_user.last_name}`) || 'Deleted User'}</span>
+                    <p className="text-sm text-gray-500 truncate">{renderLastMessage(chat.last_message)}</p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
       {/* Conversation View */}
       <div className="w-2/3 flex flex-col">
-        {selectedContact ? (
+        {selectedChat ? (
           <>
             {/* Chat Header */}
             <div className="p-4 border-b border-gray-200 flex items-center gap-4 bg-gray-50">
-              <img src={selectedContact.avatar} alt={selectedContact.name} className="w-12 h-12 rounded-full" />
-              <h3 className="text-xl font-bold text-gray-800">{selectedContact.name}</h3>
+              <img src={getAvatarUrl(selectedChat.other_user)} alt={(selectedChat.other_user && selectedChat.other_user.first_name) || 'User'} className="w-12 h-12 rounded-full" />
+              <h3 className="text-xl font-bold text-gray-800">{(selectedChat.other_user && `${selectedChat.other_user.first_name} ${selectedChat.other_user.last_name}`) || 'Deleted User'}</h3>
             </div>
 
             {/* Message Area */}
             <div className="flex-grow p-6 overflow-y-auto bg-gray-100">
-              {(messages[selectedContact.id] || []).map(msg => (
-                <div key={msg.id} className={`flex items-end gap-3 my-2 ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                  {msg.sender === 'other' && <img src={selectedContact.avatar} alt={selectedContact.name} className="w-8 h-8 rounded-full" />}
-                  <div className="relative group">
-                    {editingMessageId === msg.id ? (
-                      <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(selectedContact.id, msg.id); }} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={editingMessageText}
-                          onChange={(e) => setEditingMessageText(e.target.value)}
-                          className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-light"
-                          autoFocus
-                        />
-                        <button type="submit" className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">Save</button>
-                        <button type="button" onClick={handleCancelEdit} className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">Cancel</button>
-                      </form>
-                    ) : (
-                      <div className={`px-4 py-2 rounded-2xl max-w-lg ${msg.sender === 'me' ? 'bg-primary text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none'}`}>
-                        {msg.text}
-                      </div>
-                    )}
-                    {msg.sender === 'me' && editingMessageId !== msg.id && (
-                      <div className="absolute top-1/2 -left-8 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => setOpenMessageMenuId(openMessageMenuId === msg.id ? null : msg.id)} className="text-gray-500 hover:text-gray-800">
-                          <FaEllipsisV />
-                        </button>
-                        {openMessageMenuId === msg.id && (
-                          <div className="absolute bottom-full -left-2 mb-1 w-32 bg-white border rounded-lg shadow-xl z-10">
-                            <button onClick={() => handleEditMessage(msg)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"><FaEdit /> Edit</button>
-                            <button onClick={() => handleDeleteMessage(selectedContact.id, msg.id)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"><FaTrash /> Delete</button>
+              {loadingMessages ? (
+                <div className="flex justify-center items-center h-full"><FaSpinner className="animate-spin text-primary" size={24} /></div>
+              ) : (
+                messages.map(msg => (
+                  <div key={msg.id} className={`flex items-end gap-3 my-2 ${msg.senderId === user.id ? 'justify-end' : 'justify-start'} ${msg.isSending ? 'opacity-60' : ''}`}>
+                    {msg.senderId !== user.id && <img src={getAvatarUrl(selectedChat.other_user)} alt={(selectedChat.other_user && selectedChat.other_user.first_name) || 'User'} className="w-8 h-8 rounded-full" />}
+                    <div className={`px-4 py-2 rounded-2xl max-w-lg ${msg.senderId === user.id ? 'bg-primary text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none'}`}>
+                        {msg.text && <p>{msg.text}</p>}
+                        {msg.media && msg.media.length > 0 && (
+                          <div className="mt-2 flex flex-col gap-2">
+                            {msg.media.map(mediaItem => (
+                              <div key={mediaItem.id || mediaItem.media_url} className="relative">
+                                {mediaItem.media_type === 'image' ? (
+                                  <img src={mediaItem.media_url} alt="attachment" className="rounded-md max-w-full" />
+                                ) : (
+                                  <video src={mediaItem.media_url} controls className="rounded-md max-w-full" />
+                                )}
+                                {(mediaItem.isUploading || msg.isSending) && (
+                                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-md">
+                                    <FaSpinner className="animate-spin text-white" size={24} />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
-                      </div>
-                    )}
+                        <div className="text-xs text-right mt-1 opacity-70">
+                            {format(new Date(msg.timestamp), 'p')}
+                            {msg.isSending && <span className="ml-1">(Sending...)</span>}
+                        </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
               <div ref={messageEndRef} />
             </div>
 
             {/* Message Input */}
             <div className="p-4 border-t border-gray-200 bg-gray-50">
+              {selectedFiles.length > 0 && (
+                <div className="p-2 flex gap-2 overflow-x-auto border-b mb-2">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="relative flex-shrink-0">
+                      {file.type.startsWith('image/') ? (
+                        <img src={URL.createObjectURL(file)} alt="preview" className="w-16 h-16 object-cover rounded" />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-800 rounded flex items-center justify-center">
+                          <FaVideo className="text-white" size={24} />
+                        </div>
+                      )}
+                      <button onClick={() => removeSelectedFile(file)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 flex items-center justify-center w-4 h-4">
+                        <FaTimes size={8} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="relative flex items-center">
                 <input
                   type="text"
                   placeholder="Type a message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                  className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-light"
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  className="w-full pr-28 pl-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-light"
                 />
-                <button onClick={handleSend} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors">
+                <div className="absolute right-14 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <input
+                      type="file"
+                      multiple
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      accept="image/*,video/*"
+                    />
+                    <button onClick={() => fileInputRef.current.click()} className="p-2 text-gray-500 hover:text-primary"><FaImage size={20}/></button>
+                    <button onClick={() => fileInputRef.current.click()} className="p-2 text-gray-500 hover:text-primary"><FaVideo size={20}/></button>
+                </div>
+                <button onClick={handleSendMessage} disabled={(!newMessage.trim() && selectedFiles.length === 0)} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors disabled:bg-gray-400">
                   <FaPaperPlane />
                 </button>
               </div>
@@ -184,7 +349,7 @@ const Chat = () => {
           </>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
-            Select a conversation to start chatting
+            {loadingChats ? <FaSpinner className="animate-spin text-primary" size={32} /> : 'Select a conversation to start chatting'}
           </div>
         )}
       </div>

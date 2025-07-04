@@ -107,7 +107,7 @@ const MainLayout = ({ children }) => {
       </div>
       <Footer />
       <div className="fixed bottom-0 right-4 flex flex-row-reverse items-end gap-4 z-50">
-        {openChats.map(chat => (
+        {Object.values(openChats).map(chat => (
           <ChatPopup key={chat.id} chat={chat} onClose={closeChat} onToggleMinimize={toggleMinimizeChat} />
         ))}
       </div>

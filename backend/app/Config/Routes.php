@@ -80,6 +80,12 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
         $routes->get('orders/(:num)', 'OrderController::show/$1');
         $routes->put('orders/cancel/(:num)', 'OrderController::cancel/$1');
         $routes->put('orders/status/(:num)', 'OrderController::updateStatus/$1');
+
+        // Chat
+        $routes->get('chats', 'ChatController::getChats', ['filter' => 'auth']);
+        $routes->post('chats/find-or-create', 'ChatController::findOrCreateChat', ['filter' => 'auth']);
+        $routes->get('chats/(:num)/messages', 'ChatController::getMessages/$1');
+        $routes->post('chats/(:num)/messages', 'ChatController::sendMessage/$1');
     });
 });
 

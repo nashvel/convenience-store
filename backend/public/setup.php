@@ -16,7 +16,7 @@ try {
     $mysqli->query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Drop all tables
-    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications'];
+    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications'];
     foreach ($tables as $table) {
         $mysqli->query("DROP TABLE IF EXISTS $table");
     }
@@ -321,12 +321,25 @@ try {
             id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             chat_id INT(11) UNSIGNED NOT NULL,
             sender_id INT(11) UNSIGNED NOT NULL,
-            message TEXT NOT NULL,
-            image VARCHAR(255) NULL,
+            message TEXT NULL,
+            is_read BOOLEAN DEFAULT FALSE,
             is_deleted BOOLEAN DEFAULT FALSE,
             created_at DATETIME NULL,
             FOREIGN KEY (chat_id) REFERENCES chats(id),
             FOREIGN KEY (sender_id) REFERENCES users(id)
+        )
+    ");
+
+    // Create chat_message_media table (depends on chat_messages)
+    $mysqli->query("
+        CREATE TABLE chat_message_media (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            chat_message_id INT(11) UNSIGNED NOT NULL,
+            media_type ENUM('image', 'video') NOT NULL,
+            media_url VARCHAR(255) NOT NULL,
+            thumbnail_url VARCHAR(255) NULL,
+            created_at DATETIME NULL,
+            FOREIGN KEY (chat_message_id) REFERENCES chat_messages(id) ON DELETE CASCADE
         )
     ");
 

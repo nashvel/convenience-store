@@ -8,12 +8,14 @@ import { toast } from 'react-toastify';
 import { LOGO_ASSET_URL } from '../../config';
 import StorePageSkeleton from '../../components/Skeletons/StorePageSkeleton';
 import { useChat } from '../../context/ChatContext';
+import { useAuth } from '../../context/AuthContext';
 import ScrollToTopButton from '../../components/ScrollToTopButton';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useDebounce } from '../../hooks/useDebounce';
 
 const StorePage = () => {
   const { openChat } = useChat();
+  const { user } = useAuth();
   const { storeId } = useParams();
   const { stores, allProducts: products, loading, error } = useContext(StoreContext);
   
@@ -117,11 +119,17 @@ const StorePage = () => {
           </button>
           <button 
             onClick={() => {
-              if (typeof openChat === 'function') {
-                openChat({ id: `store-${store.id}`, name: store.name, avatar: logoUrl, active: true });
+              const recipientId = store?.client_id;
+              if (user && user.id === recipientId) {
+                toast.info("You can't open a chat with yourself.");
+                return;
+              }
+
+              if (store && recipientId) {
+                openChat({ id: recipientId, name: store.name, avatar: logoUrl });
               } else {
-                console.error('Chat function not available');
-                toast.error('Messaging is temporarily unavailable.');
+                      console.error('Store client ID not available, cannot initiate chat.');
+                toast.error('Messaging is not available for this store.');
               }
             }}
             className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full font-semibold transition-colors duration-200 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"

@@ -1,8 +1,52 @@
-import React from 'react';
-import { FaTimes, FaMinus, FaPaperPlane } from 'react-icons/fa';
+import React, { useState, useRef, useEffect } from 'react';
+import { FaTimes, FaMinus, FaPaperPlane, FaImage, FaVideo, FaSpinner } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useChat } from '../context/ChatContext';
+import { format } from 'date-fns';
 
 const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
+    const { handleSendMessage, currentUserId } = useChat();
+  const [newMessage, setNewMessage] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chat.messages]);
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles(prev => [...prev, ...files].slice(0, 5)); // Limit to 5 files
+    e.target.value = null; // Allow selecting the same file again
+  };
+
+  const removeSelectedFile = (fileToRemove) => {
+    setSelectedFiles(prev => prev.filter(file => file !== fileToRemove));
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const submitMessage = () => {
+    if (newMessage.trim() || selectedFiles.length > 0) {
+      handleSendMessage(chat.id, { text: newMessage, files: selectedFiles });
+      setNewMessage('');
+      setSelectedFiles([]);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitMessage();
+    }
+  };
   return (
     <motion.div
       layout
@@ -58,30 +102,101 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
           >
             {/* Messages */}
             <div className="flex-1 p-4 overflow-y-auto">
-              <div className="flex flex-col gap-3">
-                <div className="flex items-end">
-                  <div className="bg-gray-200 text-gray-800 p-3 rounded-lg max-w-xs">
-                    <p>Hey, is the new collection out yet?</p>
-                  </div>
+              {chat.loading ? (
+                <div className="flex justify-center items-center h-full">
+                  <FaSpinner className="animate-spin text-primary" size={24} />
                 </div>
-                <div className="flex items-end justify-end">
-                  <div className="bg-primary text-white p-3 rounded-lg max-w-xs">
-                    <p>Yes! It just launched today. You can find it under the 'New Arrivals' category.</p>
-                  </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {chat.messages.map((msg) => (
+                    <div key={msg.id} className={`flex items-end gap-2 ${msg.senderId === currentUserId ? 'justify-end' : ''} ${msg.isSending ? 'opacity-60' : ''}`}>
+                      {msg.senderId !== currentUserId && (
+                        <img src={chat.avatar} alt={chat.name} className="w-6 h-6 rounded-full self-start" />
+                      )}
+                      <div
+                        className={`p-3 rounded-lg max-w-xs break-words ${msg.senderId === currentUserId ? 'bg-primary text-white' : 'bg-gray-200 text-gray-800'}`}>
+                        {msg.text && <p>{msg.text}</p>}
+                        
+                        {msg.media && msg.media.length > 0 && (
+                          <div className="mt-2 flex flex-col gap-2">
+                            {msg.media.map(mediaItem => (
+                              <div key={mediaItem.id || mediaItem.media_url} className="relative">
+                                {mediaItem.media_type === 'image' ? (
+                                  <img src={mediaItem.media_url} alt="attachment" className="rounded-md max-w-full" />
+                                ) : (
+                                  <video src={mediaItem.media_url} controls className="rounded-md max-w-full" />
+                                )}
+                                {(mediaItem.isUploading) && (
+                                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-md">
+                                    <FaSpinner className="animate-spin text-white" size={24} />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className={`text-xs mt-1 ${msg.senderId === currentUserId ? 'text-gray-300' : 'text-gray-500'}`}>
+                          {format(new Date(msg.timestamp), 'p')}
+                          {msg.isSending && <span className="ml-1">(Sending...)</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                   <div ref={messagesEndRef} />
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Input */}
-            <div className="p-3 border-t flex items-center">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                className="flex-1 bg-gray-100 border-transparent rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <button className="ml-3 text-primary hover:text-blue-700 p-2">
-                <FaPaperPlane size={20} />
-              </button>
+            <div className="p-3 border-t bg-white">
+              {selectedFiles.length > 0 && (
+                <div className="p-2 flex gap-2 overflow-x-auto border-b mb-2">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="relative flex-shrink-0">
+                      {file.type.startsWith('image/') ? (
+                        <img src={URL.createObjectURL(file)} alt="preview" className="w-16 h-16 object-cover rounded" />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-800 rounded flex items-center justify-center">
+                          <FaVideo className="text-white" size={24} />
+                        </div>
+                      )}
+                      <button onClick={() => removeSelectedFile(file)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 flex items-center justify-center w-4 h-4">
+                        <FaTimes size={8} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="relative">
+                <textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type a message..."
+                  className="w-full bg-gray-100 border-transparent rounded-2xl px-4 py-2 pr-12 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  rows={1}
+                />
+                                <button onClick={submitMessage} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary hover:text-blue-700 p-2 disabled:text-gray-400 disabled:cursor-not-allowed" disabled={!newMessage.trim() && selectedFiles.length === 0}>
+                  <FaPaperPlane size={20} />
+                </button>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="file"
+                  multiple
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept="image/*,video/*"
+                />
+                <button onClick={triggerFileInput} className="text-gray-500 hover:text-primary p-2">
+                  <FaImage size={20} />
+                </button>
+                <button onClick={triggerFileInput} className="text-gray-500 hover:text-primary p-2">
+                  <FaVideo size={20} />
+                </button>
+              </div>
             </div>
           </motion.div>
         )}

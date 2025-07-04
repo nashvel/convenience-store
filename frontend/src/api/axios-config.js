@@ -4,6 +4,20 @@ import eventEmitter from '../utils/event-emitter';
 // Set default credentials for all requests
 axios.defaults.withCredentials = true;
 
+// Add a request interceptor to include the auth token
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Add a response interceptor
 axios.interceptors.response.use(
   (response) => {

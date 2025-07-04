@@ -15,27 +15,43 @@ class AuthMiddleware implements FilterInterface
      *
      * @return mixed
      */
-    public function before(RequestInterface $request, $arguments = null)
+        public function before(RequestInterface $request, $arguments = null)
     {
         $session = session();
         log_message('info', 'AuthMiddleware triggered for URI: ' . $request->getUri());
         log_message('info', 'Session data: ' . json_encode($session->get()));
         log_message('info', 'Cookie header: [' . $request->getHeaderLine('Cookie') . ']');
 
+        $isAuthenticated = false;
+
         // Check if user is logged in via session
         if ($session->has('logged_in') && $session->get('logged_in') === true) {
-            return;
+            $isAuthenticated = true;
         }
 
         // Check for token in Authorization header
-        $authHeader = $request->getHeaderLine('Authorization');
-        if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-            $token = $matches[1];
-            
-            // Validate token against session
-            if ($session->has('token') && $session->get('token') === $token) {
-                return;
+        if (!$isAuthenticated) {
+            $authHeader = $request->getHeaderLine('Authorization');
+            if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+                $token = $matches[1];
+                
+                // Validate token against session
+                if ($session->has('token') && $session->get('token') === $token) {
+                    $isAuthenticated = true;
+                }
             }
+        }
+
+        if ($isAuthenticated) {
+            // Attach user data to the request object
+            $request->user = (object) [
+                'id'         => $session->get('id'),
+                'email'      => $session->get('email'),
+                'first_name' => $session->get('first_name'),
+                'last_name'  => $session->get('last_name'),
+                'role'       => $session->get('role'),
+            ];
+            return $request;
         }
 
         // If not authenticated, return a 401 Unauthorized response
