@@ -138,7 +138,7 @@ class OrderController extends ResourceController
 
             // Add a notification for the user
             $message = "Your order #{$orderId} has been placed and is pending review. You will receive an email once it's accepted.";
-            $link = "/orders/" . $orderId;
+            $link = "/my-orders/" . $orderId;
             $notificationModel = new \App\Models\NotificationModel();
             $notificationModel->save([
                 'user_id' => $userId,
