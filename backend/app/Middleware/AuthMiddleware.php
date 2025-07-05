@@ -18,9 +18,6 @@ class AuthMiddleware implements FilterInterface
         public function before(RequestInterface $request, $arguments = null)
     {
         $session = session();
-        log_message('info', 'AuthMiddleware triggered for URI: ' . $request->getUri());
-        log_message('info', 'Session data: ' . json_encode($session->get()));
-        log_message('info', 'Cookie header: [' . $request->getHeaderLine('Cookie') . ']');
 
         $isAuthenticated = false;
 
@@ -43,15 +40,8 @@ class AuthMiddleware implements FilterInterface
         }
 
         if ($isAuthenticated) {
-            // Attach user data to the request object
-            $request->user = (object) [
-                'id'         => $session->get('id'),
-                'email'      => $session->get('email'),
-                'first_name' => $session->get('first_name'),
-                'last_name'  => $session->get('last_name'),
-                'role'       => $session->get('role'),
-            ];
-            return $request;
+            // User is authenticated, continue to the controller.
+            return;
         }
 
         // If not authenticated, return a 401 Unauthorized response

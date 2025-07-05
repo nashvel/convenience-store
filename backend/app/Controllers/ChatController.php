@@ -9,9 +9,20 @@ use CodeIgniter\API\ResponseTrait;
 
 class ChatController extends BaseController
 {
+    private function getCurrentUser()
+    {
+        $session = session();
+        return (object) [
+            'id'         => $session->get('id'),
+            'email'      => $session->get('email'),
+            'first_name' => $session->get('first_name'),
+            'last_name'  => $session->get('last_name'),
+            'role'       => $session->get('role'),
+        ];
+    }
     public function findOrCreateChat()
     {
-        $user = $this->request->user;
+        $user = $this->getCurrentUser();
         $recipientId = $this->request->getJsonVar('recipientId');
 
         if (!$recipientId) {
@@ -59,7 +70,7 @@ class ChatController extends BaseController
 
     public function getChats()
     {
-        $user = $this->request->user;
+        $user = $this->getCurrentUser();
         $chatModel = new ChatModel();
         $userModel = new \App\Models\UserModel();
         $storeModel = new \App\Models\StoreModel();
@@ -110,6 +121,13 @@ class ChatController extends BaseController
                 }
             }
             $chat['last_message'] = $lastMessage;
+
+            // Add unread message count
+            $chat['unread_count'] = $messageModel
+                ->where('chat_id', $chat['id'])
+                ->where('sender_id !=', $user->id)
+                ->where('is_read', false)
+                ->countAllResults();
         }
 
         return $this->respond($chats);
@@ -119,10 +137,37 @@ class ChatController extends BaseController
 
     public function getMessages($chatId)
     {
-        $user = $this->request->user;
+        $user = $this->getCurrentUser();
         $messageModel = new ChatMessageModel();
+        $chatModel = new ChatModel();
 
-        // TODO: Add validation to ensure the user is part of the chat
+        // Validate that the user is part of this chat
+        $chat = $chatModel->find($chatId);
+        if (!$chat) {
+            return $this->failNotFound('Chat not found.');
+        }
+
+        $isParticipant = false;
+        if ($user->role === 'customer' && $chat['customer_id'] == $user->id) {
+            $isParticipant = true;
+        } elseif ($user->role === 'client') {
+            $storeModel = new \App\Models\StoreModel();
+            $store = $storeModel->find($chat['store_id']);
+            if ($store && $store['client_id'] == $user->id) {
+                $isParticipant = true;
+            }
+        }
+
+        if (!$isParticipant) {
+            return $this->failForbidden('You are not authorized to view these messages.');
+        }
+
+        // Mark incoming messages as read
+        $messageModel
+            ->where('chat_id', $chatId)
+            ->where('sender_id !=', $user->id)
+            ->set(['is_read' => true])
+            ->update();
 
         $messages = $messageModel->select('chat_messages.*, u.first_name, u.last_name, u.avatar')
             ->join('users u', 'u.id = chat_messages.sender_id')
@@ -140,7 +185,7 @@ class ChatController extends BaseController
 
     public function sendMessage($chatId)
     {
-        $user = $this->request->user;
+        $user = $this->getCurrentUser();
         $messageModel = new ChatMessageModel();
 
         // TODO: Add validation to ensure the user is part of the chat

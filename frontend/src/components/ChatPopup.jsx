@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FaTimes, FaMinus, FaPaperPlane, FaImage, FaVideo, FaSpinner } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChat } from '../context/ChatContext';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import getAvatarUrl from '../utils/getAvatarUrl';
 
 const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
-    const { handleSendMessage, currentUserId } = useChat();
+    const { sendMessage, currentUserId } = useChat();
   const [newMessage, setNewMessage] = useState('');
   const [selectedFiles, setSelectedFiles] = useState([]);
   const messagesEndRef = useRef(null);
@@ -35,7 +36,7 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
 
   const submitMessage = () => {
     if (newMessage.trim() || selectedFiles.length > 0) {
-      handleSendMessage(chat.id, { text: newMessage, files: selectedFiles });
+      sendMessage(chat.recipient.id, { text: newMessage, files: selectedFiles });
       setNewMessage('');
       setSelectedFiles([]);
     }
@@ -56,23 +57,23 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
     >
       {/* Header */}
       <div
-        onClick={() => onToggleMinimize(chat.id)}
+        onClick={() => onToggleMinimize(chat.recipient.id)}
         className="flex items-center justify-between p-3 bg-primary text-white rounded-t-lg cursor-pointer flex-shrink-0"
       >
         <div className="flex items-center overflow-hidden">
           <div className="relative mr-3">
-            <img src={chat.avatar} alt={chat.name} className="w-8 h-8 rounded-full" />
-            {chat.active && (
+            <img src={getAvatarUrl(chat.recipient)} alt={chat.recipient?.name} className="w-8 h-8 rounded-full" />
+            {chat.recipient?.active && (
               <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-primary"></span>
             )}
           </div>
-          <span className="font-bold truncate">{chat.name}</span>
+          <span className="font-bold truncate">{chat.recipient?.name || 'Chat'}</span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onToggleMinimize(chat.id);
+              onToggleMinimize(chat.recipient.id);
             }}
             className="text-white hover:bg-white/20 p-1 rounded-full"
           >
@@ -81,7 +82,7 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onClose(chat.id);
+              onClose(chat.recipient.id);
             }}
             className="text-white hover:bg-white/20 p-1 rounded-full"
           >
@@ -103,8 +104,21 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
             {/* Messages */}
             <div className="flex-1 p-4 overflow-y-auto">
               {chat.loading ? (
-                <div className="flex justify-center items-center h-full">
-                  <FaSpinner className="animate-spin text-primary" size={24} />
+                <div className="space-y-4 animate-pulse">
+                  <div className="flex items-end gap-2">
+                    <div className="w-6 h-6 rounded-full bg-gray-300"></div>
+                    <div className="h-10 rounded-lg bg-gray-300 w-2/3"></div>
+                  </div>
+                  <div className="flex justify-end items-end gap-2">
+                    <div className="h-12 rounded-lg bg-gray-400 w-1/2"></div>
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <div className="w-6 h-6 rounded-full bg-gray-300"></div>
+                    <div className="h-8 rounded-lg bg-gray-300 w-1/3"></div>
+                  </div>
+                  <div className="flex justify-end items-end gap-2">
+                    <div className="h-10 rounded-lg bg-gray-400 w-3/4"></div>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
@@ -137,7 +151,7 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                         )}
 
                         <div className={`text-xs mt-1 ${msg.senderId === currentUserId ? 'text-gray-300' : 'text-gray-500'}`}>
-                          {format(new Date(msg.timestamp), 'p')}
+                          {formatInTimeZone(new Date(msg.timestamp), 'Asia/Manila', 'p')}
                           {msg.isSending && <span className="ml-1">(Sending...)</span>}
                         </div>
                       </div>

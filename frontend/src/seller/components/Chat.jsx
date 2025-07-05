@@ -15,7 +15,7 @@ const Chat = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   
   const [newMessage, setNewMessage] = useState('');
-  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [filePreviews, setFilePreviews] = useState([]);
   
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -107,14 +107,15 @@ const Chat = () => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if ((!newMessage.trim() && selectedFiles.length === 0) || !selectedChat) return;
+    const files = filePreviews.map(p => p.file);
+    if ((!newMessage.trim() && files.length === 0) || !selectedChat) return;
 
     const formData = new FormData();
     if (newMessage.trim()) {
       formData.append('text', newMessage.trim());
     }
-    if (selectedFiles.length > 0) {
-      selectedFiles.forEach(file => {
+    if (files.length > 0) {
+      files.forEach(file => {
         formData.append('media[]', file);
       });
     }
@@ -126,17 +127,17 @@ const Chat = () => {
       text: newMessage.trim(),
       timestamp: new Date().toISOString(),
       isSending: true,
-      media: selectedFiles.map(file => ({
+      media: filePreviews.map(p => ({
         id: `temp_media_${Math.random()}`,
-        media_type: file.type.startsWith('image/') ? 'image' : 'video',
-        media_url: URL.createObjectURL(file),
+        media_type: p.file.type.startsWith('image/') ? 'image' : 'video',
+        media_url: p.url, // Reuse preview URL
         isUploading: true,
       })),
     };
 
     setMessages(prev => [...prev, optimisticMessage]);
     setNewMessage('');
-    setSelectedFiles([]);
+    setFilePreviews([]); // URLs are now owned by optimisticMessage, so just clear the array
 
     try {
       const savedMessage = await sendMessage(selectedChat.id, formData);
@@ -149,25 +150,35 @@ const Chat = () => {
         media: savedMessage.media.map(m => ({ ...m, media_url: `${API_URL}/${m.media_url}` }))
       };
       
+      // On success, revoke the blob URLs as they are now replaced by server URLs
+      optimisticMessage.media.forEach(m => URL.revokeObjectURL(m.media_url));
       setMessages(prev => prev.map(m => m.id === tempId ? formattedMessage : m));
 
     } catch (error) {
       console.error('Failed to send message:', error);
+      // On error, also revoke the blob URLs as the message is being removed
+      optimisticMessage.media.forEach(m => URL.revokeObjectURL(m.media_url));
       setMessages(prev => prev.filter(m => m.id !== tempId));
-    } finally {
-        // Clean up blob URLs
-        optimisticMessage.media.forEach(m => URL.revokeObjectURL(m.media_url));
     }
   };
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    setSelectedFiles(prev => [...prev, ...files].slice(0, 5));
+    const newPreviews = files.map(file => ({ file, url: URL.createObjectURL(file) }));
+    setFilePreviews(prev => {
+        const updated = [...prev, ...newPreviews];
+        if (updated.length > 5) {
+            const toRemove = updated.splice(0, updated.length - 5);
+            toRemove.forEach(p => URL.revokeObjectURL(p.url));
+        }
+        return updated;
+    });
     e.target.value = null;
   };
 
-  const removeSelectedFile = (fileToRemove) => {
-    setSelectedFiles(prev => prev.filter(file => file !== fileToRemove));
+  const removeSelectedFile = (previewToRemove) => {
+    URL.revokeObjectURL(previewToRemove.url);
+    setFilePreviews(prev => prev.filter(p => p.url !== previewToRemove.url));
   };
 
   const renderLastMessage = (lastMessage) => {
@@ -302,18 +313,18 @@ const Chat = () => {
 
             {/* Message Input */}
             <div className="p-4 border-t border-gray-200 bg-gray-50">
-              {selectedFiles.length > 0 && (
+              {filePreviews.length > 0 && (
                 <div className="p-2 flex gap-2 overflow-x-auto border-b mb-2">
-                  {selectedFiles.map((file, index) => (
+                  {filePreviews.map((preview, index) => (
                     <div key={index} className="relative flex-shrink-0">
-                      {file.type.startsWith('image/') ? (
-                        <img src={URL.createObjectURL(file)} alt="preview" className="w-16 h-16 object-cover rounded" />
+                      {preview.file.type.startsWith('image/') ? (
+                        <img src={preview.url} alt="preview" className="w-16 h-16 object-cover rounded" />
                       ) : (
                         <div className="w-16 h-16 bg-gray-800 rounded flex items-center justify-center">
                           <FaVideo className="text-white" size={24} />
                         </div>
                       )}
-                      <button onClick={() => removeSelectedFile(file)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 flex items-center justify-center w-4 h-4">
+                      <button onClick={() => removeSelectedFile(preview)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 flex items-center justify-center w-4 h-4">
                         <FaTimes size={8} />
                       </button>
                     </div>
@@ -341,7 +352,7 @@ const Chat = () => {
                     <button onClick={() => fileInputRef.current.click()} className="p-2 text-gray-500 hover:text-primary"><FaImage size={20}/></button>
                     <button onClick={() => fileInputRef.current.click()} className="p-2 text-gray-500 hover:text-primary"><FaVideo size={20}/></button>
                 </div>
-                <button onClick={handleSendMessage} disabled={(!newMessage.trim() && selectedFiles.length === 0)} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors disabled:bg-gray-400">
+                <button onClick={handleSendMessage} disabled={(!newMessage.trim() && filePreviews.length === 0)} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors disabled:bg-gray-400">
                   <FaPaperPlane />
                 </button>
               </div>

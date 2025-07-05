@@ -8,21 +8,57 @@ import { CartContext } from '../context/CartContext';
 import MessageDropdown from './MessageDropdown';
 import NotificationDropdown from './NotificationDropdown';
 import { useNotifications } from '../context/NotificationContext';
+import { getChats } from '../api/chatApi';
 
 
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMessageDropdownOpen, setIsMessageDropdownOpen] = useState(false);
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  
   const navigate = useNavigate();
   const messagesRef = useRef(null);
   const notificationsRef = useRef(null);
+  
   const { openCategorySidebar } = useContext(UIContext);
   const { user } = useAuth();
   const { totalItems: cartCount } = useContext(CartContext);
   const { unreadCount: unreadNotifications } = useNotifications();
+
+  useEffect(() => {
+    if (!user) {
+      setChats([]);
+      setLoading(false);
+      return;
+    }
+
+    const fetchAndSetChats = async () => {
+      try {
+        const fetchedChats = await getChats();
+        setChats(fetchedChats);
+      } catch (error) {
+        console.error("Failed to fetch chats for navbar", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAndSetChats();
+    const intervalId = setInterval(fetchAndSetChats, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [user]);
+
+  const totalUnreadCount = chats.reduce((acc, chat) => acc + (chat.unread_count || 0), 0);
+
+  const toggleMessageDropdown = () => {
+    setIsMessageDropdownOpen(prev => !prev);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,7 +71,7 @@ const Navbar = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (messagesRef.current && !messagesRef.current.contains(event.target)) {
-        setIsMessagesOpen(false);
+        setIsMessageDropdownOpen(false);
       }
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setIsNotificationsOpen(false);
@@ -144,10 +180,21 @@ const Navbar = () => {
                     <NotificationDropdown isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
                   </div>
                   <div className="relative" ref={messagesRef}>
-                    <button onClick={() => setIsMessagesOpen(!isMessagesOpen)} className="relative p-2 rounded-full text-primary hover:bg-blue-50" aria-label="View messages">
+                    <button onClick={toggleMessageDropdown} className="relative p-2 rounded-full text-primary hover:bg-blue-50" aria-label="View messages">
                       <FaEnvelope size={22} />
+                      {totalUnreadCount > 0 && (
+                        <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {totalUnreadCount}
+                        </span>
+                      )}
                     </button>
-                    {isMessagesOpen && <MessageDropdown />}
+                    {isMessageDropdownOpen && (
+                      <MessageDropdown
+                        closeDropdown={() => setIsMessageDropdownOpen(false)}
+                        chats={chats}
+                        loading={loading}
+                      />
+                    )}
                   </div>
                 </>
               )}

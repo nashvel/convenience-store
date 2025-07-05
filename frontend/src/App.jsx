@@ -29,6 +29,7 @@ import MyOrdersList from './pages/MyOrders/MyOrdersList';
 import MyOrderDetail from './pages/MyOrders/MyOrders';
 import TrackOrder from './pages/MyOrders/TrackOrder';
 import PromotionsPage from './pages/Promotions/PromotionsPage';
+import RiderPanel from './rider/RiderPanel';
 import PatchNotes from './pages/PatchNotes';
 import FAQPage from './pages/FAQPage';
 import ContactPage from './pages/ContactPage';
@@ -39,6 +40,7 @@ import { StoreProvider } from './context/StoreContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { UIProvider } from './context/UIContext';
 import { ChatProvider, useChat } from './context/ChatContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ChatPopup from './components/ChatPopup';
 
 const AllRoutes = () => (
@@ -66,6 +68,7 @@ const AllRoutes = () => (
       <Route path="/profile/settings" element={<Settings />} />
       <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
       <Route path="/admin/*" element={<AdminApp />} />
+      <Route path="/rider/*" element={<RiderPanel />} />
     </Routes>
   </AnimatePresence>
 );
@@ -107,8 +110,8 @@ const MainLayout = ({ children }) => {
       </div>
       <Footer />
       <div className="fixed bottom-0 right-4 flex flex-row-reverse items-end gap-4 z-50">
-        {Object.values(openChats).map(chat => (
-          <ChatPopup key={chat.id} chat={chat} onClose={closeChat} onToggleMinimize={toggleMinimizeChat} />
+        {Object.values(openChats).map((chat, index) => (
+          <ChatPopup key={chat.id || index} chat={chat} onClose={closeChat} onToggleMinimize={toggleMinimizeChat} />
         ))}
       </div>
     </div>
@@ -119,8 +122,9 @@ const AppLayout = () => {
   const location = useLocation();
   const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isRiderRoute = location.pathname.startsWith('/rider');
 
-  if (isSellerRoute || isAdminRoute) {
+  if (isSellerRoute || isAdminRoute || isRiderRoute) {
     return (
       <main className="flex-1">
         <AllRoutes />
@@ -137,19 +141,21 @@ const AppLayout = () => {
 
 const AppContent = () => {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <NotificationProvider>
-          <StoreProvider>
-            <UIProvider>
-              <ChatProvider>
-                <AppLayout />
-              </ChatProvider>
-            </UIProvider>
-          </StoreProvider>
-        </NotificationProvider>
-      </CartProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <NotificationProvider>
+            <StoreProvider>
+              <UIProvider>
+                <ChatProvider>
+                  <AppLayout />
+                </ChatProvider>
+              </UIProvider>
+            </StoreProvider>
+          </NotificationProvider>
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

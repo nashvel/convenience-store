@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { getMessages, sendMessage as sendMessageApi, findOrCreateChat } from '../api/chatApi';
 
@@ -9,6 +9,49 @@ export const useChat = () => useContext(ChatContext);
 export const ChatProvider = ({ children }) => {
   const { user } = useAuth();
   const [openChats, setOpenChats] = useState({}); // Keyed by recipientId
+
+  const fetchMessages = useCallback(async (chatId, recipientId) => {
+    try {
+      const fetchedMessages = await getMessages(chatId);
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+      const formattedMessages = fetchedMessages.map(msg => ({
+        id: msg.id,
+        senderId: msg.sender_id,
+        text: msg.message,
+        timestamp: msg.created_at,
+        media: msg.media ? msg.media.map(m => ({ ...m, media_url: `${API_URL}/${m.media_url}` })) : [],
+      }));
+
+      setOpenChats(prev => {
+        const chat = prev[recipientId];
+        if (!chat) return prev; // Chat was closed in the meantime
+
+        const currentMessages = chat.messages || [];
+        const optimisticMessages = currentMessages.filter(m => m.isSending);
+        const currentServerMessages = currentMessages.filter(m => !m.isSending);
+
+        // Avoid re-render if server data hasn't changed
+        if (JSON.stringify(currentServerMessages) === JSON.stringify(formattedMessages)) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          [recipientId]: {
+            ...chat,
+            messages: [...formattedMessages, ...optimisticMessages],
+            isLoading: false,
+          },
+        };
+      });
+    } catch (error) {
+      console.error(`Failed to fetch messages for chat ${chatId}`, error);
+      setOpenChats(prev => {
+        if (!prev[recipientId]) return prev;
+        return { ...prev, [recipientId]: { ...prev[recipientId], isLoading: false } };
+      });
+    }
+  }, []);
 
   const openChat = async (recipient) => {
     if (!recipient || !recipient.id) {
@@ -26,14 +69,12 @@ export const ChatProvider = ({ children }) => {
 
     let currentOpenChats = { ...openChats };
     if (Object.keys(currentOpenChats).length >= 3) {
-        const oldestChatKey = Object.keys(currentOpenChats)[0];
-        delete currentOpenChats[oldestChatKey];
+      const oldestChatKey = Object.keys(currentOpenChats)[0];
+      delete currentOpenChats[oldestChatKey];
     }
 
-    // Immediately set a loading state for the new chat window
     currentOpenChats[recipient.id] = {
-      ...recipient,
-      recipient: recipient, // Ensure recipient data is available immediately
+      recipient: { ...recipient, name: recipient.name },
       chatId: null,
       messages: [],
       isLoading: true,
@@ -43,53 +84,32 @@ export const ChatProvider = ({ children }) => {
 
     try {
       const chat = await findOrCreateChat(recipient.id);
-      if (!chat || !chat.id) {
-        throw new Error("Failed to find or create a chat.");
-      }
+      if (!chat || !chat.id) throw new Error("Failed to find or create a chat.");
 
-      const fetchedMessages = await getMessages(chat.id);
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-      const formattedMessages = fetchedMessages.map(msg => ({
-        id: msg.id,
-        senderId: msg.sender_id,
-        text: msg.message,
-        timestamp: msg.created_at,
-        media: msg.media ? msg.media.map(m => ({ ...m, media_url: `${API_URL}/${m.media_url}` })) : [],
-      }));
+      setOpenChats(prev => {
+        if (!prev[recipient.id]) return prev;
+        return {
+            ...prev,
+            [recipient.id]: { ...prev[recipient.id], chatId: chat.id },
+        }
+      });
 
-      // Update the chat with the full data
-      setOpenChats(prev => ({
-        ...prev,
-        [recipient.id]: {
-          ...prev[recipient.id],
-          chatId: chat.id,
-          messages: formattedMessages,
-          isLoading: false,
-        },
-      }));
+      await fetchMessages(chat.id, recipient.id);
 
     } catch (error) {
       console.error("Failed to open chat", error);
-      // Remove the chat window on error
-      setOpenChats(prev => {
-          const updatedChats = {...prev};
-          delete updatedChats[recipient.id];
-          return updatedChats;
-      });
+      closeChat(recipient.id);
     }
   };
 
   const closeChat = (recipientId) => {
     setOpenChats(prev => {
       const newChats = { ...prev };
-      // Clean up any blob URLs from previews
       if (newChats[recipientId] && newChats[recipientId].messages) {
         newChats[recipientId].messages.forEach(msg => {
           if (msg.media) {
             msg.media.forEach(m => {
-              if (m.isUploading) {
-                URL.revokeObjectURL(m.media_url);
-              }
+              if (m.isUploading) URL.revokeObjectURL(m.media_url);
             });
           }
         });
@@ -100,17 +120,21 @@ export const ChatProvider = ({ children }) => {
   };
 
   const toggleMinimizeChat = (recipientId) => {
-    setOpenChats(prev => ({
-      ...prev,
-      [recipientId]: { ...prev[recipientId], minimized: !prev[recipientId].minimized }
-    }));
+    setOpenChats(prev => {
+      if (!prev[recipientId]) return prev;
+      return {
+        ...prev,
+        [recipientId]: { ...prev[recipientId], minimized: !prev[recipientId].minimized }
+      };
+    });
   };
 
   const handleSendMessage = async (recipientId, messageData) => {
-    if (!openChats[recipientId]) return;
+    const chat = openChats[recipientId];
+    if (!chat || !chat.chatId) return;
 
     const { text, files } = messageData;
-    const { chatId } = openChats[recipientId];
+    const { chatId } = chat;
     const tempId = `temp_${Date.now()}`;
 
     const optimisticMessage = {
@@ -137,16 +161,10 @@ export const ChatProvider = ({ children }) => {
 
     try {
       const formData = new FormData();
-      if (text.trim()) {
-        formData.append('text', text.trim());
-      }
-      if (files.length > 0) {
-        files.forEach(file => {
-          formData.append('media[]', file);
-        });
-      }
+      if (text.trim()) formData.append('text', text.trim());
+      if (files.length > 0) files.forEach(file => formData.append('media[]', file));
 
-            const savedMessage = await sendMessageApi(chatId, formData);
+      const savedMessage = await sendMessageApi(chatId, formData);
       const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
       const formattedMessage = {
         ...savedMessage,
@@ -183,12 +201,23 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      Object.values(openChats).forEach(chat => {
+        if (chat.chatId && !chat.minimized) {
+          fetchMessages(chat.chatId, chat.recipient.id);
+        }
+      });
+    }, 3000);
+    return () => clearInterval(intervalId);
+  }, [openChats, fetchMessages]);
+
   const value = {
     openChats,
     openChat,
     closeChat,
     toggleMinimizeChat,
-    handleSendMessage,
+    sendMessage: handleSendMessage,
     currentUserId: user?.id,
   };
 
