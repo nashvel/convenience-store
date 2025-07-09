@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import AddressModal from '../Modals/AddressModal';
 import AddressSelectionModal from '../Modals/AddressSelectionModal';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config';
+import api from '../../api/axios-config';
+
 import { toast } from 'react-toastify';
 
 const AddressSelector = ({ onSelectAddress, user }) => {
@@ -17,7 +17,7 @@ const AddressSelector = ({ onSelectAddress, user }) => {
   const fetchAddresses = async () => {
     if (!user) return;
     try {
-      const response = await axios.get(`${API_BASE_URL}/addresses`, { withCredentials: true });
+      const response = await api.get('/addresses');
       if (response.data && response.data.addresses) {
         const fetchedAddresses = response.data.addresses;
         setAddresses(fetchedAddresses);
@@ -50,10 +50,10 @@ const AddressSelector = ({ onSelectAddress, user }) => {
       const payload = { ...addressData, label: currentSlotLabel, zip_code: addressData.zipCode };
       let response;
       if (editingAddress) {
-        response = await axios.put(`${API_BASE_URL}/addresses/${editingAddress.id}`, payload, { withCredentials: true });
+        response = await api.put(`/addresses/${editingAddress.id}`, payload);
         toast.success('Address updated successfully!');
       } else {
-        response = await axios.post(`${API_BASE_URL}/addresses`, payload, { withCredentials: true });
+        response = await api.post('/addresses', payload);
         toast.success('Address added successfully!');
       }
       
@@ -74,7 +74,7 @@ const AddressSelector = ({ onSelectAddress, user }) => {
   const handleDeleteAddress = async (addressId) => {
     if (window.confirm('Are you sure you want to delete this address?')) {
       try {
-        await axios.delete(`${API_BASE_URL}/addresses/${addressId}`, { withCredentials: true });
+        await api.delete(`/addresses/${addressId}`);
         toast.success('Address deleted successfully!');
         
         if (selectedAddress && selectedAddress.id === addressId) {

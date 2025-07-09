@@ -85,9 +85,13 @@ class ChatController extends BaseController
                 $store = $storeModel->find($chat['store_id']);
                 if ($store) {
                     $client = $userModel->select('id, first_name, last_name, avatar')->find($store['client_id']);
-                    $chat['other_user'] = $client;
                     if ($client) {
-                        $chat['other_user']['name'] = $store['name']; // Add store name
+                        $chat['other_user'] = $client;
+                        $chat['other_user']['name'] = $store['name'];
+                        // Prioritize store logo for avatar if it exists
+                        if (!empty($store['logo'])) {
+                            $chat['other_user']['avatar'] = $store['logo'];
+                        }
                     }
                 }
             }
@@ -109,15 +113,13 @@ class ChatController extends BaseController
         unset($chat); // break the reference
 
         foreach ($chats as &$chat) {
-            $lastMessage = $messageModel
-                ->where('chat_id', $chat['id'])
-                ->orderBy('created_at', 'desc')
-                ->first();
-
-            if ($lastMessage && empty($lastMessage['message'])) {
-                $media = $mediaModel->where('chat_message_id', $lastMessage['id'])->first();
-                if ($media) {
-                    $lastMessage['media_type'] = $media['media_type'];
+            $lastMessage = $messageModel->where('chat_id', $chat['id'])->orderBy('created_at', 'DESC')->first();
+            if ($lastMessage && !empty($lastMessage['created_at'])) {
+                try {
+                    $date = new \DateTime($lastMessage['created_at'], new \DateTimeZone('UTC'));
+                    $lastMessage['created_at'] = $date->format(DATE_ATOM);
+                } catch (\Exception $e) {
+                    // Log error or handle invalid date format
                 }
             }
             $chat['last_message'] = $lastMessage;
@@ -175,6 +177,17 @@ class ChatController extends BaseController
             ->orderBy('chat_messages.created_at', 'asc')
             ->findAll();
 
+        foreach ($messages as &$message) {
+            if (!empty($message['created_at'])) {
+                try {
+                    $date = new \DateTime($message['created_at'], new \DateTimeZone('UTC'));
+                    $message['created_at'] = $date->format(DATE_ATOM);
+                } catch (\Exception $e) {
+                    // Log error or handle invalid date format
+                }
+            }
+        }
+
         $mediaModel = new ChatMessageMediaModel();
         foreach ($messages as &$message) {
             $message['media'] = $mediaModel->where('chat_message_id', $message['id'])->findAll();
@@ -205,7 +218,7 @@ class ChatController extends BaseController
                 'chat_id'   => $chatId,
                 'sender_id' => $user->id,
                 'message'   => $text ?? '', // Ensure message is not null
-                'created_at' => date('Y-m-d H:i:s'),
+                'created_at' => gmdate('Y-m-d H:i:s'), // Use UTC
             ];
 
             $messageId = $messageModel->insert($messageData);
@@ -253,6 +266,14 @@ class ChatController extends BaseController
 
         // Refetch the message with media
         $newMessage = $messageModel->find($messageId);
+        if ($newMessage && !empty($newMessage['created_at'])) {
+            try {
+                $date = new \DateTime($newMessage['created_at'], new \DateTimeZone('UTC'));
+                $newMessage['created_at'] = $date->format(DATE_ATOM);
+            } catch (\Exception $e) {
+                // Log error or handle invalid date format
+            }
+        }
         $mediaModel = new ChatMessageMediaModel();
         $newMessage['media'] = $mediaModel->where('chat_message_id', $messageId)->findAll();
 

@@ -7,8 +7,8 @@ import { FaTrash, FaArrowLeft, FaShoppingCart } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { CartContext } from '../../context/CartContext';
 import { StoreContext } from '../../context/StoreContext';
-import { PRODUCT_ASSET_URL, API_BASE_URL } from '../../config';
-import axios from 'axios';
+import { PRODUCT_ASSET_URL } from '../../config';
+import api from '../../api/axios-config';
 import Checkout from '../../components/Checkout/Checkout';
 import StoreLocation from '../../components/Cart/StoreLocation';
 import CartSkeleton from '../../components/Skeletons/CartSkeleton';
@@ -81,7 +81,8 @@ const Cart = () => {
     ? selectedStores.reduce((acc, store) => acc + (Number(store.delivery_fee) || 0), 0)
     : 0.00;
 
-  const checkoutTotal = total + shippingFee;
+
+
   const pickupStore = selectedStoreIds.length === 1 ? stores.find(s => s.id === parseInt(selectedStoreIds[0])) : null;
 
   const handleCheckout = async (e) => {
@@ -94,30 +95,38 @@ const Cart = () => {
       toast.error('Please select items to checkout.');
       return;
     }
-    if (shippingOption === 'door_to_door' && (!deliveryAddress || !deliveryAddress.line1)) {
-      toast.error('Please provide a complete delivery address.');
+    if (shippingOption === 'door_to_door' && (!deliveryAddress || !deliveryAddress.id)) {
+      toast.error('Please select a valid delivery address.');
       return;
     }
 
     setIsSubmitting(true);
 
+    // Calculate totals at the time of submission to prevent stale state issues
+    const currentShippingFee = shippingOption === 'door_to_door'
+      ? selectedStores.reduce((acc, store) => acc + (Number(store.delivery_fee) || 0), 0)
+      : 0.00;
+    const currentCheckoutTotal = Number(subtotal) + currentShippingFee;
+
     const orderData = {
       userId: user.id,
-      cartItems: selectedCartItems,
+      cartItems: selectedCartItems.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+        store_id: item.store_id,
+        name: item.name,
+      })),
       shippingInfo: {
-        ...deliveryAddress,
-        name: `${user.first_name} ${user.last_name}`,
-        email: user.email,
+        id: deliveryAddress.id,
       },
       payment_method: paymentMethod,
-      shipping_method: shippingOption,
-      shipping_fee: shippingFee,
-      subtotal: subtotal,
-      total: checkoutTotal,
+      shipping_fee: currentShippingFee,
     };
 
+
     try {
-      const response = await axios.post(`${API_BASE_URL}/orders`, orderData);
+      const response = await api.post('/orders', orderData);
       if (response.data.success) {
         toast.success('Order placed successfully!');
         clearCart();
@@ -127,8 +136,9 @@ const Cart = () => {
         toast.error(response.data.message || 'There was an error placing your order.');
       }
     } catch (error) {
-      console.error('Order submission error:', error);
-      toast.error('Failed to place order. Please try again.');
+      console.error('Order submission error:', error.response ? error.response.data : error.message);
+      const errorMessage = error.response?.data?.messages?.error || 'Failed to place order. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -159,12 +169,11 @@ const Cart = () => {
           handleCheckout={handleCheckout}
           isSubmitting={isSubmitting}
           setIsCheckingOut={setIsCheckingOut}
-          checkoutTotal={checkoutTotal}
           formatPrice={formatPrice}
           pickupStore={pickupStore}
           selectedStores={selectedStores}
         />
-      ) : cartCount === 0 ? (
+      ) : cartItems.length === 0 ? (
         <EmptyCart />
       ) : (
         <>
@@ -214,7 +223,6 @@ const Cart = () => {
             <OrderSummary
               subtotal={subtotal}
               shippingFee={shippingFee}
-              total={checkoutTotal}
               onCheckout={() => setIsCheckingOut(true)}
               selectedItemCount={selectedItems.length}
             />

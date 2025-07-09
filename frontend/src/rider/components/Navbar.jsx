@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaBell, FaUserCircle, FaSun, FaMoon, FaEdit, FaSignOutAlt } from 'react-icons/fa';
+import { FaBell, FaUserCircle, FaSun, FaMoon, FaEdit, FaSignOutAlt, FaBars } from 'react-icons/fa';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 const Navbar = ({ notificationCount, onClearNotifications, availableOrders }) => {
+  const { logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isNotificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -20,9 +22,8 @@ const Navbar = ({ notificationCount, onClearNotifications, availableOrders }) =>
     setNotificationDropdownOpen(false);
   };
 
-  const handleLogout = () => {
-    // Implement actual logout logic here
-    alert('Logged out successfully!');
+    const handleLogout = () => {
+    logout();
   };
 
   useEffect(() => {
@@ -44,8 +45,11 @@ const Navbar = ({ notificationCount, onClearNotifications, availableOrders }) =>
     <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex-shrink-0">
-            <h1 className="text-xl font-bold text-gray-800 dark:text-white">Rider Panel</h1>
+          <div className="flex items-center">
+            
+            <div className="flex-shrink-0 ml-4 md:ml-0">
+              <h1 className="text-xl font-bold text-gray-800 dark:text-white">Rider Panel</h1>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             <button 

@@ -1,11 +1,13 @@
 import React from 'react';
 import { FaInfoCircle } from 'react-icons/fa';
 
-const OrderSummary = ({ subtotal, shippingFee, total, onCheckout, selectedItemCount }) => {
+const OrderSummary = ({ subtotal, shippingFee, onCheckout, selectedItemCount }) => {
   const formatPrice = (price) => {
     const numericPrice = Number(price) || 0;
     return numericPrice.toFixed(2);
   };
+
+  const total = Number(subtotal) + Number(shippingFee);
 
   return (
     <div className="bg-gray-50 rounded-xl shadow-lg p-6 sticky top-24">
@@ -15,6 +17,7 @@ const OrderSummary = ({ subtotal, shippingFee, total, onCheckout, selectedItemCo
           <span>Subtotal ({selectedItemCount} items)</span>
           <span className="font-medium text-gray-900">₱{formatPrice(subtotal)}</span>
         </div>
+
         <div className="flex justify-between">
           <span className="flex items-center gap-1.5">
             Shipping Fee

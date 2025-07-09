@@ -6,57 +6,58 @@ use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
+use App\Models\UserModel;
+use Exception;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 class AuthMiddleware implements FilterInterface
 {
-    /**
-     * @param RequestInterface $request
-     * @param array|null       $arguments
-     *
-     * @return mixed
-     */
-        public function before(RequestInterface $request, $arguments = null)
+    public function before(RequestInterface $request, $arguments = null)
     {
-        $session = session();
+        $authHeader = $request->getHeaderLine('Authorization');
+        $token = null;
 
-        $isAuthenticated = false;
-
-        // Check if user is logged in via session
-        if ($session->has('logged_in') && $session->get('logged_in') === true) {
-            $isAuthenticated = true;
+        if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+            $token = $matches[1];
         }
 
-        // Check for token in Authorization header
-        if (!$isAuthenticated) {
-            $authHeader = $request->getHeaderLine('Authorization');
-            if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-                $token = $matches[1];
-                
-                // Validate token against session
-                if ($session->has('token') && $session->get('token') === $token) {
-                    $isAuthenticated = true;
-                }
+        if ($token === null) {
+            log_message('error', 'AuthMiddleware: No token provided.');
+            return Services::response()
+                ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED)
+                ->setJSON(['error' => 'Unauthorized: No token provided']);
+        }
+
+        try {
+            $key = getenv('jwt.secret');
+            $decoded = JWT::decode($token, new Key($key, 'HS256'));
+
+            $userModel = new UserModel();
+            $user = $userModel->select('users.*, roles.name as role')
+                              ->join('roles', 'roles.id = users.role_id')
+                              ->where('users.id', $decoded->uid)
+                              ->first();
+
+            if ($user) {
+                log_message('info', 'AuthMiddleware: User authenticated successfully. User ID: ' . $user['id']);
+                                $request->user = (object)$user;
+                return;
             }
-        }
+            
+            log_message('error', 'AuthMiddleware: User not found for UID: ' . $decoded->uid);
+            return Services::response()
+                ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED)
+                ->setJSON(['error' => 'Unauthorized: User not found']);
 
-        if ($isAuthenticated) {
-            // User is authenticated, continue to the controller.
-            return;
+        } catch (Exception $e) {
+            log_message('error', 'AuthMiddleware: JWT decoding failed. Reason: ' . $e->getMessage());
+            return Services::response()
+                ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED)
+                ->setJSON(['error' => 'Unauthorized: ' . $e->getMessage()]);
         }
-
-        // If not authenticated, return a 401 Unauthorized response
-        return Services::response()
-            ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED)
-            ->setJSON(['error' => 'Unauthorized']);
     }
 
-    /**
-     * @param RequestInterface  $request
-     * @param ResponseInterface $response
-     * @param array|null        $arguments
-     *
-     * @return mixed
-     */
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
         // No action needed

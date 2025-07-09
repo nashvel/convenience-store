@@ -38,7 +38,7 @@ class Logger extends BaseConfig
      *
      * @var int|list<int>
      */
-    public int $threshold = 4;
+    public int $threshold = 9;
 
     /**
      * --------------------------------------------------------------------------
@@ -101,7 +101,7 @@ class Logger extends BaseConfig
              *
              * NOTE: Leaving it blank will default to 'log'.
              */
-            'fileExtension' => '',
+            'fileExtension' => 'log',
 
             /*
              * The file system permissions to be applied on newly created log files.
@@ -112,12 +112,22 @@ class Logger extends BaseConfig
             'filePermissions' => 0644,
 
             /*
+             * The maximum number of log files to keep.
+             */
+            'maxFiles' => 5,
+
+            /*
+             * The format of the log message.
+             */
+                        'format' => '[{date}] {level}: {message}',
+
+            /*
              * Logging Directory Path
              *
              * By default, logs are written to WRITEPATH . 'logs/'
              * Specify a different destination here, if desired.
              */
-            'path' => '',
+            'path' => WRITEPATH . 'logs/',
         ],
 
         /*

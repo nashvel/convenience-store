@@ -16,7 +16,7 @@ try {
     $mysqli->query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Drop all tables
-    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications'];
+    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications', 'achievements', 'rider_achievements'];
     foreach ($tables as $table) {
         $mysqli->query("DROP TABLE IF EXISTS $table");
     }
@@ -40,6 +40,7 @@ try {
         CREATE TABLE users (
             id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             role_id INT(11) UNSIGNED NOT NULL,
+            store_id INT(11) UNSIGNED NULL,
             email VARCHAR(255) NOT NULL UNIQUE,
             password_hash VARCHAR(255) NOT NULL,
             first_name VARCHAR(100) NOT NULL,
@@ -50,7 +51,8 @@ try {
             is_blacklisted BOOLEAN DEFAULT FALSE,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
-            deleted_at DATETIME NULL
+            deleted_at DATETIME NULL,
+            FOREIGN KEY (role_id) REFERENCES roles(id)
         )
     ");
 
@@ -107,6 +109,9 @@ try {
             FOREIGN KEY (client_id) REFERENCES users(id)
         )
     ");
+
+    // Add foreign key from users to stores after both tables are created
+    $mysqli->query("ALTER TABLE users ADD CONSTRAINT fk_users_store_id FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE SET NULL;");
 
     // Create products table (depends on stores and categories)
     $mysqli->query("
@@ -340,6 +345,36 @@ try {
             thumbnail_url VARCHAR(255) NULL,
             created_at DATETIME NULL,
             FOREIGN KEY (chat_message_id) REFERENCES chat_messages(id) ON DELETE CASCADE
+        )
+    ");
+
+    // Create achievements table (managed by admin)
+    $mysqli->query("
+        CREATE TABLE achievements (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NOT NULL,
+            icon VARCHAR(100) NOT NULL, -- e.g., 'FaTrophy'
+            metric VARCHAR(100) NOT NULL, -- e.g., 'completed_orders', 'perfect_rating_streak_days'
+            goal INT(11) NOT NULL, -- e.g., 250 (for orders), 30 (for days)
+            created_at DATETIME NULL,
+            updated_at DATETIME NULL
+        )
+    ");
+
+    // Create rider_achievements table (tracks rider progress)
+    $mysqli->query("
+        CREATE TABLE rider_achievements (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            rider_id INT(11) UNSIGNED NOT NULL,
+            achievement_id INT(11) UNSIGNED NOT NULL,
+            progress INT(11) DEFAULT 0,
+            unlocked_at DATETIME NULL,
+            created_at DATETIME NULL,
+            updated_at DATETIME NULL,
+            FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_rider_achievement (rider_id, achievement_id)
         )
     ");
 

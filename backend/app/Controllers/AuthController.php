@@ -212,11 +212,9 @@ class AuthController extends ResourceController
                     'aud' => base_url(), // Audience
                     'iat' => $iat,
                     'exp' => $exp,
-                    'data' => [
-                        'id'    => $user['id'],
-                        'email' => $user['email'],
-                        'role'  => $role['name'],
-                    ]
+                    'uid'   => $user['id'],
+                    'email' => $user['email'],
+                    'role'  => $role['name']
                 ];
 
                 $token = JWT::encode($payload, $key, 'HS256');

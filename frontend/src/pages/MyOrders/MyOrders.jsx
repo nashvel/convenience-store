@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/axios-config';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL, PRODUCT_ASSET_URL } from '../../config';
+import { PRODUCT_ASSET_URL } from '../../config';
 import CancelOrderModal from '../../components/Modals/CancelOrderModal';
 import MyOrderDetailSkeleton from '../../components/Skeletons/MyOrderDetailSkeleton';
 import { toast } from 'react-toastify';
@@ -26,7 +26,7 @@ const MyOrders = () => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/my-orders/${id}`);
+        const response = await api.get(`/my-orders/${id}`);
         if (response.data.success) {
           setOrder(response.data.order);
         } else {
@@ -68,7 +68,7 @@ const MyOrders = () => {
       return;
     }
     try {
-      const response = await axios.put(`${API_BASE_URL}/my-orders/cancel/${id}`, {
+      const response = await api.put(`/my-orders/cancel/${id}`, {
         itemIds: selectedItems,
       });
       if (response.data.success) {

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/axios-config';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -36,7 +35,7 @@ const SignUp = () => {
     setIsSuccess(false);
 
     try {
-            const response = await axios.post(`${API_BASE_URL}/auth/signup`, {
+            const response = await api.post('/auth/signup', {
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,

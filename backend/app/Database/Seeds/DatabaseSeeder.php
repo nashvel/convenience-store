@@ -15,5 +15,7 @@ class DatabaseSeeder extends Seeder
         $this->call('CategorySeeder');
         $this->call('ProductSeeder');
         $this->call('SettingSeeder');
+        $this->call('AchievementSeeder');
+        $this->call('RiderStoreAssignmentSeeder');
     }
 }

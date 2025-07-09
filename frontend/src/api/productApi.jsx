@@ -1,13 +1,4 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
-
-
-const API_URL = API_BASE_URL;
-
-const apiClient = axios.create({
-  withCredentials: true,
-  baseURL: API_URL,
-});
+import api from './axios-config';
 
 const mockProducts = [
   {
@@ -154,7 +145,7 @@ const mockCategories = [
 ];
 
 export const fetchAllProducts = () => {
-  return apiClient.get('/products');
+  return api.get('/products');
 };
 
 export const fetchFeaturedProducts = async () => {
@@ -163,7 +154,7 @@ export const fetchFeaturedProducts = async () => {
 };
 
 export const fetchProductById = (id) => {
-  return apiClient.get(`/products/${id}`);
+  return api.get(`/products/${id}`);
 };
 
 export const fetchProductsByCategory = async (category) => {
@@ -173,7 +164,7 @@ export const fetchProductsByCategory = async (category) => {
 };
 
 export const fetchCategories = async () => {
-    const response = await apiClient.get('/categories/nested');
+    const response = await api.get('/categories/nested');
     return response.data;
 };
 

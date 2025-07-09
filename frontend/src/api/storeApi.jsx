@@ -1,13 +1,5 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
-
-const API_URL = API_BASE_URL;
-
-const apiClient = axios.create({
-  withCredentials: true,
-  baseURL: API_URL,
-});
+import api from './axios-config';
 
 export const fetchStores = () => {
-  return apiClient.get('/stores');
+  return api.get('/stores');
 };

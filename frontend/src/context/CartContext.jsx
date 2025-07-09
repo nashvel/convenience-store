@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../api/axios-config';
 import { AuthContext } from './AuthContext';
 import { StoreContext } from './StoreContext'; // Import StoreContext
 
@@ -16,7 +16,7 @@ export const CartProvider = ({ children }) => {
   const { user } = useContext(AuthContext);
   const { stores } = useContext(StoreContext); // Use stores from context
 
-  const API_URL = 'http://localhost:8080/api';
+  
 
   useEffect(() => {
     if (user) {
@@ -28,26 +28,34 @@ export const CartProvider = ({ children }) => {
   }, [user]);
 
   useEffect(() => {
-    const itemCount = cartItems.reduce((total, item) => total + Number(item.quantity), 0);
+    // Calculate total items
+    const itemCount = cartItems.reduce((sum, item) => sum + Number(item.quantity), 0);
     setTotalItems(itemCount);
 
-    const selectedCartItems = cartItems.filter(item => selectedItems.includes(item.cartItemId));
-
-    const newSubtotal = selectedCartItems.reduce((sum, item) => {
-        const basePrice = Number(item.price) || 0;
-        const discount = Number(item.discount) || 0;
-        const finalPrice = discount > 0 ? basePrice * (1 - discount / 100) : basePrice;
-        return sum + finalPrice * item.quantity;
+    // Calculate total value of ALL items in the cart
+    const newTotal = cartItems.reduce((sum, item) => {
+      const basePrice = Number(item.price) || 0;
+      const discount = Number(item.discount) || 0;
+      const finalPrice = discount > 0 ? basePrice * (1 - discount / 100) : basePrice;
+      return sum + finalPrice * item.quantity;
     }, 0);
+    setTotal(newTotal);
 
+    // Calculate subtotal value of SELECTED items
+    const selectedCartItems = cartItems.filter(item => selectedItems.includes(item.cartItemId));
+    const newSubtotal = selectedCartItems.reduce((sum, item) => {
+      const basePrice = Number(item.price) || 0;
+      const discount = Number(item.discount) || 0;
+      const finalPrice = discount > 0 ? basePrice * (1 - discount / 100) : basePrice;
+      return sum + finalPrice * item.quantity;
+    }, 0);
     setSubtotal(newSubtotal);
-    setTotal(newSubtotal);
 
-  }, [cartItems, selectedItems, stores]);
+  }, [cartItems, selectedItems]);
 
   const fetchCart = async () => {
     try {
-      const response = await axios.get(`${API_URL}/cart`, { withCredentials: true });
+      const response = await api.get('/cart');
       const fetchedItems = response.data.cart_items || [];
       setCartItems(fetchedItems);
       setSelectedItems([]);
@@ -81,7 +89,7 @@ export const CartProvider = ({ children }) => {
       return;
     }
     try {
-      await axios.post(`${API_URL}/cart`, { product_id: product.id, quantity }, { withCredentials: true });
+      await api.post('/cart', { product_id: product.id, quantity });
       toast.success(`${product.name} added to cart!`);
       fetchCart();
     } catch (error) {
@@ -92,7 +100,7 @@ export const CartProvider = ({ children }) => {
 
   const removeFromCart = async (cartItemId) => {
     try {
-      await axios.delete(`${API_URL}/cart/items/${cartItemId}`, { withCredentials: true });
+      await api.delete(`/cart/items/${cartItemId}`);
       fetchCart();
     } catch (error) {
       console.error('Failed to remove item from cart:', error);
@@ -106,7 +114,7 @@ export const CartProvider = ({ children }) => {
       return;
     }
     try {
-      await axios.put(`${API_URL}/cart/items/${cartItemId}`, { quantity }, { withCredentials: true });
+      await api.put(`/cart/items/${cartItemId}`, { quantity });
       fetchCart();
     } catch (error) {
       console.error('Failed to update item quantity:', error);
@@ -116,7 +124,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = async () => {
     try {
-      await axios.delete(`${API_URL}/cart`, { withCredentials: true });
+      await api.delete('/cart');
       setCartItems([]);
       setSelectedItems([]);
     } catch (error) {

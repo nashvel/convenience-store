@@ -1,42 +1,40 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    if (storedUser && storedUser !== 'undefined' && storedToken) {
-      try {
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('token');
+
+      if (storedUser && storedUser !== 'undefined' && storedToken) {
         const userDetails = JSON.parse(storedUser);
-        // Combine user details and token into the initial state
-        return { ...userDetails, token: storedToken };
-      } catch (error) {
-        console.error('Failed to parse user from localStorage:', error);
-        // Clear corrupted data
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        return null;
+        setUser({ ...userDetails, token: storedToken });
       }
+    } catch (error) {
+      console.error('Failed to parse user from localStorage:', error);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
     }
-    return null;
-  });
+  }, []);
 
   const login = (userData) => {
     if (userData && userData.token) {
-      // Store the user details and token separately for clarity and security
       const userDetails = { ...userData };
-      delete userDetails.token; // Avoid duplicating the token inside the user object
+      delete userDetails.token;
 
       localStorage.setItem('user', JSON.stringify(userDetails));
       localStorage.setItem('token', userData.token);
-
-      // Set the user state with both details and the token
       setUser({ ...userDetails, token: userData.token });
     } else {
       console.error('Login failed: userData or token is missing.', userData);
-      logout(); // Ensure clean state on failed login
+      logout();
     }
   };
 
@@ -44,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     if (user && user.token) {
       const updatedUser = { ...user, ...newUserDetails, token: user.token };
       const userDetailsToStore = { ...user, ...newUserDetails };
-      delete userDetailsToStore.token; // Don't store token in the user object in localStorage
+      delete userDetailsToStore.token;
 
       localStorage.setItem('user', JSON.stringify(userDetailsToStore));
       setUser(updatedUser);
@@ -57,9 +55,18 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const value = {
+    user,
+    login,
+    logout,
+    updateUser,
+    isAuthenticated: !!user,
+    loading,
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

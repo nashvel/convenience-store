@@ -5,10 +5,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence } from 'framer-motion';
 import ScrollToTop from './utils/ScrollToTop';
 
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import CategorySidebar from './components/CategorySidebar';
-import CategoryNavbar from './components/CategoryNavbar';
+import Navbar from './components/Navbar/Navbar';
+import Footer from './components/Footer/Footer';
+import CategorySidebar from './components/Category/CategorySidebar';
+import CategoryNavbar from './components/Category/CategoryNavbar';
 
 import Home from './pages/Navbar/Home';
 import Products from './pages/Products/Products';
@@ -21,7 +21,7 @@ import ForgotPassword from './pages/Auth/ForgotPassword';
 import StoresListPage from './pages/Stores/StoresListPage';
 import RestaurantsPage from './pages/Restaurants/Restaurants';
 import StorePage from './pages/Stores/StorePage';
-import SellerDashboard from './seller/SellerDashboard';
+import SellerDashboard from './seller/home/SellerDashboard.jsx';
 import AdminApp from './admin/AdminApp';
 import Partners from './pages/Partners/Partners';
 import Settings from './pages/Profile/Settings';
@@ -29,10 +29,11 @@ import MyOrdersList from './pages/MyOrders/MyOrdersList';
 import MyOrderDetail from './pages/MyOrders/MyOrders';
 import TrackOrder from './pages/MyOrders/TrackOrder';
 import PromotionsPage from './pages/Promotions/PromotionsPage';
-import RiderPanel from './rider/RiderPanel';
-import PatchNotes from './pages/PatchNotes';
-import FAQPage from './pages/FAQPage';
-import ContactPage from './pages/ContactPage';
+import RiderPanel from './rider/Home/RiderPanel.jsx';
+import PatchNotes from './pages/PatchNotes/PatchNotes';
+import FAQPage from './pages/HelpCenter/FAQPage';
+import ContactPage from './pages/HelpCenter/ContactPage';
+import HelpCenterPage from './pages/HelpCenter/HelpCenterPage';
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -41,7 +42,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import { UIProvider } from './context/UIContext';
 import { ChatProvider, useChat } from './context/ChatContext';
 import { ThemeProvider } from './context/ThemeContext';
-import ChatPopup from './components/ChatPopup';
+import ChatPopup from './components/Chat/ChatPopup';
 
 const AllRoutes = () => (
   <AnimatePresence mode="wait">
@@ -50,6 +51,7 @@ const AllRoutes = () => (
       <Route path="/patch-notes" element={<PatchNotes />} />
       <Route path="/faq" element={<FAQPage />} />
       <Route path="/contact" element={<ContactPage />} />
+      <Route path="/help-center" element={<HelpCenterPage />} />
       <Route path="/products" element={<Products />} />
       <Route path="/product/:id/:productName" element={<ProductDetails />} />
       <Route path="/cart" element={<Cart />} />

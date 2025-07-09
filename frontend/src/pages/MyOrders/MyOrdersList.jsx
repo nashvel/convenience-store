@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/axios-config';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../config';
+
 import OrderListSkeleton from '../../components/Skeletons/OrderListSkeleton';
-import OrderCard from '../../components/OrderCard';
+import OrderCard from '../../components/Cards/OrderCard';
 import { FaShoppingBag } from 'react-icons/fa';
 
 const MyOrdersList = () => {
@@ -24,7 +24,7 @@ const MyOrdersList = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/orders?userId=${user.id}`);
+        const response = await api.get(`/orders?userId=${user.id}`);
         if (response.data.success) {
           const sortedOrders = response.data.orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
           setOrders(sortedOrders);
@@ -42,7 +42,7 @@ const MyOrdersList = () => {
     fetchOrders();
   }, [user, navigate]);
 
-  const filterTabs = ['All', 'Pending', 'Shipped', 'Delivered', 'Cancelled'];
+    const filterTabs = ['All', 'Pending', 'Shipped', 'Delivered', 'Rejected', 'Cancelled'];
 
   const filteredOrders = orders.filter(order => {
     if (activeFilter === 'All') return true;

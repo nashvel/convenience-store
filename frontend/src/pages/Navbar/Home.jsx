@@ -1,18 +1,18 @@
 import React, { useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config';
+import api from '../../api/axios-config';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
 import { FaStar, FaShoppingBag, FaArrowRight, FaStore, FaMobileAlt, FaDownload, FaRegNewspaper } from 'react-icons/fa';
-import ProductCard from '../../components/ProductCard';
+import ProductCard from '../../components/Cards/ProductCard';
 import { LOGO_ASSET_URL } from '../../config';
 import NashSvg from '../../assets/nash.svg';
 import slugify from '../../utils/slugify';
 import ProductCardSkeleton from '../../components/Skeletons/ProductCardSkeleton';
 import StoreCardSkeleton from '../../components/Skeletons/StoreCardSkeleton';
-import RestaurantBanner from '../../components/RestaurantBanner';
-import PromoBanner from '../../components/PromoBanner';
+import RestaurantBanner from '../../components/Banners/RestaurantBanner';
+import PromoBanner from '../../components/Banners/PromoBanner';
+import Avatar from '../../components/Avatar/Avatar';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ const Home = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/public-settings`);
+        const response = await api.get('/public-settings');
         setSettings(response.data);
       } catch (error) {
         console.error('Failed to fetch public settings for Home:', error);
@@ -199,7 +199,7 @@ const Home = () => {
       </section>
 
             {/* Banners Section */}
-            <section className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12 md:mb-16">
+            <section className="relative z-0 grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12 md:mb-16">
                                 <div className="h-full lg:col-span-3">
           <RestaurantBanner />
         </div>
@@ -286,7 +286,7 @@ const Home = () => {
             {convenienceStores.slice(0, 6).map((store) => (
               <motion.div key={store.id} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
                 <Link to={`/stores/${store.id}/${slugify(store.name)}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg h-full">
-                  <img src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} className="w-20 h-20 object-contain mb-4" />
+                  <Avatar user={{ name: store.name, avatar_url: store.logo ? `${LOGO_ASSET_URL}/${store.logo}` : null }} className="w-20 h-20 rounded-lg mb-4 object-contain" textSize="text-2xl" />
                   <h3 className="font-semibold text-gray-700">{store.name}</h3>
                 </Link>
               </motion.div>
@@ -305,7 +305,7 @@ const Home = () => {
             {restaurants.slice(0, 6).map((store) => (
               <motion.div key={store.id} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
                 <Link to={`/stores/${store.id}/${slugify(store.name)}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow p-5 text-center transition-shadow duration-300 hover:shadow-lg h-full">
-                  <img src={`${LOGO_ASSET_URL}/${store.logo}`} alt={store.name} className="w-20 h-20 object-contain mb-4" />
+                  <Avatar user={{ name: store.name, avatar_url: store.logo ? `${LOGO_ASSET_URL}/${store.logo}` : null }} className="w-20 h-20 rounded-lg mb-4 object-contain" textSize="text-2xl" />
                   <h3 className="font-semibold text-gray-700">{store.name}</h3>
                 </Link>
               </motion.div>

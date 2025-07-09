@@ -18,13 +18,19 @@ const Checkout = ({
   handleCheckout,
   isSubmitting,
   setIsCheckingOut,
-  checkoutTotal,
+
   formatPrice,
   pickupStore,
   selectedStores = []
 }) => {
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  const shippingFee = shippingOption === 'door_to_door'
+    ? selectedStores.reduce((acc, store) => acc + Number(store.delivery_fee ?? 5.00), 0)
+    : 0.00;
+
+  const total = Number(subtotal) + shippingFee;
   return (
     <>
       <div className="bg-white rounded-xl shadow-lg p-8">
@@ -75,13 +81,13 @@ const Checkout = ({
               {shippingOption === 'door_to_door' && selectedStores && selectedStores.map(store => (
                 <div key={store.id} className="flex justify-between">
                   <span>Shipping from {store.name}</span>
-                                    <span className="font-medium text-gray-800">₱{formatPrice(Number(store.delivery_fee) || 5.00)}</span>
+                                    <span className="font-medium text-gray-800">₱{formatPrice(Number(store.delivery_fee ?? 5.00))}</span>
                 </div>
               ))}
               <hr className="my-4" />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span className="text-primary">₱{formatPrice(checkoutTotal)}</span>
+                <span className="text-primary">₱{formatPrice(total)}</span>
               </div>
             </div>
           </div>

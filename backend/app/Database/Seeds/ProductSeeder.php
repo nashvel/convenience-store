@@ -19,8 +19,20 @@ class ProductSeeder extends Seeder
         $store_ids = array_column($stores_result, 'id');
 
         // Get category IDs
-        $cat_result = $this->db->table('categories')->where('parent_id IS NOT NULL')->get()->getResultArray();
-        $cat_ids = array_column($cat_result, 'id', 'name');
+        // Fetch all categories and create a map of category names to their IDs and parent IDs
+        $all_categories_result = $this->db->table('categories')->get()->getResultArray();
+        $category_map = [];
+        foreach ($all_categories_result as $cat) {
+            $category_map[$cat['name']] = ['id' => $cat['id'], 'parent_id' => $cat['parent_id']];
+        }
+
+        // Create a map of parent IDs to parent names for easier lookup
+        $parent_category_map = [];
+        foreach ($all_categories_result as $cat) {
+            if ($cat['parent_id'] === null) {
+                $parent_category_map[$cat['id']] = $cat['name'];
+            }
+        }
 
         $products = [
             // Tech World (Store 1)
@@ -66,9 +78,16 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $p) {
+            $category_name = $p['category_name'];
+            if (!isset($category_map[$category_name])) continue; // Skip if category name is not found
+
+            $category_info = $category_map[$category_name];
+            $category_id = $category_info['id'];
+
+            // Prepare base product data
             $data = [
                 'store_id' => $p['store_id'],
-                'category_id' => $cat_ids[$p['category_name']],
+                'category_id' => $category_id,
                 'name' => $p['name'],
                 'description' => $p['description'],
                 'price' => $p['price'],
@@ -82,7 +101,11 @@ class ProductSeeder extends Seeder
                 'preparation_time_minutes' => $p['prep_time'],
                 'created_at' => date('Y-m-d H:i:s')
             ];
+
+            // Insert product for the sub-category
             $this->db->table('products')->insert($data);
+
+
         }
     }
 }

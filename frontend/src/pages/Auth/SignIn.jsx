@@ -1,8 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../config';
-import axios from 'axios';
+import api from '../../api/axios-config';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -25,7 +24,7 @@ const SignIn = () => {
     setLoading(true);
     setError('');
     try {
-            await axios.post(`${API_BASE_URL}/auth/resend-verification`, { email });
+            await api.post('/auth/resend-verification', { email });
       setError('A new verification email has been sent. Please check your inbox.');
       setShowResend(false);
     } catch (err) {
@@ -45,11 +44,9 @@ const SignIn = () => {
     setShowResend(false);
 
     try {
-            const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+            const response = await api.post('/auth/login', {
         email,
         password
-      }, {
-        withCredentials: true,
       });
 
       const { token, user } = response.data;
@@ -59,7 +56,7 @@ const SignIn = () => {
       switch (user.role) {
         case 'customer': navigate('/'); break;
         case 'client': navigate('/seller/dashboard'); break;
-        case 'rider': navigate('/rider/dashboard'); break;
+        case 'rider': navigate('/rider'); break;
         case 'admin': navigate('/admin'); break;
         default: navigate('/');
       }

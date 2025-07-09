@@ -1,7 +1,7 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { StoreContext } from '../../context/StoreContext';
-import ProductCard from '../../components/ProductCard';
+import ProductCard from '../../components/Cards/ProductCard';
 import { motion } from 'framer-motion';
 import { FaSearch, FaMapMarkerAlt, FaDirections, FaShareAlt, FaCommentDots, FaStar, FaClock, FaTimesCircle, FaBoxOpen, FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -9,7 +9,7 @@ import { LOGO_ASSET_URL } from '../../config';
 import StorePageSkeleton from '../../components/Skeletons/StorePageSkeleton';
 import { useChat } from '../../context/ChatContext';
 import { useAuth } from '../../context/AuthContext';
-import ScrollToTopButton from '../../components/ScrollToTopButton';
+import ScrollToTopButton from '../../components/ScrollToTop/ScrollToTopButton';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useDebounce } from '../../hooks/useDebounce';
 

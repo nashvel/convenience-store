@@ -17,9 +17,10 @@ class OrderController extends ResourceController
     {
         $userId = $this->request->getGet('userId');
         $storeId = $this->request->getGet('store_id');
-        
-        if (!$userId && !$storeId) {
-            return $this->failUnauthorized('User ID or Store ID is required.');
+        $riderId = $this->request->getGet('rider_id');
+
+        if (!$userId && !$storeId && !$riderId) {
+            return $this->failUnauthorized('User ID, Store ID, or Rider ID is required.');
         }
 
         $db = \Config\Database::connect();
@@ -29,23 +30,34 @@ class OrderController extends ResourceController
                         orders.*, 
                         users.first_name, 
                         users.last_name,
+                        rider.first_name as rider_first_name,
+                        rider.last_name as rider_last_name,
                         user_addresses.latitude,
                         user_addresses.longitude,
                         user_addresses.line1,
-                        user_addresses.line2,
-                        user_addresses.city,
-                        user_addresses.province,
+                        store.name as store_name,
+                        store_address.line1 as store_line1, 
+                        store_address.city as store_city, 
+                        store_address.province as store_province, 
+                        store_address.latitude as store_latitude, 
+                        store_address.longitude as store_longitude,
                         user_addresses.zip_code,
                         user_addresses.full_name as delivery_full_name,
                         user_addresses.phone as delivery_phone
                     ')
                     ->join('users', 'users.id = orders.customer_id')
-                    ->join('user_addresses', 'user_addresses.id = orders.delivery_address_id', 'left');
+                    ->join('users as rider', 'rider.id = orders.rider_id', 'left')
+                    ->join('user_addresses', 'user_addresses.id = orders.delivery_address_id', 'left')
+                    ->join('stores as store', 'store.id = orders.store_id')
+                    ->join('user_addresses as store_address', 'store_address.user_id = store.client_id', 'left')
+                    ->groupBy('orders.id');
 
             if ($userId) {
                 $query->where('orders.customer_id', $userId);
             } elseif ($storeId) {
                 $query->where('orders.store_id', $storeId);
+            } elseif ($riderId) {
+                $query->where('orders.rider_id', $riderId);
             }
 
             $orders = $query->orderBy('orders.created_at', 'DESC')->get()->getResultArray();
@@ -159,12 +171,7 @@ class OrderController extends ResourceController
                 ]
             ]);
             
-            // Also send a message event for the frontend
-            $this->response->setHeader('Content-Type', 'application/json');
-            $this->response->setHeader('Access-Control-Allow-Origin', '*');
-            $this->response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-            $this->response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-            $this->response->setHeader('Access-Control-Allow-Credentials', 'true');
+
 
             // Send email to store owner
             $storeOwner = $db->table('stores')
@@ -327,13 +334,13 @@ class OrderController extends ResourceController
     public function updateStatus($id = null)
     {
         $db = \Config\Database::connect();
-        $data = $this->request->getJSON();
+        $data = $this->request->getJSON(true);
 
-        if (!isset($data->status)) {
+        if (!isset($data['status'])) {
             return $this->fail('New status is required.');
         }
 
-        $newStatus = $data->status;
+        $newStatus = $data['status'];
         $allowedStatus = ['accepted', 'rejected', 'in_transit', 'delivered', 'cancelled'];
 
         if (!in_array($newStatus, $allowedStatus)) {
@@ -346,10 +353,16 @@ class OrderController extends ResourceController
                 return $this->failNotFound('Order not found.');
             }
 
-            // Here you might want to add authorization to check if the user
-            // has permission to update this order (e.g., is the store owner).
+            $updateData = ['status' => $newStatus];
 
-            $db->table('orders')->where('id', $id)->update(['status' => $newStatus]);
+            // If status is 'accepted' and a rider_id is provided, update it
+            if ($newStatus === 'accepted' && !empty($data['rider_id'])) {
+                $riderId = $data['rider_id'];
+                log_message('info', 'Assigning rider ID: ' . $riderId . ' to order ID: ' . $id);
+                $updateData['rider_id'] = $riderId;
+            }
+
+            $db->table('orders')->where('id', $id)->update($updateData);
 
             // Optionally, send a notification to the customer about the status change.
             $this->sendCustomerNotification($id, $newStatus);

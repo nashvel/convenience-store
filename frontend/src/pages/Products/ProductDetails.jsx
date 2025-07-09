@@ -1,12 +1,13 @@
 import React, { useContext, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes, FaBolt, FaShippingFast, FaShieldAlt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes, FaBolt, FaShippingFast, FaShieldAlt, FaChevronDown, FaChevronUp, FaChevronRight, FaCheckCircle } from 'react-icons/fa';
 import { StoreContext } from '../../context/StoreContext';
-import Reviews from '../../components/Reviews';
-import ProductCard from '../../components/ProductCard';
+import Reviews from '../../components/Reviews/Reviews';
+import ProductCard from '../../components/Cards/ProductCard';
 import { PRODUCT_ASSET_URL } from '../../config';
 import ProductDetailsSkeleton from '../../components/Skeletons/ProductDetailsSkeleton';
+import ShopConfidenceModal from '../../components/Modals/ShopConfidenceModal';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -16,6 +17,7 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
+  const [isConfidenceModalOpen, setConfidenceModalOpen] = useState(false);
 
   const product = !loading && allProducts.length > 0 ? allProducts.find(p => String(p.id) === id) : null;
   const store = product ? stores.find(s => s.id === product.store_id) : null;
@@ -39,7 +41,7 @@ const ProductDetails = () => {
   } : null;
 
   const suggestedProducts = product
-    ? allProducts.filter(p => p.category === product.category && String(p.id) !== id).slice(0, 5)
+    ? allProducts.filter(p => p.category_name === product.category_name && String(p.id) !== id).slice(0, 5)
     : [];
 
   const handleAddToCart = () => {
@@ -95,12 +97,22 @@ const ProductDetails = () => {
     >
       {/* Breadcrumbs */}
       <div className="flex items-center text-sm text-gray-500 mb-6">
-        <Link to="/" className="hover:text-blue-600">Home</Link>
-        <span className="mx-2">/</span>
-        <Link to="/products" className="hover:text-blue-600">Products</Link>
-        <span className="mx-2">/</span>
-        <Link to={`/products?category=${productData.category}`} className="hover:text-blue-600">{productData.category}</Link>
-        <span className="mx-2">/</span>
+        <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
+        <FaChevronRight size={12} className="mx-2 text-gray-400" />
+        <Link to="/products" className="hover:text-blue-600 transition-colors">Products</Link>
+        {productData.parent_category_name && (
+          <>
+            <FaChevronRight size={12} className="mx-2 text-gray-400" />
+            <Link to={`/products?category=${encodeURIComponent(productData.parent_category_name)}`} className="hover:text-blue-600 transition-colors">{productData.parent_category_name}</Link>
+          </>
+        )}
+        {productData.category_name && (
+          <>
+            <FaChevronRight size={12} className="mx-2 text-gray-400" />
+            <Link to={`/products?category=${encodeURIComponent(productData.category_name)}`} className="hover:text-blue-600 transition-colors">{productData.category_name}</Link>
+          </>
+        )}
+        <FaChevronRight size={12} className="mx-2 text-gray-400" />
         <span className="text-gray-800 font-medium truncate">{productData.name}</span>
       </div>
       
@@ -165,22 +177,69 @@ const ProductDetails = () => {
             {!isOutOfStock && productData.stock < 10 && <span className='text-orange-500 font-bold'>(Only {productData.stock} left!)</span>}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-              <button onClick={() => quantity > 1 && setQuantity(quantity - 1)} disabled={quantity <= 1} className="w-12 h-12 text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors">-</button>
-              <input type="number" min="1" max={productData.stock} value={quantity} onChange={handleQuantityChange} className="w-16 h-12 text-center border-x border-gray-300 text-gray-800 focus:outline-none"/>
-              <button onClick={() => quantity < productData.stock && setQuantity(quantity + 1)} disabled={quantity >= productData.stock} className="w-12 h-12 text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors">+</button>
+          {/* Shop Confidence Section */}
+          <div 
+            onClick={() => setConfidenceModalOpen(true)}
+            className="flex items-center justify-between p-3 my-4 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center gap-3 text-xs text-gray-600">
+              <div className="flex items-center gap-1.5">
+                <FaCheckCircle className="text-gray-500" />
+                <span>Cash on delivery</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <FaCheckCircle className="text-gray-500" />
+                <span>Free 6-day Returns</span>
+              </div>
             </div>
-            <button onClick={handleAddToCart} disabled={isOutOfStock} className="flex-1 flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"><FaShoppingCart />Add to Cart</button>
+            <FaChevronRight className="text-gray-400" />
           </div>
-          <button onClick={handleBuyNow} disabled={isOutOfStock} className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"><FaBolt />Buy Now</button>
 
-          <div className="mt-8 border-t border-gray-200 pt-6 space-y-4 text-sm">
-            <div className="flex items-center text-gray-600"><FaShippingFast className="w-5 h-5 mr-3 text-blue-500"/><span>Estimated delivery: 3-5 business days</span></div>
-            <div className="flex items-center text-gray-600"><FaShieldAlt className="w-5 h-5 mr-3 text-blue-500"/><span>1-Year Manufacturer Warranty</span></div>
+          <div className="space-y-6 mb-8">
+            {/* Quantity Selector */}
+            <div className="flex items-center">
+              <span className="font-semibold text-gray-700 mr-4">Quantity</span>
+              <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                <button onClick={() => quantity > 1 && setQuantity(quantity - 1)} disabled={quantity <= 1} className="w-12 h-12 text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors">-</button>
+                <input type="number" min="1" max={productData.stock} value={quantity} onChange={handleQuantityChange} className="w-16 h-12 text-center border-x border-gray-300 text-gray-800 focus:outline-none"/>
+                <button onClick={() => quantity < productData.stock && setQuantity(quantity + 1)} disabled={quantity >= productData.stock} className="w-12 h-12 text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors">+</button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button onClick={handleAddToCart} disabled={isOutOfStock} className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"><FaShoppingCart />Add to Cart</button>
+              <button onClick={handleBuyNow} disabled={isOutOfStock} className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"><FaBolt />Buy Now</button>
+            </div>
+          </div>
+
+          <div className="mt-8 border-t border-gray-200 pt-6">
+            <div className="space-y-4 text-sm">
+              <div className="flex items-center text-gray-600"><FaShippingFast className="w-5 h-5 mr-3 text-blue-500"/><span>Estimated delivery: 3-5 business days</span></div>
+              <div className="flex items-center text-gray-600"><FaShieldAlt className="w-5 h-5 mr-3 text-blue-500"/><span>1-Year Manufacturer Warranty</span></div>
+            </div>
+            
+            {/* Deals Section */}
+            <div className="mt-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Deals</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-teal-50/50 border border-teal-200/60 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-teal-100 text-teal-600 font-bold text-xs p-1 rounded">VOUCHER</div>
+                    <div>
+                      <p className="font-semibold text-gray-800 text-sm">Shipping Voucher</p>
+                      <p className="text-xs text-gray-500">₱30 off shipping on orders ₱50+</p>
+                    </div>
+                  </div>
+                  <button className="bg-teal-500 text-white font-bold py-1.5 px-4 rounded-md hover:bg-teal-600 transition-colors text-sm">Claim</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <ShopConfidenceModal isOpen={isConfidenceModalOpen} onClose={() => setConfidenceModalOpen(false)} />
 
       {/* Tabs for Description, Specs, Reviews */}
       <div className="mt-16">

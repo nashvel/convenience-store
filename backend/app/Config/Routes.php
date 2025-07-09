@@ -12,9 +12,12 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
     // Publicly accessible routes
     $routes->get('public-settings', 'SettingsController::getPublicSettings');
     $routes->get('categories/nested', 'CategoryController::nested');
-    $routes->resource('categories', ['controller' => 'CategoryController']);
-    $routes->resource('stores', ['controller' => 'StoreController']);
-    $routes->resource('products', ['controller' => 'ProductController']);
+    $routes->get('categories', 'CategoryController::index');
+    $routes->get('categories/(:segment)', 'CategoryController::show/$1');
+    $routes->get('stores', 'StoreController::index');
+    $routes->get('stores/(:segment)', 'StoreController::show/$1');
+    $routes->get('products', 'ProductController::index');
+    $routes->get('products/(:segment)', 'ProductController::show/$1');
 
     // Authentication routes
     $routes->group('auth', function ($routes) {
@@ -75,10 +78,13 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
 
         // Orders
         $routes->get('orders', 'OrderController::index');
+    $routes->get('stores/(:num)/riders', 'RiderController::getRidersByStore/$1');
+        $routes->get('my-orders/(:num)', 'OrderController::show/$1');
         $routes->get('orders/action/(:any)', 'OrderController::handleOrderAction/$1');
         $routes->post('orders', 'OrderController::create');
         $routes->get('orders/(:num)', 'OrderController::show/$1');
         $routes->put('orders/cancel/(:num)', 'OrderController::cancel/$1');
+        $routes->put('my-orders/cancel/(:num)', 'OrderController::cancel/$1');
         $routes->put('orders/status/(:num)', 'OrderController::updateStatus/$1');
 
         // Chat
@@ -86,6 +92,12 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
         $routes->post('chats/find-or-create', 'ChatController::findOrCreateChat', ['filter' => 'auth']);
         $routes->get('chats/(:num)/messages', 'ChatController::getMessages/$1');
         $routes->post('chats/(:num)/messages', 'ChatController::sendMessage/$1');
+        $routes->resource('achievements', ['controller' => 'AchievementController', 'only' => ['index']]);
+        // User Profile Management
+        $routes->post('profile/update', 'UserController::updateProfile');
+        $routes->post('password/change', 'UserController::changePassword');
+
+        $routes->resource('users', ['controller' => 'UserController', 'filter' => 'auth']);
     });
 });
 

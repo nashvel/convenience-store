@@ -2,9 +2,10 @@ import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
-import ProductCard from '../../components/ProductCard';
-import ScrollToTopButton from '../../components/ScrollToTopButton';
+import ProductCard from '../../components/Cards/ProductCard';
+import ScrollToTopButton from '../../components/ScrollToTop/ScrollToTopButton';
 import { FaSearch, FaTimes } from 'react-icons/fa';
+import Fuse from 'fuse.js';
 import ProductCardSkeleton from '../../components/Skeletons/ProductCardSkeleton';
 
 const categoryImageMap = {
@@ -19,7 +20,7 @@ const categoryImageMap = {
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { allProducts: products, loading, error } = useContext(StoreContext);
+  const { allProducts: products, categories, loading, error } = useContext(StoreContext);
 
   // State for controlled inputs, which get their initial value from the URL
   const [searchTerm, setSearchTerm] = useState(new URLSearchParams(location.search).get('search') || '');
@@ -27,6 +28,12 @@ const Products = () => {
   const [visibleCount, setVisibleCount] = useState(20);
   const [isFiltering, setIsFiltering] = useState(false);
   const [displayedProducts, setDisplayedProducts] = useState([]);
+  const [searchSuggestion, setSearchSuggestion] = useState('');
+
+  const mainCategoryNames = useMemo(() => {
+    if (!categories) return [];
+    return categories.filter(c => !c.parent_id).map(c => c.name);
+  }, [categories]);
 
   // When filters change, reset pagination
   useEffect(() => {
@@ -67,7 +74,22 @@ const Products = () => {
         tempProducts = tempProducts.filter(p => parseFloat(p.price) <= parseFloat(maxPrice));
       }
       if (search) {
-        tempProducts = tempProducts.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+        const fuse = new Fuse(tempProducts, {
+          keys: ['name', 'description'],
+          includeScore: true,
+          threshold: 0.4,
+        });
+        const results = fuse.search(search);
+        
+        if (results.length > 0 && results[0].item.name.toLowerCase() !== search.toLowerCase()) {
+          setSearchSuggestion(results[0].item.name);
+        } else {
+          setSearchSuggestion('');
+        }
+        
+        tempProducts = results.map(result => result.item);
+      } else {
+        setSearchSuggestion('');
       }
 
       switch (sort) {
@@ -101,7 +123,9 @@ const Products = () => {
     const categoryParam = params.get('category');
     if (categoryParam) {
       categoryParam.split(',').forEach(cat => {
-        filters.push({ type: 'category', value: cat, label: cat, key: `cat-${cat}` });
+        if (!mainCategoryNames.includes(cat)) {
+          filters.push({ type: 'category', value: cat, label: cat, key: `cat-${cat}` });
+        }
       });
     }
     if (params.get('on_deal') === 'true') {
@@ -136,6 +160,11 @@ const Products = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     updateURLParams({ search: searchTerm });
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchTerm(suggestion);
+    updateURLParams({ search: suggestion });
   };
 
   const removeFilter = (filter) => {
@@ -214,6 +243,19 @@ const Products = () => {
             </select>
           </div>
         </div>
+
+        {searchSuggestion && (
+          <div className="mb-4 text-sm text-gray-600">
+            Did you mean:{" "}
+            <button
+              onClick={() => handleSuggestionClick(searchSuggestion)}
+              className="text-primary font-semibold hover:underline"
+            >
+              {searchSuggestion}
+            </button>
+            ?
+          </div>
+        )}
       </div>
       
       {activeFilters.length > 0 && (

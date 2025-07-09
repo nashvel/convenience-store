@@ -21,8 +21,8 @@ const AssignRiderModal = ({ isOpen, onClose, onConfirm, riders, selectedRider, o
           >
             <option value="" disabled>Select a rider...</option>
             {riders.map(rider => (
-              <option key={rider.id} value={rider.id}>
-                {rider.name}
+              <option key={rider.id} value={rider.id} className="text-black">
+                {`${rider.first_name} ${rider.last_name}`}
               </option>
             ))}
           </select>
