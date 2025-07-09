@@ -77,8 +77,19 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
         $routes->post('notifications/mark-as-read/(:num)', 'NotificationController::markAsRead/$1');
 
         // Orders
-        $routes->get('orders', 'OrderController::index');
-    $routes->get('stores/(:num)/riders', 'RiderController::getRidersByStore/$1');
+        $routes->group('orders', ['filter' => 'auth'], function ($routes) {
+            $routes->get('/', 'OrderController::index');
+            $routes->get('(:num)', 'OrderController::show/$1');
+            $routes->post('/', 'OrderController::create');
+            $routes->put('(:num)', 'OrderController::update/$1');
+            $routes->post('(:num)/accept', 'OrderController::acceptOrder/$1');
+            $routes->post('(:num)/assign-rider', 'OrderController::assignRider/$1');
+            $routes->post('(:num)/complete', 'OrderController::completeOrder/$1');
+            $routes->post('(:num)/cancel', 'OrderController::cancelOrder/$1');
+            $routes->get('track/(:num)', 'OrderTrackingController::get_tracking_details/$1');
+        });
+
+        $routes->get('stores/(:num)/riders', 'RiderController::getRidersByStore/$1');
         $routes->get('my-orders/(:num)', 'OrderController::show/$1');
         $routes->get('orders/action/(:any)', 'OrderController::handleOrderAction/$1');
         $routes->post('orders', 'OrderController::create');
@@ -86,6 +97,12 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
         $routes->put('orders/cancel/(:num)', 'OrderController::cancel/$1');
         $routes->put('my-orders/cancel/(:num)', 'OrderController::cancel/$1');
         $routes->put('orders/status/(:num)', 'OrderController::updateStatus/$1');
+
+        // Order Tracking
+        $routes->post('orders/(:num)/start-delivery', 'OrderTrackingController::start_delivery/$1');
+        $routes->post('orders/(:num)/update-location', 'OrderTrackingController::update_location/$1');
+        $routes->get('orders/(:num)/latest-location', 'OrderTrackingController::get_latest_location/$1');
+        $routes->post('orders/(:num)/cancel-delivery', 'OrderTrackingController::cancel_delivery/$1');
 
         // Chat
         $routes->get('chats', 'ChatController::getChats', ['filter' => 'auth']);

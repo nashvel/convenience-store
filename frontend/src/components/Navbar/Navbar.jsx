@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaTh, FaBell, FaEnvelope, FaMoon, FaSun } from 'react-icons/fa';
+import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaTh, FaBell, FaEnvelope } from 'react-icons/fa';
 import { UIContext } from '../../context/UIContext';
 import { useAuth } from '../../context/AuthContext';
 import { CartContext } from '../../context/CartContext';
@@ -9,7 +9,7 @@ import MessageDropdown from '../Dropdowns/MessageDropdown';
 import NotificationDropdown from '../Dropdowns/NotificationDropdown';
 import { useNotifications } from '../../context/NotificationContext';
 import { getChats } from '../../api/chatApi';
-import { useTheme } from '../../context/ThemeContext';
+
 
 
 
@@ -29,7 +29,7 @@ const Navbar = () => {
   const { openCategorySidebar } = useContext(UIContext);
   const { user } = useAuth();
   const { totalItems: cartCount } = useContext(CartContext);
-  const { theme, toggleTheme } = useTheme();
+
   const { unreadCount: unreadNotifications } = useNotifications();
 
   useEffect(() => {
@@ -206,9 +206,7 @@ const Navbar = () => {
               <Link to={user ? "/profile/settings" : "/login"} className="p-2 rounded-full text-primary hover:bg-blue-50" aria-label={user ? "View your profile" : "Sign in"}>
                 <FaUser size={22} />
               </Link>
-              <button onClick={toggleTheme} className="p-2 rounded-full text-primary hover:bg-blue-50" aria-label="Toggle dark mode">
-                {theme === 'dark' ? <FaSun size={22} /> : <FaMoon size={22} />}
-              </button>
+
               <Link to="/cart" className="relative p-2 rounded-full text-primary hover:bg-blue-50" aria-label="View your shopping cart">
                 <FaShoppingCart size={22} />
                 {cartCount > 0 && (

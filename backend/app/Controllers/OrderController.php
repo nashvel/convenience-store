@@ -32,6 +32,8 @@ class OrderController extends ResourceController
                         users.last_name,
                         rider.first_name as rider_first_name,
                         rider.last_name as rider_last_name,
+                        user_addresses.latitude as customer_latitude,
+                        user_addresses.longitude as customer_longitude,
                         user_addresses.latitude,
                         user_addresses.longitude,
                         user_addresses.line1,

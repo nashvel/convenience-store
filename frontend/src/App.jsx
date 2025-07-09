@@ -128,7 +128,7 @@ const AppLayout = () => {
 
   if (isSellerRoute || isAdminRoute || isRiderRoute) {
     return (
-      <main className="flex-1">
+      <main className="h-screen">
         <AllRoutes />
       </main>
     );

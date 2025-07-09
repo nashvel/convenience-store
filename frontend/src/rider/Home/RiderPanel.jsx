@@ -78,25 +78,28 @@ const RiderPanel = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="flex h-full w-full bg-gray-50 dark:bg-gray-900">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar notificationCount={notificationCount} onClearNotifications={handleClearNotifications} availableOrders={availableOrders} />
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 ${location.pathname === '/rider/active-orders' ? 'p-0' : 'p-8'} pb-20 md:pb-8`}>
-          <Routes>
-            <Route path="/" element={<Dashboard availableOrders={availableOrders} loading={loading} handleAcceptOrder={handleAcceptOrder} />} />
-            <Route path="/active-orders" element={<ActiveOrders />} />
-            <Route path="/order-history" element={<OrderHistory />} />
-                        <Route path="/profile" element={<Profile />} />
-            <Route path="/account-information" element={<AccountInformation />} />
-            <Route path="/notification-preferences" element={<NotificationPreferences />} />
-            <Route path="/help-and-support" element={<HelpAndSupport />} />
-            <Route path="/achievements" element={<Achievements />} />
-          </Routes>
+        <main className="flex-1 relative">
+          <div className={`absolute inset-0 ${location.pathname.includes('/active-orders') ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+            <div className={`${location.pathname.includes('/active-orders') ? 'h-full p-0' : 'p-4 md:p-8'}`}>
+              <Routes>
+                <Route path="/" element={<Dashboard availableOrders={availableOrders} loading={loading} handleAcceptOrder={handleAcceptOrder} />} />
+                <Route path="/active-orders" element={<ActiveOrders />} />
+                <Route path="/order-history" element={<OrderHistory />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/account-information" element={<AccountInformation />} />
+                <Route path="/notification-preferences" element={<NotificationPreferences />} />
+                <Route path="/help-and-support" element={<HelpAndSupport />} />
+                <Route path="/achievements" element={<Achievements />} />
+              </Routes>
+            </div>
+          </div>
         </main>
         <BottomNavbar />
       </div>
-      
     </div>
   );
 };
