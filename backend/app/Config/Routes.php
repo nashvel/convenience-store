@@ -10,6 +10,9 @@ $routes->get('/uploads/logos/(:segment)', 'FileController::serveLogo/$1', ['filt
 
 $routes->group('api', ['filter' => 'cors'], function ($routes) {
     // Publicly accessible routes
+    $routes->get('promotions/active', 'PromotionController::getActivePromotions');
+    $routes->get('promotions/image/(:segment)', 'PromotionController::serveImage/$1');
+    $routes->get('site-settings', 'SiteSettingsController::getSettings');
     $routes->get('public-settings', 'SettingsController::getPublicSettings');
     $routes->get('categories/nested', 'CategoryController::nested');
     $routes->get('categories', 'CategoryController::index');
@@ -54,6 +57,13 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
     $routes->put('profile', 'AdminController::updateProfile');
     $routes->get('monthly-sales', 'AdminController::getMonthlySales');
     $routes->get('statistics', 'AdminController::getStatistics');
+
+        // Promotions Management
+        $routes->post('promotions', 'PromotionController::createPromotion', ['filter' => 'auth']);
+        $routes->delete('promotions/(:num)', 'PromotionController::delete/$1', ['filter' => 'auth']);
+
+        // Site Settings Management
+        $routes->post('site-settings', 'SiteSettingsController::updateSettings');
     });
 
     $routes->group('', ['filter' => 'auth'], function($routes) {

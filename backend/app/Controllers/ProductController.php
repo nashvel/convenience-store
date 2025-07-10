@@ -78,10 +78,70 @@ class ProductController extends ResourceController
 
         $products = $this->model->findAll();
 
-        log_message('debug', 'Final product count: ' . count($products));
+        // Fetch active promotions
+        $promotionModel = new \App\Models\PromotionModel();
+        $activePromotions = $promotionModel->getActivePromotionsWithScopes();
+
+        // Apply promotions to products
+        $productsWithDiscounts = array_map(function ($product) use ($activePromotions) {
+            $originalPrice = (float)$product['price'];
+            $bestDiscountedPrice = $originalPrice;
+            $applicablePromotion = null;
+
+            foreach ($activePromotions as $promo) {
+                $applies = false;
+                switch ($promo['scope_type']) {
+                    case 'all_products':
+                        $applies = true;
+                        break;
+                    case 'store_id':
+                        if ($product['store_id'] == $promo['scope_value']) {
+                            $applies = true;
+                        }
+                        break;
+                    case 'category_id':
+                        if ($product['category_id'] == $promo['scope_value']) {
+                            $applies = true;
+                        }
+                        break;
+                    case 'product_id':
+                        if ($product['id'] == $promo['scope_value']) {
+                            $applies = true;
+                        }
+                        break;
+                }
+
+                if ($applies) {
+                    $discountedPrice = 0;
+                    if ($promo['discount_type'] === 'percentage') {
+                        $discountedPrice = $originalPrice - ($originalPrice * $promo['discount_value'] / 100);
+                    } else { // fixed
+                        $discountedPrice = $originalPrice - $promo['discount_value'];
+                    }
+
+                    if ($discountedPrice < $bestDiscountedPrice) {
+                        $bestDiscountedPrice = $discountedPrice;
+                        $applicablePromotion = $promo;
+                    }
+                }
+            }
+
+            if ($applicablePromotion) {
+                $product['price'] = max(0, $bestDiscountedPrice);
+                $product['original_price'] = $originalPrice;
+                $product['has_discount'] = true;
+            } else {
+                $product['original_price'] = null;
+                $product['has_discount'] = false;
+            }
+
+            return $product;
+        }, $products);
+
+        log_message('debug', 'Final product count: ' . count($productsWithDiscounts));
         log_message('debug', 'ProductController::index END');
 
-        return $this->respond($products);
+        return $this->respond($productsWithDiscounts);
     }
 
     public function show($id = null)

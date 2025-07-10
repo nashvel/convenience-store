@@ -41,11 +41,11 @@ class UserSeeder extends Seeder
 
         // --- Customers ---
         $this->createUser(
-            $roles['customer'], 'customer1@example.com', $password_hash, 'John', 'Doe', '111222333', 'Home', 
+            $roles['customer'], 'customer1@example.com', $password_hash, 'Jay', 'Nashvel', '111222333', 'Home', 
             '1 Customer Rd', 'Tagoloan', 'Misamis Oriental', '11111'
         );
         $this->createUser(
-            $roles['customer'], 'customer2@example.com', $password_hash, 'Jane', 'Smith', '444555666', 'Work', 
+            $roles['customer'], 'customer2@example.com', $password_hash, 'Ann', 'Nashvel', '444555666', 'Work', 
             '2 Shopper St', 'Tagoloan', 'Misamis Oriental', '22222'
         );
 

@@ -16,7 +16,7 @@ try {
     $mysqli->query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Drop all tables
-    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications', 'achievements', 'rider_achievements'];
+    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications', 'achievements', 'rider_achievements', 'promotions', 'promotion_scopes', 'store_promotions', 'site_settings'];
     foreach ($tables as $table) {
         $mysqli->query("DROP TABLE IF EXISTS $table");
     }
@@ -387,6 +387,55 @@ try {
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
             UNIQUE KEY unique_key (`key`)
+        )
+    ");
+
+    // Create promotions table
+    $mysqli->query("
+        CREATE TABLE promotions (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NULL,
+            discount_type ENUM('percentage', 'fixed') NOT NULL,
+            discount_value DECIMAL(10, 2) NOT NULL,
+            start_date DATETIME NOT NULL,
+            end_date DATETIME NOT NULL,
+            promo_image_banner VARCHAR(255) NULL,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME NULL,
+            updated_at DATETIME NULL
+        )
+    ");
+
+    // Create promotion_scopes table
+    $mysqli->query("
+        CREATE TABLE promotion_scopes (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            promotion_id INT(11) UNSIGNED NOT NULL,
+            scope_type ENUM('all_products', 'store', 'category', 'product') NOT NULL,
+            scope_value INT(11) UNSIGNED NULL, -- Can be store_id, category_id, or product_id. NULL for 'all_products'
+            FOREIGN KEY (promotion_id) REFERENCES promotions(id) ON DELETE CASCADE
+        )
+    ");
+
+    // Create store_promotions table
+    $mysqli->query("
+        CREATE TABLE store_promotions (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            store_id INT(11) UNSIGNED NOT NULL,
+            promotion_id INT(11) UNSIGNED NOT NULL,
+            is_participating BOOLEAN DEFAULT FALSE,
+            FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
+            FOREIGN KEY (promotion_id) REFERENCES promotions(id) ON DELETE CASCADE
+        )
+    ");
+
+    // Create site_settings table
+    $mysqli->query("
+        CREATE TABLE site_settings (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            setting_name VARCHAR(255) NOT NULL UNIQUE,
+            setting_value VARCHAR(255) NOT NULL
         )
     ");
 

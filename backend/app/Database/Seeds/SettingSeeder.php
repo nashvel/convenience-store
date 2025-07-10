@@ -9,7 +9,7 @@ class SettingSeeder extends Seeder
     public function run()
     {
         $settings = [
-            ['key' => 'app_name', 'value' => 'NashQuickMart'],
+            ['key' => 'app_name', 'value' => 'Ecomxpert'],
             ['key' => 'app_description', 'value' => "Quick and Easy Shopping at Your Fingertips\nOrder your favorite convenience store items with just a few clicks"],
             ['key' => 'facebook_url', 'value' => ''],
             ['key' => 'twitter_url', 'value' => ''],
