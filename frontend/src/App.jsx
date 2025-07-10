@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence } from 'framer-motion';
@@ -28,6 +28,7 @@ import Settings from './pages/Profile/Settings';
 import MyOrdersList from './pages/MyOrders/MyOrdersList';
 import MyOrderDetail from './pages/MyOrders/MyOrders';
 import TrackOrder from './pages/MyOrders/TrackOrder';
+import NotFound from './pages/NotFound';
 import PromotionsPage from './pages/Promotions/PromotionsPage';
 import RiderPanel from './rider/Home/RiderPanel.jsx';
 import PatchNotes from './pages/PatchNotes/PatchNotes';
@@ -42,40 +43,12 @@ import { NotificationProvider } from './context/NotificationContext';
 import { UIProvider } from './context/UIContext';
 import { ChatProvider, useChat } from './context/ChatContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { SettingsProvider } from './context/SettingsContext';
 import ChatPopup from './components/Chat/ChatPopup';
 
-const AllRoutes = () => (
-  <AnimatePresence mode="wait">
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/patch-notes" element={<PatchNotes />} />
-      <Route path="/faq" element={<FAQPage />} />
-      <Route path="/contact" element={<ContactPage />} />
-      <Route path="/help-center" element={<HelpCenterPage />} />
-      <Route path="/products" element={<Products />} />
-      <Route path="/product/:id/:productName" element={<ProductDetails />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/stores" element={<StoresListPage />} />
-      <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
-      <Route path="/restaurants" element={<RestaurantsPage />} />
-      <Route path="/promotions" element={<PromotionsPage />} />
-      <Route path="/partners" element={<Partners />} />
-      <Route path="/login" element={<SignIn />} />
-      <Route path="/signup" element={<SignUp />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/my-orders" element={<MyOrdersList />} />
-      <Route path="/my-orders/:id" element={<MyOrderDetail />} />
-      <Route path="/track-order/:id" element={<TrackOrder />} />
 
-      <Route path="/profile/settings" element={<Settings />} />
-      <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
-      <Route path="/admin/*" element={<AdminApp />} />
-      <Route path="/rider/*" element={<RiderPanel />} />
-    </Routes>
-  </AnimatePresence>
-);
 
-const MainLayout = ({ children }) => {
+const MainLayout = () => {
   const { openChats, closeChat, toggleMinimizeChat } = useChat();
   const location = useLocation();
   const showSidebar = location.pathname.startsWith('/products');
@@ -106,7 +79,7 @@ const MainLayout = ({ children }) => {
             </aside>
           )}
           <main className={`flex-1 ${showSidebar ? 'pl-6' : ''}`}>
-            {children}
+            <Outlet />
           </main>
         </div>
       </div>
@@ -120,52 +93,66 @@ const MainLayout = ({ children }) => {
   );
 };
 
-const AppLayout = () => {
-  const location = useLocation();
-  const isSellerRoute = location.pathname.startsWith('/seller/dashboard');
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  const isRiderRoute = location.pathname.startsWith('/rider');
 
-  if (isSellerRoute || isAdminRoute || isRiderRoute) {
-    return (
-      <main className="h-screen">
-        <AllRoutes />
-      </main>
-    );
-  }
 
-  return (
-    <MainLayout>
-      <AllRoutes />
-    </MainLayout>
-  );
-};
-
-const AppContent = () => {
-  return (
+const App = () => (
+  <Router>
+    <ScrollToTop />
     <ThemeProvider>
       <AuthProvider>
-        <CartProvider>
+        <SettingsProvider>
+          <CartProvider>
           <NotificationProvider>
             <StoreProvider>
               <UIProvider>
                 <ChatProvider>
-                  <AppLayout />
+                  <AnimatePresence mode="wait">
+                    <Routes>
+                      <Route element={<MainLayout />}>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/patch-notes" element={<PatchNotes />} />
+                        <Route path="/faq" element={<FAQPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/help-center" element={<HelpCenterPage />} />
+                        <Route path="/products" element={<Products />} />
+                        <Route path="/product/:id/:productName" element={<ProductDetails />} />
+                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/stores" element={<StoresListPage />} />
+                        <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
+                        <Route path="/restaurants" element={<RestaurantsPage />} />
+                        <Route path="/promotions" element={<PromotionsPage />} />
+                        <Route path="/partners" element={<Partners />} />
+                        <Route path="/login" element={<SignIn />} />
+                        <Route path="/signup" element={<SignUp />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/my-orders" element={<MyOrdersList />} />
+                        <Route path="/my-orders/:id" element={<MyOrderDetail />} />
+                        <Route path="/track-order/:id" element={<TrackOrder />} />
+                        <Route path="/profile/settings" element={<Settings />} />
+                      </Route>
+
+                      <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
+                      <Route path="/admin/*" element={<AdminApp />} />
+                      <Route path="/rider/*" element={<RiderPanel />} />
+                      
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </AnimatePresence>
                 </ChatProvider>
               </UIProvider>
             </StoreProvider>
           </NotificationProvider>
         </CartProvider>
+        </SettingsProvider>
       </AuthProvider>
     </ThemeProvider>
-  );
-};
-
-const App = () => (
-  <Router>
-    <ScrollToTop />
-    <AppContent />
   </Router>
 );
+
+
+
+
+
+
 
 export default App;

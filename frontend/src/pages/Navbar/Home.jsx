@@ -3,6 +3,7 @@ import api from '../../api/axios-config';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
+import { useSettings } from '../../context/SettingsContext';
 import { FaStar, FaShoppingBag, FaArrowRight, FaStore, FaMobileAlt, FaDownload, FaRegNewspaper } from 'react-icons/fa';
 import ProductCard from '../../components/Cards/ProductCard';
 import { LOGO_ASSET_URL } from '../../config';
@@ -12,24 +13,29 @@ import ProductCardSkeleton from '../../components/Skeletons/ProductCardSkeleton'
 import StoreCardSkeleton from '../../components/Skeletons/StoreCardSkeleton';
 import RestaurantBanner from '../../components/Banners/RestaurantBanner';
 import PromoBanner from '../../components/Banners/PromoBanner';
+import PromoBannerSkeleton from '../../components/Skeletons/PromoBannerSkeleton';
 import Avatar from '../../components/Avatar/Avatar';
 
 const Home = () => {
   const navigate = useNavigate();
   const { allProducts, stores, loading, error, categories } = useContext(StoreContext);
-  const [settings, setSettings] = useState({});
+  const { settings } = useSettings();
+  const [promotions, setPromotions] = useState([]);
+  const [promotionsLoading, setPromotionsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchPromotions = async () => {
       try {
-        const response = await api.get('/public-settings');
-        setSettings(response.data);
+        const response = await api.get('/promotions/active');
+        setPromotions(response.data);
       } catch (error) {
-        console.error('Failed to fetch public settings for Home:', error);
+        console.error('Failed to fetch promotions:', error);
+      } finally {
+        setPromotionsLoading(false);
       }
     };
 
-    fetchSettings();
+    fetchPromotions();
   }, []);
 
   const handleGetAppClick = (e) => {
@@ -106,7 +112,9 @@ const Home = () => {
         </section>
         
         {/* Restaurant Banner Skeleton */}
-        <div className="h-48 bg-gray-300 rounded-2xl mb-16"></div>
+        <RestaurantBanner restaurants={restaurants.slice(0, 5)} />
+
+        {promotionsLoading ? <PromoBannerSkeleton /> : promotions.length > 0 && <PromoBanner promotions={promotions} />}
 
         {/* Featured Products Skeleton */}
         <section className="mb-16">
@@ -201,10 +209,10 @@ const Home = () => {
             {/* Banners Section */}
             <section className="relative z-0 grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12 md:mb-16">
                                 <div className="h-full lg:col-span-3">
-          <RestaurantBanner />
+          <RestaurantBanner bannerUrl={settings.restaurant_banner_url} text={settings.restaurant_banner_text} />
         </div>
                                                 <div className="h-full lg:col-span-2">
-          <PromoBanner />
+          <PromoBanner promotions={promotions} />
         </div>
       </section>
 

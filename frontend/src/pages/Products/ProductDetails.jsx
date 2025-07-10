@@ -19,6 +19,19 @@ const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [isConfidenceModalOpen, setConfidenceModalOpen] = useState(false);
 
+  const getDiscount = () => {
+    if (!productData.has_discount) return null;
+    if (productData.discount_type === 'percentage') {
+      return `${productData.discount_value}%`;
+    }
+    if (productData.discount_type === 'fixed') {
+        return `₱${productData.discount_value}`;
+    }
+    // Fallback calculation if type is missing but prices are available
+    const discount = productData.original_price - productData.price;
+    return `₱${discount.toFixed(2)}`;
+  };
+
   const product = !loading && allProducts.length > 0 ? allProducts.find(p => String(p.id) === id) : null;
   const store = product ? stores.find(s => s.id === product.store_id) : null;
 
@@ -153,7 +166,14 @@ const ProductDetails = () => {
         
         {/* Product Info */}
         <div className="flex flex-col md:col-span-3">
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{productData.name}</h1>
+          <div className="flex items-center gap-4">
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">{productData.name}</h1>
+              {productData.has_discount && (
+                <div className="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-md shadow-lg">
+                  -{getDiscount()}
+                </div>
+              )}
+            </div>
           {store && (
             <Link to={`/stores/${store.id}/${store.name}`} className="text-gray-600 hover:text-blue-600 mb-4 font-medium">
               Sold by {store.name}
@@ -161,9 +181,22 @@ const ProductDetails = () => {
           )}
           
           <div className="flex items-center gap-4 mb-4">
-            <p className="text-4xl font-bold text-blue-600">
-              ₱{productData.price ? Number(productData.price).toFixed(2) : '0.00'}
-            </p>
+            <div className="flex items-baseline space-x-4">
+                {productData.has_discount ? (
+                  <>
+                    <p className="text-4xl font-bold text-blue-600">
+                      ₱{Number(productData.price).toFixed(2)}
+                    </p>
+                    <p className="text-2xl text-orange-500 line-through">
+                      ₱{Number(productData.original_price).toFixed(2)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-4xl font-bold text-blue-600">
+                    ₱{Number(productData.price).toFixed(2)}
+                  </p>
+                )}
+              </div>
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
                 <FaStar key={i} className={i < Math.floor(productData.rating || 0) ? 'text-yellow-400' : 'text-gray-300'} />
@@ -173,8 +206,8 @@ const ProductDetails = () => {
           </div>
 
           <div className={`flex items-center gap-2 font-semibold mb-6 text-lg ${isOutOfStock ? 'text-red-600' : 'text-green-600'}`}>
-            {isOutOfStock ? <FaTimes /> : <FaCheck />} {isOutOfStock ? 'Out of Stock' : `In Stock`}
-            {!isOutOfStock && productData.stock < 10 && <span className='text-orange-500 font-bold'>(Only {productData.stock} left!)</span>}
+             {isOutOfStock ? <FaTimes /> : <FaCheck />} {isOutOfStock ? 'Out of Stock' : `In Stock`}
+             {!isOutOfStock && productData.stock < 10 && <span className='text-orange-500 font-bold'>(Only {productData.stock} left!)</span>}
           </div>
 
           {/* Shop Confidence Section */}

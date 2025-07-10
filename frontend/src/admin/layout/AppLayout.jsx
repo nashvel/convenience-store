@@ -9,7 +9,7 @@ const LayoutContent = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex h-screen bg-white dark:bg-gray-900">
       {/* Sidebar */}
       <div className={`transition-all duration-300 ease-in-out flex-shrink-0 ${
         isExpanded || isHovered ? "lg:w-[290px]" : "lg:w-[90px]"

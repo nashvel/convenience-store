@@ -11,6 +11,18 @@ import { PRODUCT_ASSET_URL } from '../../config';
 import slugify from '../../utils/slugify';
 
 const ProductCard = ({ product, size = 'normal' }) => {
+  const getDiscount = () => {
+    if (!product.has_discount) return null;
+    if (product.discount_type === 'percentage') {
+      return `${product.discount_value}%`;
+    }
+    if (product.discount_type === 'fixed') {
+        return `₱${product.discount_value}`;
+    }
+    // Fallback calculation if type is missing but prices are available
+    const discount = product.original_price - product.price;
+    return `₱${discount.toFixed(2)}`;
+  };
   
   const { stores } = useContext(StoreContext);
   const { addToCart } = useContext(CartContext);
@@ -56,9 +68,9 @@ const ProductCard = ({ product, size = 'normal' }) => {
             )}
           </div>
 
-          {product.discount > 0 && (
-            <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg">
-              -{product.discount}%
+          {product.has_discount && (
+            <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg">
+              -{getDiscount()}
             </div>
           )}
         </div>
@@ -67,16 +79,20 @@ const ProductCard = ({ product, size = 'normal' }) => {
         <p className={`${size === 'small' ? 'text-[9px]' : 'text-[10px]'} text-gray-500 uppercase font-semibold mb-1`}>{store ? store.name : 'Unknown Store'}</p>
         <h3 className={`${size === 'small' ? 'text-[11px] leading-tight' : 'text-xs'} font-semibold text-gray-800 mb-1 truncate`}>{product.name}</h3>
         <div className="mt-auto flex justify-between items-center">
-           <p className={`${size === 'small' ? 'text-sm' : 'text-base'} font-bold text-blue-600`}>
-            {product.discount > 0 ? (
-              <span className="flex items-baseline gap-1">
-                ₱{Number(product.price * (1 - product.discount / 100)).toFixed(2)}
-                <span className={`${size === 'small' ? 'text-[10px]' : 'text-xs'} text-gray-500 line-through`}>₱{Number(product.price).toFixed(2)}</span>
-              </span>
+          <div className={`${size === 'small' ? 'text-sm' : 'text-base'} font-bold text-blue-600`}>
+            {product.has_discount ? (
+              <div className="flex flex-col">
+                <span className="text-orange-500 line-through text-xs">
+                  Before ₱{Number(product.original_price).toFixed(2)}
+                </span>
+                <span className="text-blue-600">
+                  Now ₱{Number(product.price).toFixed(2)}
+                </span>
+              </div>
             ) : (
-              `₱${Number(product.price).toFixed(2)}`
+              <span>₱{Number(product.price).toFixed(2)}</span>
             )}
-          </p>
+          </div>
           <div className={`flex items-center ${size === 'small' ? 'text-[10px]' : 'text-xs'} text-gray-600`}>
             <FaStar className="text-yellow-400 mr-1" /> {product.rating}
           </div>

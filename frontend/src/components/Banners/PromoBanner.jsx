@@ -3,11 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
-const banners = [
-  { id: 1, src: '/images/cards/discountcard.png', alt: 'Promotion Banner' },
-  { id: 2, src: '/images/cards/foodsale.png', alt: 'Food Sale' },
-  { id: 3, src: '/images/cards/flashsale.png', alt: 'Flash Sale' },
-];
+
 
 const variants = {
   enter: (direction) => {
@@ -35,73 +31,90 @@ const swipePower = (offset, velocity) => {
   return Math.abs(offset) * velocity;
 };
 
-const PromoBanner = () => {
+const PromoBanner = ({ promotions }) => {
   const [[page, direction], setPage] = useState([0, 0]);
 
-  const imageIndex = Math.abs(page % banners.length);
-
   const paginate = useCallback((newDirection) => {
-    setPage([page + newDirection, newDirection]);
-  }, [page]);
+    if (promotions && promotions.length > 1) {
+      setPage(prevPage => [prevPage[0] + newDirection, newDirection]);
+    }
+  }, [promotions]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      paginate(1);
-    }, 3000); // 3 seconds
+    if (promotions && promotions.length > 1) {
+      const timer = setInterval(() => {
+        paginate(1);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [promotions, paginate]);
 
-    return () => {
-      clearInterval(timer);
-    };
-  }, [paginate]);
+  // Guard against rendering with no data. This is now placed after the hooks.
+  if (!promotions || promotions.length === 0) {
+    return null;
+  }
+
+  // This calculation is now safe because we've confirmed promotions exist.
+  const imageIndex = Math.abs(page % promotions.length);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden rounded-lg shadow-lg bg-gray-100">
+    <div className="relative w-full h-64 flex items-center justify-center overflow-hidden rounded-lg shadow-lg bg-gray-100 dark:bg-gray-800">
       <AnimatePresence initial={false} custom={direction}>
-              <Link to="/promotions" className="block w-full h-full">
-        <motion.img
-          key={page}
-          src={banners[imageIndex].src}
-          alt={banners[imageIndex].alt}
-          custom={direction}
-          variants={variants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={{ x: { type: 'spring', stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={1}
-          onDragEnd={(e, { offset, velocity }) => {
-            const swipe = swipePower(offset.x, velocity.x);
-            if (swipe < -swipeConfidenceThreshold) {
-              paginate(1);
-            } else if (swipe > swipeConfidenceThreshold) {
-              paginate(-1);
-            }
-          }}
-                    className="absolute w-full h-full object-cover"
-        />
-      </Link>
-      </AnimatePresence>
-      <div className="absolute top-1/2 left-4 transform -translate-y-1/2 z-10">
-        <button onClick={() => paginate(-1)} className="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition">
-          <FaChevronLeft size={24} />
-        </button>
-      </div>
-      <div className="absolute top-1/2 right-4 transform -translate-y-1/2 z-10">
-        <button onClick={() => paginate(1)} className="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition">
-          <FaChevronRight size={24} />
-        </button>
-      </div>
-       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex space-x-2">
-        {banners.map((_, i) => (
-          <div
-            key={i}
-            onClick={() => setPage([i, i > imageIndex ? 1 : -1])}
-            className={`w-3 h-3 rounded-full cursor-pointer transition-colors ${i === imageIndex ? 'bg-white' : 'bg-white bg-opacity-50'}`}
+        <Link to="/promotions" className="block w-full h-full">
+          <motion.img
+            key={page} // Key change triggers the animation
+            src={promotions[imageIndex].image_url}
+            alt={promotions[imageIndex].title}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ x: { type: 'spring', stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+            drag={promotions.length > 1 ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={1}
+            onDragEnd={(e, { offset, velocity }) => {
+              // Disable drag functionality completely if there's only one promotion
+              if (promotions.length <= 1) return;
+
+              const swipe = swipePower(offset.x, velocity.x);
+
+              if (swipe < -swipeConfidenceThreshold) {
+                paginate(1);
+              } else if (swipe > swipeConfidenceThreshold) {
+                paginate(-1);
+              }
+            }}
+            className="absolute w-full h-full object-cover"
           />
-        ))}
-      </div>
+        </Link>
+      </AnimatePresence>
+
+      {/* Only show navigation controls if there is more than one promotion */}
+      {promotions.length > 1 && (
+        <>
+          <div className="absolute top-1/2 left-4 transform -translate-y-1/2 z-10">
+            <button onClick={() => paginate(-1)} className="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition">
+              <FaChevronLeft size={24} />
+            </button>
+          </div>
+          <div className="absolute top-1/2 right-4 transform -translate-y-1/2 z-10">
+            <button onClick={() => paginate(1)} className="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition">
+              <FaChevronRight size={24} />
+            </button>
+          </div>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex space-x-2">
+            {promotions.map((_, i) => (
+              <div
+                key={i}
+                onClick={() => setPage([i, i > imageIndex ? 1 : -1])}
+                className={`w-3 h-3 rounded-full cursor-pointer transition-colors ${i === imageIndex ? 'bg-white' : 'bg-white bg-opacity-50'}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

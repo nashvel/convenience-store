@@ -285,35 +285,6 @@ const GeneralSettings = () => {
               />
             </div>
           </div>
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Integrations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <IntegrationCard
-                icon={<FacebookIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />}
-                name="Facebook"
-                description="Connect your Facebook page"
-                isConnected={!!settings.facebook_url}
-                url={settings.facebook_url}
-                onManage={() => handleManageSocial('facebook_url', 'Facebook')}
-              />
-              <IntegrationCard
-                icon={<XIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />}
-                name="X (Twitter)"
-                description="Connect your X profile"
-                isConnected={!!settings.twitter_url}
-                url={settings.twitter_url}
-                onManage={() => handleManageSocial('twitter_url', 'X (Twitter)')}
-              />
-              <IntegrationCard
-                icon={<InstagramIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />}
-                name="Instagram"
-                description="Connect your Instagram profile"
-                isConnected={!!settings.instagram_url}
-                url={settings.instagram_url}
-                onManage={() => handleManageSocial('instagram_url', 'Instagram')}
-              />
-            </div>
-          </div>
         </div>
       ) : (
         <form onSubmit={handleSave} className="animate-fade-in">
@@ -323,14 +294,6 @@ const GeneralSettings = () => {
                   <div className="bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                       <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">General Information</h3>
                       <div className="space-y-6">
-                          <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">App Name</label>
-                              <input type="text" name="app_name" value={settings.app_name || ''} onChange={handleInputChange} className="w-full rounded-md border border-gray-300 bg-white py-3 px-4 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" />
-                          </div>
-                          <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">App Description</label>
-                              <textarea name="app_description" value={settings.app_description || ''} onChange={handleInputChange} rows="4" className="w-full rounded-md border border-gray-300 bg-white py-3 px-4 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"></textarea>
-                          </div>
                           <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Main Banner Text</label>
                               <textarea name="main_banner_text" value={settings.main_banner_text || ''} onChange={handleInputChange} rows="2" className="w-full rounded-md border border-gray-300 bg-white py-3 px-4 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"></textarea>

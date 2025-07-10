@@ -11,9 +11,11 @@ import Clients from './pages/UserManagement/Clients.jsx';
 import Customers from './pages/UserManagement/Customers.jsx';
 import Riders from './pages/UserManagement/Riders.jsx';
 import Blank from './pages/Blank.jsx';
-import SiteContent from './pages/AppManagement/SiteContent.jsx';
-import Branding from './pages/AppManagement/Branding.jsx';
-import AboutUs from './pages/AppManagement/AboutUs.jsx';
+import AppHome from './pages/AppManagement/AppHome';
+import AppPreview from './pages/AppManagement/AppPreview';
+import AppSupport from './pages/AppManagement/AppSupport';
+import ManagePromotions from './pages/AppManagement/ManagePromotions.jsx';
+import SiteSettings from './pages/AppManagement/SiteSettings.jsx';
 import AdminChat from './pages/Chat/AdminChat.jsx';
 import ClientChat from './pages/Chat/ClientChat.jsx';
 import StoreChat from './pages/Chat/StoreChat.jsx';
@@ -64,9 +66,11 @@ function AdminApp() {
         <Route path="settings-delivery-rates" element={<DeliveryRates />} />
         
         {/* App Management */}
-        <Route path="site-content" element={<SiteContent />} />
-        <Route path="branding" element={<Branding />} />
-        <Route path="about-us" element={<AboutUs />} />
+        <Route path="app-home" element={<AppHome />} />
+        <Route path="app-preview" element={<AppPreview />} />
+        <Route path="app-support" element={<AppSupport />} />
+        <Route path="manage-promotions" element={<ManagePromotions />} />
+        <Route path="site-settings" element={<SiteSettings />} />
         
         {/* Chat Management */}
         <Route path="chat/admin" element={<AdminChat />} />

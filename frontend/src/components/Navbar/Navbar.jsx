@@ -3,12 +3,14 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaTh, FaBell, FaEnvelope } from 'react-icons/fa';
 import { UIContext } from '../../context/UIContext';
+import { useSettings } from '../../context/SettingsContext';
 import { useAuth } from '../../context/AuthContext';
 import { CartContext } from '../../context/CartContext';
 import MessageDropdown from '../Dropdowns/MessageDropdown';
 import NotificationDropdown from '../Dropdowns/NotificationDropdown';
 import { useNotifications } from '../../context/NotificationContext';
 import { getChats } from '../../api/chatApi';
+import api from '../../api/axios-config';
 
 
 
@@ -22,12 +24,15 @@ const Navbar = () => {
   const [loading, setLoading] = useState(true);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   
+  
   const navigate = useNavigate();
   const messagesRef = useRef(null);
   const notificationsRef = useRef(null);
   
   const { openCategorySidebar } = useContext(UIContext);
   const { user } = useAuth();
+  const { settings, loading: settingsLoading } = useSettings();
+  const appName = settings?.app_name || 'EcomXpert';
   const { totalItems: cartCount } = useContext(CartContext);
 
   const { unreadCount: unreadNotifications } = useNotifications();
@@ -55,6 +60,8 @@ const Navbar = () => {
 
     return () => clearInterval(intervalId);
   }, [user]);
+
+  
 
   const totalUnreadCount = chats.reduce((acc, chat) => acc + (chat.unread_count || 0), 0);
 
@@ -127,6 +134,13 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-24">
           {/* Left Side: Mobile Toggle & Logo */}
           <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2 text-xl font-bold text-gray-800">
+              {settings.logo_url ? (
+                <img src={settings.logo_url} alt="Logo" className="h-10" />
+              ) : (
+                <span className="text-2xl font-bold text-primary">{appName}</span>
+              )}
+            </Link>
             <button 
               onClick={openCategorySidebar}
               className="lg:hidden p-2 -ml-2 rounded-md text-gray-600 hover:bg-gray-100"
@@ -134,7 +148,7 @@ const Navbar = () => {
             >
               <FaTh size={20} />
             </button>
-            <Link to="/" className="text-2xl font-bold text-primary">EcomXpert</Link>
+
           </div>
 
           {/* Center Nav Links - Desktop */}

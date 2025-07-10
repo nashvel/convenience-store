@@ -17,9 +17,9 @@ const Settings = () => {
   };
 
   const dashboardPath = user ? {
-    'admin': '/admin/dashboard',
+    'admin': '/admin',
     'client': '/seller/dashboard',
-    'rider': '/rider/dashboard'
+    'rider': '/rider'
   }[user.role] : null;
 
   const navItems = [

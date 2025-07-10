@@ -1,31 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
-import api from '../../api/axios-config';
+import { FaFacebook, FaInstagram, FaTimes } from 'react-icons/fa'; // Using FaTimes for X/Twitter for consistency
+import { useSettings } from '../../context/SettingsContext';
 
 
 
 const Footer = () => {
-  const [settings, setSettings] = useState({});
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await api.get('/public-settings');
-        setSettings(response.data);
-      } catch (error) {
-        console.error('Failed to fetch public settings:', error);
-      }
-    };
-
-    fetchSettings();
-  }, []);
+  const { settings } = useSettings();
 
   const socialLinks = [
-    { name: 'Facebook', key: 'facebook_url', icon: FaFacebook },
-    { name: 'Twitter', key: 'twitter_url', icon: FaTwitter },
-    { name: 'Instagram', key: 'instagram_url', icon: FaInstagram },
-    { name: 'LinkedIn', key: 'linkedin_url', icon: FaLinkedin },
+    { name: 'Facebook', key: 'facebook_url', icon: FaFacebook, color: 'text-blue-600' },
+    { name: 'Instagram', key: 'instagram_url', icon: FaInstagram, color: 'text-pink-500' },
+    { name: 'X', key: 'twitter_url', icon: FaTimes, color: 'text-gray-800' },
   ];
 
   return (
@@ -64,21 +50,21 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-gray-800 tracking-wider uppercase">Follow Us</h4>
             <div className="flex mt-4 space-x-5">
-              {socialLinks.map(({ name, key, icon: Icon }) => {
-                const url = settings[key];
+              {socialLinks.map((link) => {
+                const url = settings[link.key];
                 const isEnabled = !!url && url !== '#';
                 if (!isEnabled) return null;
 
                 return (
                   <a
-                    key={name}
+                    key={link.name}
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Visit our ${name} page`}
-                    className="text-gray-400 hover:text-primary transition-colors"
+                    aria-label={`Visit our ${link.name} page`}
+                    className={`${link.color} transition-all duration-300 hover:opacity-80`}
                   >
-                    <Icon size={22} />
+                    <link.icon size={22} />
                   </a>
                 );
               })}

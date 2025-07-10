@@ -64,9 +64,11 @@ const navItems = [
     icon: <PlugInIcon />,
     name: "App Management",
     subItems: [
-      { name: "Site Content", path: "/admin/site-content", pro: false },
-      { name: "Branding", path: "/admin/branding", pro: false },
-      { name: "About Us", path: "/admin/about-us", pro: false }
+      { name: "Home", path: "/admin/app-home", pro: false },
+      { name: "App", path: "/admin/app-preview", pro: false },
+      { name: "Support", path: "/admin/app-support", pro: false },
+      { name: "Manage Promotions", path: "/admin/manage-promotions", pro: false },
+      { name: "Site Settings", path: "/admin/site-settings", pro: false }
     ],
   },
   {

@@ -1,42 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaArrowRight } from 'react-icons/fa';
-import api from '../../api/axios-config';
 
-
-// Placeholder image URLs - I will replace these with the actual images
+// Static assets that are part of the design
 const CAT_DELIVERY_URL = '/images/icons/cat.png';
 const BURGER_URL = 'https://static.vecteezy.com/system/resources/previews/053/579/154/non_2x/turkish-gyro-wrap-on-black-background-png.png';
-const BACKGROUND_URL = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4';
 const DRINK_URL = 'https://pngimg.com/uploads/cocacola/cocacola_PNG24.png';
+const DEFAULT_BANNER_URL = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4';
 
-const RestaurantBanner = () => {
-  const [settings, setSettings] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-                const response = await api.get('/public-settings');
-        setSettings(response.data);
-      } catch (error) {
-        console.error('Error fetching public settings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSettings();
-  }, []);
-
-  const bannerText = settings.restaurant_banner_text || 'Explore our Restaurants with a delivery at your fingertips';
+const RestaurantBanner = ({ bannerUrl, text }) => {
+  const bannerText = text || 'Explore our Restaurants with a delivery at your fingertips';
+  const background = bannerUrl ? `/uploads/${bannerUrl}` : DEFAULT_BANNER_URL;
 
   return (
-        <section className="relative p-6 md:p-10 h-full">
+    <section className="relative p-6 md:p-10 h-full">
       <div 
         className="absolute inset-0 bg-cover bg-center rounded-2xl"
-        style={{ backgroundImage: `url(${BACKGROUND_URL})` }}
+        style={{ backgroundImage: `url(${background})` }}
       ></div>
       <div className="absolute inset-0 bg-black opacity-60 rounded-2xl"></div>
             <div className="relative z-10 md:w-3/5">
@@ -46,7 +27,7 @@ const RestaurantBanner = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {loading ? 'Loading...' : bannerText}
+          {bannerText}
         </motion.h2>
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -34,7 +34,7 @@ api.interceptors.response.use(
   },
   (error) => {
     // Handle 401 Unauthorized errors for session expiration
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 && !error.config.skipAuthRefresh) {
       console.error('Session expired or token is invalid. Logging out.');
       
       // Clear user data from storage
