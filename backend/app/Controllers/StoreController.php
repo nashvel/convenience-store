@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use CodeIgniter\RESTful\ResourceController;
+use CodeIgniter\Log\Logger;
 
 class StoreController extends ResourceController
 {
@@ -11,6 +12,31 @@ class StoreController extends ResourceController
 
     public function index()
     {
-        return $this->response->setJSON($this->model->findAll());
+        try {
+            $stores = $this->model
+                ->select('stores.*, owners.id as owner_id, owners.first_name, owners.last_name, owners.email, roles.name as role, owners.avatar')
+                ->join('users as owners', 'owners.id = stores.client_id', 'left')
+                ->join('roles', 'roles.id = owners.role_id', 'left')
+                ->findAll();
+
+            $result = array_map(function($store) {
+                $store['owner'] = [
+                    'id' => $store['owner_id'],
+                    'first_name' => $store['first_name'],
+                    'last_name' => $store['last_name'],
+                    'email' => $store['email'],
+                    'role' => $store['role'],
+                    'avatar' => $store['avatar']
+                ];
+                // Unset redundant fields from the top-level store object
+                unset($store['owner_id'], $store['first_name'], $store['last_name'], $store['email'], $store['role'], $store['avatar']);
+                return $store;
+            }, $stores);
+
+            return $this->response->setJSON($result);
+        } catch (\Exception $e) {
+            log_message('error', 'Database error in StoreController::index: ' . $e->getMessage());
+            return $this->failServerError('An error occurred while fetching stores.');
+        }
     }
 }

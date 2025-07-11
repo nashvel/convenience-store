@@ -119,16 +119,34 @@ const StorePage = () => {
           </button>
           <button 
             onClick={() => {
-              const recipientId = store?.client_id;
-              if (user && user.id === recipientId) {
-                toast.info("You can't open a chat with yourself.");
+              if (!user) {
+                toast.warn('Please log in to chat with the store.');
                 return;
               }
 
-              if (store && recipientId) {
-                openChat({ id: recipientId, name: store.name, avatar: logoUrl });
+              if (user.role !== 'customer') {
+                toast.warn('Only customers can use this feature.');
+                return;
+              }
+
+              const recipientId = store?.owner?.id;
+              if (user.id === recipientId) {
+                toast.info("You can't open a chat with your own store.");
+                return;
+              }
+
+              if (recipientId) {
+                const chatRecipient = {
+                  ...store.owner,
+                  name: store.name, // Use store's name for chat display
+                  first_name: store.name, // Legacy support
+                  last_name: '',
+                  avatar: store.logo,
+                  name: store.name, // Use store's name for chat display
+                };
+                openChat(chatRecipient);
               } else {
-                      console.error('Store client ID not available, cannot initiate chat.');
+                console.error('Store owner ID not available, cannot initiate chat.');
                 toast.error('Messaging is not available for this store.');
               }
             }}

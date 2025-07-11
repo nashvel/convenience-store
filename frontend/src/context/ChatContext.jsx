@@ -16,7 +16,7 @@ export const ChatProvider = ({ children }) => {
       const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
       const formattedMessages = fetchedMessages.map(msg => ({
         id: msg.id,
-        senderId: msg.sender_id,
+        sender_id: msg.sender_id,
         text: msg.message,
         timestamp: msg.created_at,
         media: msg.media ? msg.media.map(m => ({ ...m, media_url: `${API_URL}/${m.media_url}` })) : [],
@@ -59,6 +59,7 @@ export const ChatProvider = ({ children }) => {
       return;
     }
 
+    // If chat is already open, just un-minimize it.
     if (openChats[recipient.id]) {
       setOpenChats(prev => ({
         ...prev,
@@ -67,37 +68,48 @@ export const ChatProvider = ({ children }) => {
       return;
     }
 
-    let currentOpenChats = { ...openChats };
-    if (Object.keys(currentOpenChats).length >= 3) {
-      const oldestChatKey = Object.keys(currentOpenChats)[0];
-      delete currentOpenChats[oldestChatKey];
-    }
-
-    currentOpenChats[recipient.id] = {
-      recipient: { ...recipient, name: recipient.name },
-      chatId: null,
-      messages: [],
-      isLoading: true,
-      minimized: false,
-    };
-    setOpenChats(currentOpenChats);
+    // Set initial state with the correct recipient object and loading status.
+    setOpenChats(prev => {
+      let newChats = { ...prev };
+      if (Object.keys(newChats).length >= 3) {
+        const oldestChatKey = Object.keys(newChats)[0];
+        delete newChats[oldestChatKey];
+      }
+      newChats[recipient.id] = {
+        recipient, // This is the recipient object with the store name
+        chatId: null,
+        messages: [],
+        isLoading: true,
+        minimized: false,
+      };
+      return newChats;
+    });
 
     try {
-      const chat = await findOrCreateChat(recipient.id);
-      if (!chat || !chat.id) throw new Error("Failed to find or create a chat.");
+      // Find or create the chat to get a chatId.
+      // Find or create the chat to get a chatId.
+      const chatResponse = await findOrCreateChat(recipient.id);
+      if (!chatResponse || !chatResponse.id) throw new Error("Failed to find or create a chat.");
 
+      // Update the state with the new chatId, ensuring the correct recipient from the initial state is preserved.
       setOpenChats(prev => {
-        if (!prev[recipient.id]) return prev;
+        const existingChat = prev[recipient.id];
+        if (!existingChat) return prev; // Check if chat was closed in the meantime
         return {
-            ...prev,
-            [recipient.id]: { ...prev[recipient.id], chatId: chat.id },
-        }
+          ...prev,
+          [recipient.id]: { 
+            ...existingChat, // This preserves our initial recipient object
+            chatId: chatResponse.id, // We only take the chatId from the response
+          },
+        };
       });
 
-      await fetchMessages(chat.id, recipient.id);
+      // Fetch initial messages for the chat.
+      await fetchMessages(chatResponse.id, recipient.id);
 
-    } catch (error) {
+    } catch (error) { 
       console.error("Failed to open chat", error);
+      // If anything fails, remove the chat window.
       closeChat(recipient.id);
     }
   };
@@ -139,7 +151,7 @@ export const ChatProvider = ({ children }) => {
 
     const optimisticMessage = {
       id: tempId,
-      senderId: user.id,
+      sender_id: user.id,
       text: text.trim(),
       timestamp: new Date().toISOString(),
       isSending: true,
@@ -167,8 +179,8 @@ export const ChatProvider = ({ children }) => {
       const savedMessage = await sendMessageApi(chatId, formData);
       const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
       const formattedMessage = {
-        ...savedMessage,
-        senderId: savedMessage.sender_id,
+        id: savedMessage.id,
+        sender_id: savedMessage.sender_id, // Ensure this is correct
         text: savedMessage.message,
         timestamp: savedMessage.created_at,
         media: savedMessage.media ? savedMessage.media.map(m => ({ ...m, media_url: `${API_URL}/${m.media_url}` })) : [],
@@ -176,8 +188,10 @@ export const ChatProvider = ({ children }) => {
 
       setOpenChats(prev => {
         if (!prev[recipientId]) return prev;
+
+        // Replace optimistic message with server-confirmed message
         const newMessages = prev[recipientId].messages.map(m =>
-          m.id === tempId ? formattedMessage : m
+            m.id === tempId ? formattedMessage : m
         );
         optimisticMessage.media.forEach(m => URL.revokeObjectURL(m.media_url));
         return {

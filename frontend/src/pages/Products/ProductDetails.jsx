@@ -1,8 +1,11 @@
 import React, { useContext, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes, FaBolt, FaShippingFast, FaShieldAlt, FaChevronDown, FaChevronUp, FaChevronRight, FaCheckCircle } from 'react-icons/fa';
+import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes, FaBolt, FaShippingFast, FaShieldAlt, FaChevronDown, FaChevronUp, FaChevronRight, FaCheckCircle, FaComments } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import { StoreContext } from '../../context/StoreContext';
+import { useAuth } from '../../context/AuthContext';
+import { useChat } from '../../context/ChatContext';
 import Reviews from '../../components/Reviews/Reviews';
 import ProductCard from '../../components/Cards/ProductCard';
 import { PRODUCT_ASSET_URL } from '../../config';
@@ -10,6 +13,8 @@ import ProductDetailsSkeleton from '../../components/Skeletons/ProductDetailsSke
 import ShopConfidenceModal from '../../components/Modals/ShopConfidenceModal';
 
 const ProductDetails = () => {
+  const { user } = useAuth();
+  const { openChat } = useChat();
   const { id } = useParams();
   const navigate = useNavigate();
   const { allProducts, stores, loading, error, isFavorite, toggleFavorite, addToCart } = useContext(StoreContext);
@@ -33,7 +38,7 @@ const ProductDetails = () => {
   };
 
   const product = !loading && allProducts.length > 0 ? allProducts.find(p => String(p.id) === id) : null;
-  const store = product ? stores.find(s => s.id === product.store_id) : null;
+  const store = product && stores.length > 0 ? stores.find(s => s.id === product.store_id) : null;
 
   // Augmented product data for UI enhancements
   const productData = product ? {
@@ -72,6 +77,36 @@ const ProductDetails = () => {
     const value = parseInt(e.target.value, 10);
     if (value > 0 && value <= product.stock) {
       setQuantity(value);
+    }
+  };
+
+  const handleChat = () => {
+    if (!user) {
+      toast.warn('Please log in to get assistance.');
+      return;
+    }
+
+    if (user.role !== 'customer') {
+      toast.warn('Only customers can use this chat.');
+      return;
+    }
+
+    if (store && store.owner) {
+      if (user.id === store.owner.id) {
+        toast.info("You can't open a chat with your own store.");
+        return;
+      }
+      
+      const chatRecipient = {
+        id: product.store.owner.id, // The recipient ID is the owner's ID
+        name: product.store.name, // Display the store's name
+        first_name: product.store.name, // Use store name for display
+        last_name: '', // Keep last_name empty
+        avatar_url: product.store.logo_url, // Use the store's logo
+      };
+      openChat(chatRecipient);
+    } else {
+      toast.error('Store information is not available.');
     }
   };
 
@@ -244,6 +279,12 @@ const ProductDetails = () => {
               <button onClick={handleAddToCart} disabled={isOutOfStock} className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"><FaShoppingCart />Add to Cart</button>
               <button onClick={handleBuyNow} disabled={isOutOfStock} className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"><FaBolt />Buy Now</button>
             </div>
+          </div>
+
+          <div className="mt-4">
+            <button onClick={handleChat} className="w-full bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors duration-300 flex items-center justify-center gap-2">
+              <FaComments /> Get Assistance
+            </button>
           </div>
 
           <div className="mt-8 border-t border-gray-200 pt-6">

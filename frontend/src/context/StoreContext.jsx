@@ -49,8 +49,15 @@ export const StoreProvider = ({ children }) => {
         const storesRes = await fetchStores();
         const rawStores = storesRes.data || [];
         fetchedStores = rawStores.map(store => ({
-          ...store,
+          id: store.id,
+          name: store.name,
+          description: store.description,
+          logo: store.logo,
+          cover_photo: store.cover_photo,
+          address: store.address,
+          phone_number: store.phone_number,
           delivery_fee: parseFloat(store.delivery_fee) || 0,
+          owner: store.owner
         }));
         const [productsRes, categoriesRes] = await Promise.all([
           fetchAllProducts(),

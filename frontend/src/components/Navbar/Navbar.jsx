@@ -1,8 +1,9 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaTh, FaBell, FaEnvelope } from 'react-icons/fa';
 import { UIContext } from '../../context/UIContext';
+import { useChat } from '../../context/ChatContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useAuth } from '../../context/AuthContext';
 import { CartContext } from '../../context/CartContext';
@@ -12,24 +13,19 @@ import { useNotifications } from '../../context/NotificationContext';
 import { getChats } from '../../api/chatApi';
 import api from '../../api/axios-config';
 
-
-
-
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMessageDropdownOpen, setIsMessageDropdownOpen] = useState(false);
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  
-  
+
   const navigate = useNavigate();
   const messagesRef = useRef(null);
   const notificationsRef = useRef(null);
-  
-  const { openCategorySidebar } = useContext(UIContext);
+
+  const { openCategorySidebar, isMessageDropdownOpen, openMessageDropdown, closeMessageDropdown, chatRecipient } = useContext(UIContext);
+  const { openChat } = useChat();
   const { user } = useAuth();
   const { settings, loading: settingsLoading } = useSettings();
   const appName = settings?.app_name || 'EcomXpert';
@@ -38,36 +34,28 @@ const Navbar = () => {
   const { unreadCount: unreadNotifications } = useNotifications();
 
   useEffect(() => {
-    if (!user) {
-      setChats([]);
-      setLoading(false);
-      return;
+    if (user) {
+      const fetchAndSetChats = async () => {
+        try {
+          const fetchedChats = await getChats();
+          setChats(fetchedChats);
+        } catch (error) {
+          console.error("Failed to fetch chats for navbar", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchAndSetChats();
     }
-
-    const fetchAndSetChats = async () => {
-      try {
-        const fetchedChats = await getChats();
-        setChats(fetchedChats);
-      } catch (error) {
-        console.error("Failed to fetch chats for navbar", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAndSetChats();
-    const intervalId = setInterval(fetchAndSetChats, 5000);
-
-    return () => clearInterval(intervalId);
   }, [user]);
 
-  
+  useEffect(() => {
+    if (chatRecipient) {
+      openChat(chatRecipient);
+    }
+  }, [chatRecipient, openChat]);
 
   const totalUnreadCount = chats.reduce((acc, chat) => acc + (chat.unread_count || 0), 0);
-
-  const toggleMessageDropdown = () => {
-    setIsMessageDropdownOpen(prev => !prev);
-  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,7 +68,7 @@ const Navbar = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (messagesRef.current && !messagesRef.current.contains(event.target)) {
-        setIsMessageDropdownOpen(false);
+        closeMessageDropdown();
       }
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setIsNotificationsOpen(false);
@@ -119,6 +107,8 @@ const Navbar = () => {
       </Link>
     );
   };
+
+
 
   return (
     <motion.header 
@@ -195,23 +185,31 @@ const Navbar = () => {
                     </button>
                     <NotificationDropdown isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
                   </div>
-                  <div className="relative" ref={messagesRef}>
-                    <button onClick={toggleMessageDropdown} className="relative p-2 rounded-full text-primary hover:bg-blue-50" aria-label="View messages">
-                      <FaEnvelope size={22} />
-                      {totalUnreadCount > 0 && (
-                        <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {totalUnreadCount}
-                        </span>
-                      )}
-                    </button>
-                    {isMessageDropdownOpen && (
-                      <MessageDropdown
-                        closeDropdown={() => setIsMessageDropdownOpen(false)}
-                        chats={chats}
-                        loading={loading}
-                      />
-                    )}
-                  </div>
+                  {user.role === 'customer' && (
+                    <div className="relative" ref={messagesRef}>
+                      <button onClick={isMessageDropdownOpen ? closeMessageDropdown : openMessageDropdown} className="relative p-2 rounded-full text-primary hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark">
+                        <FaEnvelope size={22} />
+                        {totalUnreadCount > 0 && (
+                          <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {totalUnreadCount}
+                          </span>
+                        )}
+                      </button>
+                      <AnimatePresence>
+                        {isMessageDropdownOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute right-0 mt-2 w-80 origin-top-right"
+                          >
+                            <MessageDropdown closeDropdown={closeMessageDropdown} chats={chats} loading={loading} />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
                 </>
               )}
               <Link to="/wishlist" className="p-2 rounded-full text-primary hover:bg-blue-50" aria-label="View your wishlist">
