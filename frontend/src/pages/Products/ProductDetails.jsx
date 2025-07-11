@@ -104,7 +104,11 @@ const ProductDetails = () => {
         last_name: '', // Keep last_name empty
         avatar_url: product.store.logo_url, // Use the store's logo
       };
-      openChat(chatRecipient);
+
+      const imageUrl = `${PRODUCT_ASSET_URL}/${product.image}`;
+      const initialMessage = `I have a question about: ${product.name}\n${imageUrl}`;
+
+      openChat(chatRecipient, initialMessage);
     } else {
       toast.error('Store information is not available.');
     }

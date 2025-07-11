@@ -5,8 +5,34 @@ import { useChat } from '../../context/ChatContext';
 import { formatInTimeZone } from 'date-fns-tz';
 import getAvatarUrl from '../../utils/getAvatarUrl';
 
+// A component to render message content, converting URLs to links/images
+const MessageRenderer = ({ text }) => {
+    if (!text) return null;
+
+    // Regex to find URLs and split the text by them
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return (
+        <div className="whitespace-pre-wrap text-sm">
+            {parts.map((part, index) => {
+                if (part.match(urlRegex)) {
+                    // Check if the URL is for an image
+                    if (/\.(jpeg|jpg|gif|png)$/i.test(part)) {
+                        return <img key={index} src={part} alt="User uploaded content" className="rounded-lg my-2 max-w-[4rem] h-auto" />;
+                    } else {
+                        // Otherwise, render it as a clickable link
+                        return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
+                    }
+                }
+                return part;
+            })}
+        </div>
+    );
+};
+
 const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
-    const { sendMessage, currentUserId, user } = useChat();
+    const { sendMessage, currentUserId } = useChat();
     const [newMessage, setNewMessage] = useState('');
     const [selectedFiles, setSelectedFiles] = useState([]);
     const messagesEndRef = useRef(null);
@@ -17,13 +43,19 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
     };
 
     useEffect(() => {
+        if (chat.initialMessage) {
+            setNewMessage(chat.initialMessage);
+        }
+    }, [chat.initialMessage]);
+
+    useEffect(() => {
         scrollToBottom();
     }, [chat.messages]);
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
-        setSelectedFiles(prev => [...prev, ...files].slice(0, 5)); // Limit to 5 files
-        e.target.value = null; // Allow selecting the same file again
+        setSelectedFiles(prev => [...prev, ...files].slice(0, 5));
+        e.target.value = null;
     };
 
     const removeSelectedFile = (fileToRemove) => {
@@ -48,6 +80,7 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
             submitMessage();
         }
     };
+
     return (
         <motion.div
             layout
@@ -71,19 +104,13 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleMinimize(chat.recipient.id);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); onToggleMinimize(chat.recipient.id); }}
                         className="text-white hover:bg-white/20 p-1 rounded-full"
                     >
                         <FaMinus size={16} />
                     </button>
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onClose(chat.recipient.id);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); onClose(chat.recipient.id); }}
                         className="text-white hover:bg-white/20 p-1 rounded-full"
                     >
                         <FaTimes size={16} />
@@ -96,29 +123,16 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                 {!chat.minimized && (
                     <motion.div
                         className="flex-1 flex flex-col overflow-hidden"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
                     >
                         {/* Messages */}
                         <div className="flex-1 p-4 overflow-y-auto">
                             {chat.loading ? (
-                                <div className="space-y-4 animate-pulse">
-                                    <div className="flex items-end gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-gray-300"></div>
-                                        <div className="h-10 rounded-lg bg-gray-300 w-2/3"></div>
-                                    </div>
-                                    <div className="flex justify-end items-end gap-2">
-                                        <div className="h-12 rounded-lg bg-gray-400 w-1/2"></div>
-                                    </div>
-                                    <div className="flex items-end gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-gray-300"></div>
-                                        <div className="h-8 rounded-lg bg-gray-300 w-1/3"></div>
-                                    </div>
-                                    <div className="flex justify-end items-end gap-2">
-                                        <div className="h-10 rounded-lg bg-gray-400 w-3/4"></div>
-                                    </div>
+                                <div className="space-y-4 animate-pulse"> 
+                                    <div className="flex items-end gap-2"><div className="w-6 h-6 rounded-full bg-gray-300"></div><div className="h-10 rounded-lg bg-gray-300 w-2/3"></div></div>
+                                    <div className="flex justify-end items-end gap-2"><div className="h-12 rounded-lg bg-gray-400 w-1/2"></div></div>
+                                    <div className="flex items-end gap-2"><div className="w-6 h-6 rounded-full bg-gray-300"></div><div className="h-8 rounded-lg bg-gray-300 w-1/3"></div></div>
+                                    <div className="flex justify-end items-end gap-2"><div className="h-10 rounded-lg bg-gray-400 w-3/4"></div></div>
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-4">
@@ -127,29 +141,29 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                                             {msg.sender_id !== currentUserId && (
                                                 <img src={getAvatarUrl(chat.recipient)} alt={chat.recipient?.first_name} className="w-6 h-6 rounded-full self-start" />
                                             )}
-                                            <div
-                                                className={`p-3 rounded-lg max-w-xs break-words ${msg.sender_id === currentUserId ? 'bg-primary text-white' : 'bg-gray-200 text-gray-800'}`}>
-                                                {msg.text && <p>{msg.text}</p>}
-                                                
-                                                {msg.media && msg.media.length > 0 && (
-                                                    <div className="mt-2 flex flex-col gap-2">
-                                                        {msg.media.map(mediaItem => (
-                                                            <div key={mediaItem.id || mediaItem.media_url} className="relative">
-                                                                {mediaItem.media_type === 'image' ? (
-                                                                    <img src={mediaItem.media_url} alt="attachment" className="rounded-md max-w-full" />
-                                                                ) : (
-                                                                    <video src={mediaItem.media_url} controls className="rounded-md max-w-full" />
-                                                                )}
-                                                                {(mediaItem.isUploading) && (
-                                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-md">
-                                                                        <FaSpinner className="animate-spin text-white" size={24} />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-
+                                            <div className={`flex flex-col ${msg.sender_id === currentUserId ? 'items-end' : 'items-start'}`}>
+                                                <div className={`w-fit max-w-[75%] p-3 rounded-lg break-words ${msg.sender_id === currentUserId ? 'bg-primary text-white' : 'bg-gray-200 text-gray-800'}`}>
+                                                    <MessageRenderer text={msg.text} />
+                                                    
+                                                    {msg.media && msg.media.length > 0 && (
+                                                        <div className="mt-2 flex flex-col gap-2">
+                                                            {msg.media.map(mediaItem => (
+                                                                <div key={mediaItem.id || mediaItem.media_url} className="relative">
+                                                                    {mediaItem.media_type === 'image' ? (
+                                                                        <img src={mediaItem.media_url} alt="attachment" className="rounded-md max-w-full" />
+                                                                    ) : (
+                                                                        <video src={mediaItem.media_url} controls className="rounded-md max-w-full" />
+                                                                    )}
+                                                                    {(mediaItem.isUploading) && (
+                                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-md">
+                                                                            <FaSpinner className="animate-spin text-white" size={24} />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <div className={`text-xs mt-1 ${msg.sender_id === currentUserId ? 'text-gray-300' : 'text-gray-500'}`}>
                                                     {formatInTimeZone(new Date(msg.timestamp), 'Asia/Manila', 'p')}
                                                     {msg.isSending && <span className="ml-1">(Sending...)</span>}

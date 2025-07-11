@@ -53,7 +53,7 @@ export const ChatProvider = ({ children }) => {
     }
   }, []);
 
-  const openChat = async (recipient) => {
+  const openChat = async (recipient, initialMessage = null) => {
     if (!recipient || !recipient.id) {
       console.error("Recipient is invalid", recipient);
       return;
@@ -81,12 +81,12 @@ export const ChatProvider = ({ children }) => {
         messages: [],
         isLoading: true,
         minimized: false,
+        initialMessage,
       };
       return newChats;
     });
 
     try {
-      // Find or create the chat to get a chatId.
       // Find or create the chat to get a chatId.
       const chatResponse = await findOrCreateChat(recipient.id);
       if (!chatResponse || !chatResponse.id) throw new Error("Failed to find or create a chat.");
