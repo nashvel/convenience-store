@@ -21,9 +21,10 @@ class ProductController extends ResourceController
 
         log_message('debug', 'Request Params: ' . json_encode($this->request->getGet()));
         
-        $this->model->select('products.*, c1.name as category_name, c2.name as parent_category_name, stores.name as store_name')
-                    ->join('categories c1', 'c1.id = products.category_id')
+        $this->model->select('products.*, c1.name as category_name, c2.name as parent_category_name, stores.id as store_id, stores.name as store_name, stores.logo as store_logo_url, users.id as owner_id, users.first_name as owner_first_name, users.last_name as owner_last_name, users.avatar as owner_avatar_url')
                     ->join('stores', 'stores.id = products.store_id')
+                    ->join('users', 'users.id = stores.client_id')
+                    ->join('categories c1', 'c1.id = products.category_id', 'left') // Changed to left join to ensure products without categories are not excluded
                     ->join('categories c2', 'c2.id = c1.parent_id', 'left')
                     ->where('products.is_approved', 1);
 
@@ -77,12 +78,12 @@ class ProductController extends ResourceController
         }
 
         $products = $this->model->findAll();
+        log_message('debug', 'Raw products from DB in index: ' . json_encode($products));
 
         // Fetch active promotions
         $promotionModel = new \App\Models\PromotionModel();
         $activePromotions = $promotionModel->getActivePromotionsWithScopes();
 
-        // Apply promotions to products
         $productsWithDiscounts = array_map(function ($product) use ($activePromotions) {
             $originalPrice = (float)$product['price'];
             $bestDiscountedPrice = $originalPrice;
@@ -138,24 +139,76 @@ class ProductController extends ResourceController
             return $product;
         }, $products);
 
+        // Restructure the data for the frontend *after* applying discounts
+        $structuredProducts = array_map(function ($p) {
+            return [
+                'id' => $p['id'],
+                'name' => $p['name'],
+                'description' => $p['description'],
+                'price' => $p['price'],
+                'image' => $p['image'],
+                'stock' => $p['stock'],
+                'original_price' => $p['original_price'],
+                'has_discount' => $p['has_discount'],
+                'store' => [
+                    'id' => $p['store_id'],
+                    'name' => $p['store_name'],
+                    'logo_url' => $p['store_logo_url'],
+                    'owner' => [
+                        'id' => $p['owner_id'],
+                        'first_name' => $p['owner_first_name'],
+                        'last_name' => $p['owner_last_name'],
+                        'avatar_url' => $p['owner_avatar_url'],
+                    ]
+                ]
+            ];
+        }, $productsWithDiscounts);
+
         log_message('debug', 'Final product count: ' . count($productsWithDiscounts));
         log_message('debug', 'ProductController::index END');
 
-        return $this->respond($productsWithDiscounts);
+        log_message('debug', 'Final structured products in index: ' . json_encode($structuredProducts));
+        return $this->respond($structuredProducts);
     }
 
     public function show($id = null)
     {
-        $product = $this->model->select('products.*, c1.name as category_name, c2.name as parent_category_name, stores.name as store_name')
-                               ->join('categories c1', 'c1.id = products.category_id')
-                               ->join('stores', 'stores.id = products.store_id')
-                               ->join('categories c2', 'c2.id = c1.parent_id', 'left')
-                               ->find($id);
+        $productData = $this->model
+            ->select('products.*, stores.id as store_id, stores.name as store_name, stores.logo as store_logo_url, users.id as owner_id, users.first_name as owner_first_name, users.last_name as owner_last_name, users.avatar as owner_avatar_url')
+            ->join('stores', 'stores.id = products.store_id')
+            ->join('users', 'users.id = stores.client_id')
+            ->where('products.id', $id)
+            ->first();
 
-        if (!$product) {
+        log_message('debug', 'Product data from DB for ID ' . $id . ': ' . json_encode($productData));
+
+        if (!$productData) {
             return $this->failNotFound('Product not found');
         }
+
+        // Restructure the data for the frontend
+        $product = [
+            'id' => $productData['id'],
+            'name' => $productData['name'],
+            'description' => $productData['description'],
+            'price' => $productData['price'],
+            'image' => $productData['image'],
+            'stock' => $productData['stock'],
+            'store' => [
+                'id' => $productData['store_id'],
+                'name' => $productData['store_name'],
+                'logo_url' => $productData['store_logo_url'],
+                'owner' => [
+                    'id' => $productData['owner_id'],
+                    'first_name' => $productData['owner_first_name'],
+                    'last_name' => $productData['owner_last_name'],
+                    'avatar_url' => $productData['owner_avatar_url'],
+                ]
+            ]
+        ];
         
+        log_message('debug', 'Final product structure for response: ' . json_encode($product));
+
         return $this->respond($product);
     }
 }

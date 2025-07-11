@@ -91,8 +91,8 @@ const ProductDetails = () => {
       return;
     }
 
-    if (store && store.owner) {
-      if (user.id === store.owner.id) {
+    if (product && product.store && product.store.owner) {
+      if (user.id === product.store.owner.id) {
         toast.info("You can't open a chat with your own store.");
         return;
       }
@@ -209,11 +209,13 @@ const ProductDetails = () => {
                 </div>
               )}
             </div>
-          {store && (
-            <Link to={`/stores/${store.id}/${store.name}`} className="text-gray-600 hover:text-blue-600 mb-4 font-medium">
-              Sold by {store.name}
-            </Link>
-          )}
+            {product.store && (
+              <p className="text-lg text-gray-700 mb-2">Sold by: 
+                <Link to={`/stores/${product.store.id}`} className="text-blue-600 hover:underline">
+                  {product.store.name}
+                </Link>
+              </p>
+            )}
           
           <div className="flex items-center gap-4 mb-4">
             <div className="flex items-baseline space-x-4">
