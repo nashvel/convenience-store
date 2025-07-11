@@ -1,6 +1,6 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { StoreContext } from '../../context/StoreContext';
+import api from '../../api/axios-config';
 import ProductCard from '../../components/Cards/ProductCard';
 import { motion } from 'framer-motion';
 import { FaSearch, FaMapMarkerAlt, FaDirections, FaShareAlt, FaCommentDots, FaStar, FaClock, FaTimesCircle, FaBoxOpen, FaSpinner } from 'react-icons/fa';
@@ -17,7 +17,10 @@ const StorePage = () => {
   const { openChat } = useChat();
   const { user } = useAuth();
   const { storeId } = useParams();
-  const { stores, allProducts: products, loading, error } = useContext(StoreContext);
+  const [store, setStore] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   const [sortOption, setSortOption] = useLocalStorage(`store-${storeId}-sort`, 'best-sellers');
   const [searchInput, setSearchInput] = useState('');
@@ -25,10 +28,31 @@ const StorePage = () => {
 
   const [isSorting, setIsSorting] = useState(false);
 
-  const store = useMemo(() => (stores || []).find(s => s.id == storeId), [stores, storeId]);
+  useEffect(() => {
+    const fetchStoreData = async () => {
+      try {
+        setLoading(true);
+        const storeResponse = await api.get(`/stores/${storeId}`);
+        setStore(storeResponse.data);
+
+        const productResponse = await api.get(`/products?store_id=${storeId}`);
+        setProducts(productResponse.data);
+
+      } catch (err) {
+        setError('Failed to fetch store data.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (storeId) {
+      fetchStoreData();
+    }
+  }, [storeId]);
 
   const storeProducts = useMemo(() => {
-    let filtered = (products || []).filter(p => p.store_id == storeId);
+        let filtered = products || [];
     
     if (debouncedSearchQuery) {
       const lowercasedQuery = debouncedSearchQuery.toLowerCase();

@@ -48,22 +48,30 @@ const CategorySidebar = () => {
   }, [location.search, priceRange]);
 
   const handleCategorySelect = (categoryName) => {
+    console.log(`handleCategorySelect called with: "${categoryName}"`);
     const params = new URLSearchParams(location.search);
     const existingCategories = params.get('category') ? params.get('category').split(',') : [];
+    console.log('Existing categories from URL:', existingCategories);
     
     const newCategories = new Set(existingCategories);
     if (newCategories.has(categoryName)) {
+      console.log(`Removing "${categoryName}" from selection.`);
       newCategories.delete(categoryName);
     } else {
+      console.log(`Adding "${categoryName}" to selection.`);
       newCategories.add(categoryName);
     }
     
+    // Clear old category params to prevent conflicts
+    params.delete('category');
+    params.delete('category[]');
+
     if (newCategories.size > 0) {
       params.set('category', Array.from(newCategories).join(','));
-    } else {
-      params.delete('category');
     }
-    navigate({ search: params.toString() }, { replace: true });
+    const finalParams = params.toString();
+    console.log('Navigating with new search params:', finalParams);
+    navigate({ search: finalParams }, { replace: true });
   };
 
   const handleSliderChange = (values) => {

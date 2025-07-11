@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes, FaBolt, FaShippingFast, FaShieldAlt, FaChevronDown, FaChevronUp, FaChevronRight, FaCheckCircle, FaComments } from 'react-icons/fa';
@@ -9,74 +9,69 @@ import { useChat } from '../../context/ChatContext';
 import Reviews from '../../components/Reviews/Reviews';
 import ProductCard from '../../components/Cards/ProductCard';
 import { PRODUCT_ASSET_URL } from '../../config';
+import api from '../../api/axios-config';
 import ProductDetailsSkeleton from '../../components/Skeletons/ProductDetailsSkeleton';
 import ShopConfidenceModal from '../../components/Modals/ShopConfidenceModal';
+import VariantSelectionModal from '../../components/Modals/VariantSelectionModal';
+import Breadcrumbs from '../../components/Breadcrumbs/Breadcrumbs';
 
 const ProductDetails = () => {
   const { user } = useAuth();
   const { openChat } = useChat();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { allProducts, stores, loading, error, isFavorite, toggleFavorite, addToCart } = useContext(StoreContext);
+  const { addToCart: addToCartContext } = useContext(StoreContext);
+
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
   const [quantity, setQuantity] = useState(1);
-  const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
   const [isConfidenceModalOpen, setConfidenceModalOpen] = useState(false);
+  const [isVariantModalOpen, setVariantModalOpen] = useState(false);
 
-  const getDiscount = () => {
-    if (!productData.has_discount) return null;
-    if (productData.discount_type === 'percentage') {
-      return `${productData.discount_value}%`;
-    }
-    if (productData.discount_type === 'fixed') {
-        return `₱${productData.discount_value}`;
-    }
-    // Fallback calculation if type is missing but prices are available
-    const discount = productData.original_price - productData.price;
-    return `₱${discount.toFixed(2)}`;
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(`/products/${id}`);
+        setProduct(response.data);
+        if (response.data.product_type === 'variable' && response.data.variants.length > 0) {
+          setSelectedVariant(response.data.variants[0]);
+        }
+      } catch (err) {
+        setError('Failed to fetch product details.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  const handleVariantSelect = (variant) => {
+    setSelectedVariant(variant);
+    setQuantity(1); // Reset quantity when changing variant
   };
 
-  const product = !loading && allProducts.length > 0 ? allProducts.find(p => String(p.id) === id) : null;
-  const store = product && stores.length > 0 ? stores.find(s => s.id === product.store_id) : null;
-
-  // Augmented product data for UI enhancements
-  const productData = product ? {
-    ...product,
-    // NOTE: Using placeholder images for gallery. In a real app, these would come from the backend.
-    images: [
-      product.image,
-      'products/product-placeholder-2.jpg',
-      'products/product-placeholder-3.jpg',
-      'products/product-placeholder-4.jpg',
-    ],
-    specifications: [
-      { name: 'SKU', value: product.sku || 'N/A' },
-      { name: 'Brand', value: product.brand || 'N/A' },
-      { name: 'Weight', value: product.weight || 'Approx. 500g' },
-      { name: 'Dimensions', value: product.dimensions || '10cm x 10cm x 5cm' },
-    ]
-  } : null;
-
-  const suggestedProducts = product
-    ? allProducts.filter(p => p.category_name === product.category_name && String(p.id) !== id).slice(0, 5)
-    : [];
-
   const handleAddToCart = () => {
-    if (product) addToCart(product, quantity);
+    if (product.product_type === 'variable') {
+      setVariantModalOpen(true);
+    } else {
+      addToCartContext(product, 1);
+      toast.success(`${product.name} added to cart!`);
+    }
   };
 
   const handleBuyNow = () => {
-    if (product) {
-      addToCart(product, quantity);
-      navigate('/cart');
-    }
-  };
-
-  const handleQuantityChange = (e) => {
-    const value = parseInt(e.target.value, 10);
-    if (value > 0 && value <= product.stock) {
-      setQuantity(value);
+    if (product.product_type === 'variable') {
+      setVariantModalOpen(true);
+    } else {
+      addToCartContext(product, 1);
+      navigate('/checkout');
     }
   };
 
@@ -98,193 +93,104 @@ const ProductDetails = () => {
       }
       
       const chatRecipient = {
-        id: product.store.owner.id, // The recipient ID is the owner's ID
-        name: product.store.name, // Display the store's name
-        first_name: product.store.name, // Use store name for display
-        last_name: '', // Keep last_name empty
-        avatar_url: product.store.logo_url, // Use the store's logo
+        id: product.store.owner.id,
+        name: product.store.name,
+        first_name: product.store.name,
+        last_name: '',
+        avatar: product.store.logo_url,
+        role: 'client'
       };
 
-      const imageUrl = `${PRODUCT_ASSET_URL}/${product.image}`;
-      const initialMessage = `I have a question about: ${product.name}\n${imageUrl}`;
-
-      openChat(chatRecipient, initialMessage);
+      openChat(chatRecipient);
     } else {
       toast.error('Store information is not available.');
     }
   };
 
   if (loading) return <ProductDetailsSkeleton />;
+  if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
+  if (!product) return <div className="text-center py-20">Product not found.</div>;
 
-  if (error) return (
-    <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center">
-      <h2 className="text-2xl font-bold mb-4">{error}</h2>
-      <Link to="/products" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Back to Products</Link>
-    </div>
-  );
-
-  if (!productData) return (
-    <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center">
-      <h2 className="text-2xl font-bold mb-4">Product not found</h2>
-      <Link to="/products" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Back to Products</Link>
-    </div>
-  );
-
-  const favorite = isFavorite(productData.id);
-  const isOutOfStock = !productData || Number(productData.stock) <= 0;
+  const isOutOfStock = (selectedVariant ? selectedVariant.stock : product.stock) === 0;
 
   const tabs = [
     { id: 'description', label: 'Description' },
     { id: 'specifications', label: 'Specifications' },
-    { id: 'reviews', label: 'Reviews' },
+    { id: 'reviews', label: 'Reviews' }
   ];
 
+  const getPrice = (price) => {
+    const num = parseFloat(price);
+    return isNaN(num) ? null : num;
+  };
+
+  const displayPrice = getPrice(selectedVariant ? selectedVariant.price : product.price);
+  const originalPrice = getPrice(selectedVariant?.original_price || product.original_price);
+  const displayImage = selectedVariant?.image_url ? `${PRODUCT_ASSET_URL}/${selectedVariant.image_url}` : `${PRODUCT_ASSET_URL}/${product.image}`;
+
+  const breadcrumbItems = [
+    { label: 'Home', link: '/' },
+    { label: 'Products', link: '/products' },
+  ];
+  if (product.parent_category_name) {
+    breadcrumbItems.push({ label: product.parent_category_name, link: `/products?category=${encodeURIComponent(product.parent_category_name)}` });
+  }
+  if (product.category_name) {
+    breadcrumbItems.push({ label: product.category_name, link: `/products?category=${encodeURIComponent(product.category_name)}` });
+  }
+  breadcrumbItems.push({ label: product.name });
+
   return (
-    <motion.div
+    <motion.div 
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24"
     >
-      {/* Breadcrumbs */}
-      <div className="flex items-center text-sm text-gray-500 mb-6">
-        <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
-        <FaChevronRight size={12} className="mx-2 text-gray-400" />
-        <Link to="/products" className="hover:text-blue-600 transition-colors">Products</Link>
-        {productData.parent_category_name && (
-          <>
-            <FaChevronRight size={12} className="mx-2 text-gray-400" />
-            <Link to={`/products?category=${encodeURIComponent(productData.parent_category_name)}`} className="hover:text-blue-600 transition-colors">{productData.parent_category_name}</Link>
-          </>
-        )}
-        {productData.category_name && (
-          <>
-            <FaChevronRight size={12} className="mx-2 text-gray-400" />
-            <Link to={`/products?category=${encodeURIComponent(productData.category_name)}`} className="hover:text-blue-600 transition-colors">{productData.category_name}</Link>
-          </>
-        )}
-        <FaChevronRight size={12} className="mx-2 text-gray-400" />
-        <span className="text-gray-800 font-medium truncate">{productData.name}</span>
-      </div>
-      
-      <div className="grid md:grid-cols-5 gap-12 items-start">
-        {/* Image Gallery */}
-        <div className="md:col-span-2">
-          <div className="relative rounded-lg overflow-hidden bg-gray-100 shadow-lg mb-4 aspect-square">
-            <AnimatePresence mode="wait">
-              <motion.img 
-                key={activeImage}
-                src={`${PRODUCT_ASSET_URL}/${productData.images[activeImage]}`}
-                alt={`${productData.name} view ${activeImage + 1}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full object-cover"/>
-            </AnimatePresence>
-            <button 
-              onClick={() => toggleFavorite(productData.id)}
-              className={`absolute top-4 right-4 bg-white/80 backdrop-blur-sm rounded-full w-12 h-12 flex items-center justify-center text-2xl transition-all duration-300 ${favorite ? 'text-red-500 scale-110' : 'text-gray-500'} hover:text-red-500 hover:scale-110`}
-            >
-              {favorite ? <FaHeart /> : <FaRegHeart />}
-            </button>
-          </div>
-          <div className="grid grid-cols-4 gap-4">
-            {productData.images.map((img, index) => (
-              <div 
-                key={index}
-                onClick={() => setActiveImage(index)}
-                className={`rounded-md overflow-hidden cursor-pointer border-2 ${activeImage === index ? 'border-blue-500' : 'border-transparent'} hover:border-blue-400 transition-all`}
-              >
-                <img src={`${PRODUCT_ASSET_URL}/${img}`} alt={`${productData.name} thumbnail ${index + 1}`} className="w-full h-full object-cover aspect-square" />
-              </div>
-            ))}
-          </div>
+      <Breadcrumbs items={breadcrumbItems} />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+        {/* Product Image Gallery */}
+        <div className="lg:col-span-2">
+          <img src={displayImage} alt={product.name} className="w-full h-auto object-cover rounded-2xl shadow-lg"/>
         </div>
-        
+
         {/* Product Info */}
-        <div className="flex flex-col md:col-span-3">
-          <div className="flex items-center gap-4">
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">{productData.name}</h1>
-              {productData.has_discount && (
-                <div className="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-md shadow-lg">
-                  -{getDiscount()}
-                </div>
+        <div className="lg:col-span-3 flex flex-col justify-center">
+          <h1 className="text-4xl font-extrabold text-blue-600 tracking-tight">{product.name}</h1>
+          
+          <div className="mt-4 flex items-center">
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <FaStar key={i} className={i < Math.round(product.rating) ? 'text-yellow-400' : 'text-gray-300'} />
+              ))}
+            </div>
+            <span className="ml-2 text-sm text-gray-600">({product.review_count} reviews)</span>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center space-x-4">
+              {displayPrice !== null && <p className="text-3xl font-bold text-blue-600">₱{displayPrice.toFixed(2)}</p>}
+              {originalPrice !== null && (
+                <p className="text-xl text-gray-500 line-through">₱{originalPrice.toFixed(2)}</p>
               )}
             </div>
-            {product.store && (
-              <p className="text-lg text-gray-700 mb-2">Sold by: 
-                <Link to={`/stores/${product.store.id}`} className="text-blue-600 hover:underline">
-                  {product.store.name}
-                </Link>
-              </p>
-            )}
-          
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex items-baseline space-x-4">
-                {productData.has_discount ? (
-                  <>
-                    <p className="text-4xl font-bold text-blue-600">
-                      ₱{Number(productData.price).toFixed(2)}
-                    </p>
-                    <p className="text-2xl text-orange-500 line-through">
-                      ₱{Number(productData.original_price).toFixed(2)}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-4xl font-bold text-blue-600">
-                    ₱{Number(productData.price).toFixed(2)}
-                  </p>
-                )}
-              </div>
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <FaStar key={i} className={i < Math.floor(productData.rating || 0) ? 'text-yellow-400' : 'text-gray-300'} />
-              ))}
-              <span className="text-gray-600 ml-1">({productData.rating ? productData.rating.toFixed(1) : '0.0'})</span>
-            </div>
           </div>
 
-          <div className={`flex items-center gap-2 font-semibold mb-6 text-lg ${isOutOfStock ? 'text-red-600' : 'text-green-600'}`}>
-             {isOutOfStock ? <FaTimes /> : <FaCheck />} {isOutOfStock ? 'Out of Stock' : `In Stock`}
-             {!isOutOfStock && productData.stock < 10 && <span className='text-orange-500 font-bold'>(Only {productData.stock} left!)</span>}
-          </div>
-
-          {/* Shop Confidence Section */}
-          <div 
-            onClick={() => setConfidenceModalOpen(true)}
-            className="flex items-center justify-between p-3 my-4 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-          >
-            <div className="flex items-center gap-3 text-xs text-gray-600">
-              <div className="flex items-center gap-1.5">
-                <FaCheckCircle className="text-gray-500" />
-                <span>Cash on delivery</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <FaCheckCircle className="text-gray-500" />
-                <span>Free 6-day Returns</span>
-              </div>
+          {product.product_type === 'simple' && (
+            <div className="mt-4">
+              <span className={`text-sm font-semibold px-2.5 py-1 rounded-full ${product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {product.stock > 0 ? `${product.stock} in stock` : 'Out of Stock'}
+              </span>
             </div>
-            <FaChevronRight className="text-gray-400" />
-          </div>
+          )}
 
-          <div className="space-y-6 mb-8">
-            {/* Quantity Selector */}
-            <div className="flex items-center">
-              <span className="font-semibold text-gray-700 mr-4">Quantity</span>
-              <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                <button onClick={() => quantity > 1 && setQuantity(quantity - 1)} disabled={quantity <= 1} className="w-12 h-12 text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors">-</button>
-                <input type="number" min="1" max={productData.stock} value={quantity} onChange={handleQuantityChange} className="w-16 h-12 text-center border-x border-gray-300 text-gray-800 focus:outline-none"/>
-                <button onClick={() => quantity < productData.stock && setQuantity(quantity + 1)} disabled={quantity >= productData.stock} className="w-12 h-12 text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors">+</button>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button onClick={handleAddToCart} disabled={isOutOfStock} className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"><FaShoppingCart />Add to Cart</button>
-              <button onClick={handleBuyNow} disabled={isOutOfStock} className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"><FaBolt />Buy Now</button>
-            </div>
+          <div className="mt-8 grid grid-cols-2 gap-3">
+            <button onClick={handleAddToCart} disabled={isOutOfStock} className="w-full py-3 bg-blue-100 text-blue-600 font-semibold rounded-lg hover:bg-blue-200 transition-colors duration-300 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
+              Add to Cart
+            </button>
+            <button onClick={handleBuyNow} disabled={isOutOfStock} className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+              Buy Now
+            </button>
           </div>
 
           <div className="mt-4">
@@ -320,6 +226,7 @@ const ProductDetails = () => {
       </div>
 
       <ShopConfidenceModal isOpen={isConfidenceModalOpen} onClose={() => setConfidenceModalOpen(false)} />
+      <VariantSelectionModal isOpen={isVariantModalOpen} onClose={() => setVariantModalOpen(false)} product={product} />
 
       {/* Tabs for Description, Specs, Reviews */}
       <div className="mt-16">
@@ -345,31 +252,20 @@ const ProductDetails = () => {
               exit={{ y: -10, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              {activeTab === 'description' && <p className="text-gray-700 leading-relaxed">{productData.description}</p>}
+              {activeTab === 'description' && <p className="text-gray-700 leading-relaxed">{product.description}</p>}
               {activeTab === 'specifications' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                  {productData.specifications.map(spec => (
-                    <div key={spec.name} className="flex border-b border-gray-200 py-2">
-                      <span className="font-medium text-gray-600 w-1/3">{spec.name}</span>
-                      <span className="text-gray-800">{spec.value}</span>
+                    <div className="flex border-b border-gray-200 py-2">
+                      <span className="font-medium text-gray-600 w-1/3">SKU</span>
+                      <span className="text-gray-800">{selectedVariant ? selectedVariant.sku : 'N/A'}</span>
                     </div>
-                  ))}
                 </div>
               )}
-              {activeTab === 'reviews' && <Reviews productId={productData.id} />}
+              {activeTab === 'reviews' && <Reviews productId={product.id} />}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
-
-      {suggestedProducts.length > 0 && (
-        <div className="mt-16">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">You Might Also Like</h2>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-3">
-            {suggestedProducts.map(p => <ProductCard key={p.id} product={p} size="small" />)}
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 };

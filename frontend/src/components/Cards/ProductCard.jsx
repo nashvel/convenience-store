@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaStar, FaShoppingCart } from 'react-icons/fa';
 
-import { StoreContext } from '../../context/StoreContext';
+
 import { CartContext } from '../../context/CartContext';
 import { useAuth, AuthContext } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -24,11 +24,10 @@ const ProductCard = ({ product, size = 'normal' }) => {
     return `₱${discount.toFixed(2)}`;
   };
   
-  const { stores } = useContext(StoreContext);
   const { addToCart } = useContext(CartContext);
   const { user } = useAuth();
 
-  const store = stores.find(s => s.id === product.store_id);
+  const store = product.store;
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -80,7 +79,15 @@ const ProductCard = ({ product, size = 'normal' }) => {
         <h3 className={`${size === 'small' ? 'text-[11px] leading-tight' : 'text-xs'} font-semibold text-gray-800 mb-1 truncate`}>{product.name}</h3>
         <div className="mt-auto flex justify-between items-center">
           <div className={`${size === 'small' ? 'text-sm' : 'text-base'} font-bold text-blue-600`}>
-            {product.has_discount ? (
+            {product.product_type === 'variable' && product.min_price && product.max_price ? (
+              product.min_price !== product.max_price ? (
+                <span className="text-sm font-normal">
+                  ₱{parseInt(product.min_price)}-{parseInt(product.max_price)}
+                </span>
+              ) : (
+                <span className="text-base font-bold">₱{Number(product.min_price).toFixed(2)}</span>
+              )
+            ) : product.has_discount ? (
               <div className="flex flex-col">
                 <span className="text-orange-500 line-through text-xs">
                   Before ₱{Number(product.original_price).toFixed(2)}

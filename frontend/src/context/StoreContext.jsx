@@ -42,39 +42,37 @@ export const StoreProvider = ({ children }) => {
   const cartContext = useContext(CartContext);
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      let fetchedStores = [];
+    const loadInitialData = async () => {
       try {
-        const storesRes = await fetchStores();
-        const rawStores = storesRes.data || [];
-        fetchedStores = rawStores.map(store => ({
-          id: store.id,
-          name: store.name,
-          description: store.description,
-          logo: store.logo,
-          cover_photo: store.cover_photo,
-          address: store.address,
-          phone_number: store.phone_number,
-          delivery_fee: parseFloat(store.delivery_fee) || 0,
-          owner: store.owner
-        }));
-        const [productsRes, categoriesRes] = await Promise.all([
-          fetchAllProducts(),
-          fetchCategories(),
-        ]);
-        setAllProducts(productsRes.data);
-        setCategories(categoriesRes);
+        // Fetch categories and stores only once if they haven't been loaded
+        if (categories.length === 0) {
+          const categoriesRes = await fetchCategories();
+          setCategories(categoriesRes);
+        }
+        if (stores.length === 0) {
+          const storesRes = await fetchStores();
+          const rawStores = storesRes.data || [];
+          const fetchedStores = rawStores.map(store => ({
+            id: store.id,
+            name: store.name,
+            description: store.description,
+            logo: store.logo,
+            cover_photo: store.cover_photo,
+            address: store.address,
+            phone_number: store.phone_number,
+            delivery_fee: parseFloat(store.delivery_fee) || 0,
+            owner: store.owner
+          }));
+          setStores(fetchedStores);
+        }
       } catch (error) {
-        console.error('Failed to fetch data', error);
-        setError('Failed to load store data.');
-      } finally {
-        setStores(fetchedStores);
-        setLoading(false);
+        console.error('Failed to fetch initial data', error);
+        setError('Failed to load initial store data.');
       }
     };
-    loadData();
-  }, []);
+
+    loadInitialData();
+  }, []); // Run only once
 
   useEffect(() => {
     try {
@@ -110,8 +108,11 @@ export const StoreProvider = ({ children }) => {
   const contextValue = {
     stores,
     allProducts,
+    setAllProducts,
     loading,
+    setLoading,
     error,
+    setError,
     favorites,
     toggleFavorite,
     isFavorite,

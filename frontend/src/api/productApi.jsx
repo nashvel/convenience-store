@@ -144,8 +144,8 @@ const mockCategories = [
   { id: '6', name: 'Health', icon: 'medkit' },
 ];
 
-export const fetchAllProducts = () => {
-  return api.get('/products');
+export const fetchAllProducts = (params) => {
+  return api.get('/products', { params });
 };
 
 export const fetchFeaturedProducts = async () => {

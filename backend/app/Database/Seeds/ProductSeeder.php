@@ -11,7 +11,11 @@ class ProductSeeder extends Seeder
         // Disable foreign key checks and truncate tables
         $this->db->query('SET FOREIGN_KEY_CHECKS=0');
         $this->db->table('cart_items')->truncate();
+        $this->db->table('product_variant_attributes')->truncate();
+        $this->db->table('product_variants')->truncate();
         $this->db->table('products')->truncate();
+        $this->db->table('attribute_values')->truncate();
+        $this->db->table('attributes')->truncate();
         $this->db->query('SET FOREIGN_KEY_CHECKS=1');
 
         // Get store IDs
@@ -34,10 +38,47 @@ class ProductSeeder extends Seeder
             }
         }
 
+        // Seed Attributes and their values
+        $attributes = [
+            ['name' => 'Color'],
+            ['name' => 'Size'],
+        ];
+        $this->db->table('attributes')->insertBatch($attributes);
+
+        $color_attribute_id = $this->db->table('attributes')->where('name', 'Color')->get()->getRow()->id;
+        $size_attribute_id = $this->db->table('attributes')->where('name', 'Size')->get()->getRow()->id;
+
+        $attribute_values = [
+            ['attribute_id' => $color_attribute_id, 'value' => 'Black'],
+            ['attribute_id' => $color_attribute_id, 'value' => 'Blue'],
+            ['attribute_id' => $color_attribute_id, 'value' => 'White'],
+            ['attribute_id' => $size_attribute_id, 'value' => 'Small'],
+            ['attribute_id' => $size_attribute_id, 'value' => 'Medium'],
+            ['attribute_id' => $size_attribute_id, 'value' => 'Large'],
+        ];
+        $this->db->table('attribute_values')->insertBatch($attribute_values);
+
+        // Fetch all attribute values for easy lookup
+        $attr_values_result = $this->db->table('attribute_values')->get()->getResultArray();
+        $attr_values_map = [];
+        $all_attributes_result = $this->db->table('attributes')->get()->getResultArray();
+        $attributes_map = array_column($all_attributes_result, 'name', 'id');
+        foreach ($attr_values_result as $val) {
+            $attr_name = $attributes_map[$val['attribute_id']];
+            $attr_values_map[$attr_name][$val['value']] = $val['id'];
+        }
+
         $products = [
             // Tech World (Store 1)
-            ['store_id' => $store_ids[0], 'category_name' => 'Computers & Accessories', 'name' => 'Wireless Mouse', 'description' => 'Ergonomic wireless mouse.', 'price' => 49.99, 'image' => 'mouse.jpg', 'stock' => 150, 'featured' => 1, 'sales_count' => 250, 'is_approved' => 1, 'cuisine' => null, 'ingredients' => null, 'prep_time' => null],
-            ['store_id' => $store_ids[0], 'category_name' => 'Computers & Accessories', 'name' => 'Mechanical Keyboard', 'description' => 'RGB mechanical keyboard.', 'price' => 69.99, 'image' => 'keyboard.jpg', 'stock' => 120, 'featured' => 0, 'sales_count' => 120, 'is_approved' => 1, 'cuisine' => null, 'ingredients' => null, 'prep_time' => null],
+            [
+                'store_id' => $store_ids[0], 'category_name' => 'Computers & Accessories', 'name' => 'Wireless Mouse', 'description' => 'Ergonomic wireless mouse with multiple color options.', 'price' => null, 'image' => 'mouse.jpg', 'stock' => null, 'featured' => 1, 'sales_count' => 250, 'is_approved' => 1, 'product_type' => 'variable',
+                'variants' => [
+                                        ['price' => 25.00, 'stock' => 50, 'sku' => 'WM-BLK', 'attributes' => ['Color' => 'Black']],
+                    ['price' => 25.00, 'stock' => 35, 'sku' => 'WM-BLU', 'image_url' => 'mouse_blue.jpg', 'attributes' => ['Color' => 'Blue']],
+                    ['price' => 22.00, 'stock' => 75, 'sku' => 'WM-WHT', 'image_url' => 'mouse_white.jpg', 'attributes' => ['Color' => 'White']],
+                ]
+            ],
+            ['store_id' => $store_ids[0], 'category_name' => 'Computers & Accessories', 'name' => 'Mechanical Keyboard', 'description' => 'RGB mechanical keyboard.', 'price' => 69.99, 'image' => 'keyboard.jpg', 'stock' => 120, 'featured' => 0, 'sales_count' => 120, 'is_approved' => 1, 'product_type' => 'single'],
             ['store_id' => $store_ids[0], 'category_name' => 'Computers & Accessories', 'name' => 'USB-C Hub', 'description' => '7-in-1 USB-C hub.', 'price' => 39.99, 'image' => 'usbc_hub.jpg', 'stock' => 200, 'featured' => 0, 'sales_count' => 80, 'is_approved' => 1, 'cuisine' => null, 'ingredients' => null, 'prep_time' => null],
             ['store_id' => $store_ids[0], 'category_name' => 'Headphones', 'name' => 'Noise Cancelling Headphones', 'description' => 'Over-ear headphones.', 'price' => 199.99, 'image' => 'headphones.jpg', 'stock' => 80, 'featured' => 1, 'sales_count' => 300, 'is_approved' => 1, 'cuisine' => null, 'ingredients' => null, 'prep_time' => null],
             ['store_id' => $store_ids[0], 'category_name' => 'Cameras & Photography', 'name' => '4K Webcam', 'description' => 'Webcam with ring light.', 'price' => 89.99, 'image' => 'webcam.jpg', 'stock' => 100, 'featured' => 0, 'sales_count' => 90, 'is_approved' => 1, 'cuisine' => null, 'ingredients' => null, 'prep_time' => null],
@@ -90,20 +131,42 @@ class ProductSeeder extends Seeder
                 'category_id' => $category_id,
                 'name' => $p['name'],
                 'description' => $p['description'],
+                'product_type' => $p['product_type'] ?? 'single',
                 'price' => $p['price'],
                 'image' => $p['image'],
                 'stock' => $p['stock'],
-                'featured' => $p['featured'],
-                'sales_count' => $p['sales_count'],
+                'is_active' => 1,
                 'is_approved' => $p['is_approved'],
-                'cuisine' => $p['cuisine'],
-                'ingredients' => $p['ingredients'],
-                'preparation_time_minutes' => $p['prep_time'],
                 'created_at' => date('Y-m-d H:i:s')
             ];
 
-            // Insert product for the sub-category
             $this->db->table('products')->insert($data);
+            $product_id = $this->db->insertID();
+
+            if ($data['product_type'] === 'variable' && isset($p['variants'])) {
+                foreach ($p['variants'] as $variant_data) {
+                    $variant = [
+                        'product_id' => $product_id,
+                        'price' => $variant_data['price'],
+                        'stock' => $variant_data['stock'],
+                        'sku' => $variant_data['sku'],
+                        'image_url' => $variant_data['image_url'] ?? null,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    $this->db->table('product_variants')->insert($variant);
+                    $variant_id = $this->db->insertID();
+
+                    foreach ($variant_data['attributes'] as $attr_name => $attr_value) {
+                        if (isset($attr_values_map[$attr_name][$attr_value])) {
+                            $attribute_value_id = $attr_values_map[$attr_name][$attr_value];
+                            $this->db->table('product_variant_attributes')->insert([
+                                'variant_id' => $variant_id,
+                                'attribute_value_id' => $attribute_value_id
+                            ]);
+                        }
+                    }
+                }
+            }
 
 
         }

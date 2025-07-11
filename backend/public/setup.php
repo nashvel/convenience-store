@@ -16,7 +16,7 @@ try {
     $mysqli->query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Drop all tables
-    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications', 'achievements', 'rider_achievements', 'promotions', 'promotion_scopes', 'store_promotions', 'site_settings'];
+    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'product_variants', 'attributes', 'attribute_values', 'product_variant_attributes', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications', 'achievements', 'rider_achievements', 'promotions', 'promotion_scopes', 'store_promotions', 'site_settings'];
     foreach ($tables as $table) {
         $mysqli->query("DROP TABLE IF EXISTS $table");
     }
@@ -121,19 +121,61 @@ try {
             category_id INT(11) UNSIGNED NOT NULL,
             name VARCHAR(255) NOT NULL,
             description TEXT NULL,
-            price DECIMAL(10,2) NOT NULL,
+            product_type ENUM('single', 'variable') NOT NULL DEFAULT 'single',
+            price DECIMAL(10, 2) NULL, -- Nullable for variable products, price is in variants table
+            stock INT(11) NULL, -- Nullable for variable products, stock is in variants table
             image VARCHAR(255) NULL,
-            stock INT(11) NOT NULL DEFAULT 0,
-            featured BOOLEAN DEFAULT FALSE,
-            sales_count INT(11) NOT NULL DEFAULT 0,
+            is_active BOOLEAN DEFAULT TRUE,
             is_approved BOOLEAN DEFAULT FALSE,
-            cuisine VARCHAR(100) NULL,
-            ingredients TEXT NULL,
-            preparation_time_minutes INT NULL,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
-            FOREIGN KEY (store_id) REFERENCES stores(id),
-            FOREIGN KEY (category_id) REFERENCES categories(id)
+            FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
+            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        )
+    ");
+
+    // Create attributes table for product variants (e.g., Color, Size)
+    $mysqli->query("
+        CREATE TABLE attributes (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL UNIQUE
+        )
+    ");
+
+    // Create attribute_values table (e.g., Red, Blue, Small, Large)
+    $mysqli->query("
+        CREATE TABLE attribute_values (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            attribute_id INT(11) UNSIGNED NOT NULL,
+            value VARCHAR(100) NOT NULL,
+            FOREIGN KEY (attribute_id) REFERENCES attributes(id) ON DELETE CASCADE,
+            UNIQUE KEY (attribute_id, value)
+        )
+    ");
+
+    // Create product_variants table
+    $mysqli->query("
+        CREATE TABLE product_variants (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            product_id INT(11) UNSIGNED NOT NULL,
+            price DECIMAL(10, 2) NOT NULL,
+            stock INT(11) NOT NULL,
+            sku VARCHAR(100) NULL UNIQUE,
+            image_url VARCHAR(255) NULL,
+            created_at DATETIME NULL,
+            updated_at DATETIME NULL,
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+        )
+    ");
+
+    // Create product_variant_attributes pivot table to link variants to their attribute values
+    $mysqli->query("
+        CREATE TABLE product_variant_attributes (
+            variant_id INT(11) UNSIGNED NOT NULL,
+            attribute_value_id INT(11) UNSIGNED NOT NULL,
+            PRIMARY KEY (variant_id, attribute_value_id),
+            FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE CASCADE,
+            FOREIGN KEY (attribute_value_id) REFERENCES attribute_values(id) ON DELETE CASCADE
         )
     ");
 

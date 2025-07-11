@@ -20,14 +20,13 @@ const categoryImageMap = {
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { allProducts: products, categories, loading, error } = useContext(StoreContext);
+  const { allProducts, categories, loading, error } = useContext(StoreContext);
+  const products = allProducts;
 
   // State for controlled inputs, which get their initial value from the URL
   const [searchTerm, setSearchTerm] = useState(new URLSearchParams(location.search).get('search') || '');
   const [sortOption, setSortOption] = useState(new URLSearchParams(location.search).get('sort') || 'best-sellers');
   const [visibleCount, setVisibleCount] = useState(20);
-  const [isFiltering, setIsFiltering] = useState(false);
-  const [displayedProducts, setDisplayedProducts] = useState([]);
   const [searchSuggestion, setSearchSuggestion] = useState('');
 
   const mainCategoryNames = useMemo(() => {
@@ -39,82 +38,6 @@ const Products = () => {
   useEffect(() => {
     setVisibleCount(20);
   }, [location.search]);
-
-  // This effect handles the entire filtering process
-  useEffect(() => {
-    if (!products) return;
-
-    setIsFiltering(true);
-
-    // A short delay to ensure the loading spinner is visible before heavy computation
-    const timer = setTimeout(() => {
-      const params = new URLSearchParams(location.search);
-      const category = params.get('category');
-      const onDeal = params.get('on_deal') === 'true';
-      const minPrice = params.get('min_price');
-      const maxPrice = params.get('max_price');
-      const search = params.get('search') || '';
-      const sort = params.get('sort') || 'best-sellers';
-
-      let tempProducts = [...products];
-
-      if (category) {
-        const categories = category.split(',');
-        tempProducts = tempProducts.filter(product => 
-          categories.some(cat => product.category_name === cat || product.parent_category_name === cat)
-        );
-      }
-      if (onDeal) {
-        tempProducts = tempProducts.filter(product => product.on_deal);
-      }
-      if (minPrice) {
-        tempProducts = tempProducts.filter(p => parseFloat(p.price) >= parseFloat(minPrice));
-      }
-      if (maxPrice) {
-        tempProducts = tempProducts.filter(p => parseFloat(p.price) <= parseFloat(maxPrice));
-      }
-      if (search) {
-        const fuse = new Fuse(tempProducts, {
-          keys: ['name', 'description'],
-          includeScore: true,
-          threshold: 0.4,
-        });
-        const results = fuse.search(search);
-        
-        if (results.length > 0 && results[0].item.name.toLowerCase() !== search.toLowerCase()) {
-          setSearchSuggestion(results[0].item.name);
-        } else {
-          setSearchSuggestion('');
-        }
-        
-        tempProducts = results.map(result => result.item);
-      } else {
-        setSearchSuggestion('');
-      }
-
-      switch (sort) {
-        case 'price-asc':
-          tempProducts.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-          break;
-        case 'price-desc':
-          tempProducts.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-          break;
-        case 'name-asc':
-          tempProducts.sort((a, b) => a.name.localeCompare(b.name));
-          break;
-        case 'name-desc':
-          tempProducts.sort((a, b) => b.name.localeCompare(a.name));
-          break;
-        default:
-          break;
-      }
-      
-      setDisplayedProducts(tempProducts);
-      setIsFiltering(false);
-    }, 200); // A small delay to ensure spinner is visible
-
-    return () => clearTimeout(timer);
-  }, [location.search, products]);
 
   // Calculate active filters instantly from the URL for responsive UI
   const activeFilters = useMemo(() => {
@@ -268,7 +191,7 @@ const Products = () => {
 
       <main className="relative min-h-[400px]">
         <AnimatePresence>
-          {isFiltering && (
+          {loading && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -287,14 +210,14 @@ const Products = () => {
           </div>
         ) : error ? (
           <div className="text-center py-10 text-red-500">Error: {error}</div>
-        ) : displayedProducts.length > 0 ? (
+        ) : products.length > 0 ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
-              {displayedProducts.slice(0, visibleCount).map(product => (
+              {products.slice(0, visibleCount).map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
-            {visibleCount < displayedProducts.length && (
+            {visibleCount < products.length && (
               <div className="text-center mt-10">
                 <button 
                   onClick={() => setVisibleCount(prev => prev + 20)}

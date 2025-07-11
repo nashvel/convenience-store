@@ -1,63 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FaTag, FaInfoCircle, FaArrowRight, FaCalendarAlt, FaStoreAlt, FaTags } from 'react-icons/fa';
-
-const promotions = [
-  {
-    id: 1,
-    title: '7.7 Flash Sale',
-    description: 'Up to 70% off on selected items. Don\'t miss out on our biggest sale of the season!',
-    image: '/images/cards/flashsale.png',
-    link: '/products?tag=flash-sale',
-    badge: 'Limited Time',
-    bgColor: 'bg-blue-500',
-    endDate: '2025-07-10',
-    type: 'Sitewide',
-    scope: 'Selected Items'
-  },
-  {
-    id: 2,
-    title: 'Big Discount on Groceries',
-    description: 'Save big on your weekly grocery shopping. Fresh produce, pantry staples, and more.',
-    image: '/images/cards/discountcard.png',
-    link: '/products?category=groceries',
-    badge: 'Weekly Special',
-    bgColor: 'bg-green-500',
-    endDate: '2025-07-12',
-    type: 'Category',
-    scope: 'Groceries'
-  },
-  {
-    id: 3,
-    title: 'Foodie Fiesta',
-    description: 'Delicious deals on your favorite snacks and meals. Perfect for a treat!',
-    image: '/images/cards/foodsale.png',
-    link: '/products?category=food',
-    badge: 'Hot Deal',
-    bgColor: 'bg-red-500',
-    endDate: '2025-07-15',
-    type: 'Category',
-    scope: 'Food & Snacks'
-  },
-  {
-    id: 4,
-    title: 'Electronics Extravaganza',
-    description: 'Get the latest gadgets at unbeatable prices. Laptops, phones, and accessories.',
-    image: '/images/cards/flashsale.png',
-    link: '/products?category=electronics',
-    badge: 'Tech Deals',
-    bgColor: 'bg-purple-500',
-    endDate: '2025-07-20',
-    type: 'Store',
-    scope: 'TechZone Store'
-  },
-];
+import { FaTag, FaInfoCircle, FaArrowRight, FaCalendarAlt, FaStoreAlt, FaTags, FaGift } from 'react-icons/fa';
+import api from '../../api/axios-config';
+import Spinner from '../../components/Spinner/Spinner';
 
 const typeIcons = {
-  Store: <FaStoreAlt className="mr-2 text-gray-500" />,
-  Category: <FaTag className="mr-2 text-gray-500" />,
-  Sitewide: <FaTags className="mr-2 text-gray-500" />,
+  store: <FaStoreAlt className="mr-2 text-gray-500" />,
+  category: <FaTag className="mr-2 text-gray-500" />,
+  all_products: <FaTags className="mr-2 text-gray-500" />,
+};
+
+const getPromotionLink = (promo) => {
+    switch (promo.scope_type) {
+        case 'store':
+            // Assuming a route like /stores/:storeId exists
+            return `/stores/${promo.scope_value}`;
+        case 'category':
+            return `/products?category=${promo.scope_value}`;
+        case 'all_products':
+        default:
+            return '/products';
+    }
 };
 
 const PromotionCard = ({ promotion, index }) => (
@@ -68,9 +32,9 @@ const PromotionCard = ({ promotion, index }) => (
     transition={{ duration: 0.5, delay: index * 0.1 }}
   >
     <div className="relative">
-      <img src={promotion.image} alt={promotion.title} className="w-full h-56 object-cover" />
-      <div className={`absolute top-0 right-0 mt-4 mr-4 px-3 py-1 text-sm font-semibold text-white ${promotion.bgColor} rounded-full shadow-md`}>
-        <FaTag className="inline-block mr-2" />{promotion.badge}
+      <img src={promotion.image_url || '/images/cards/flashsale.png'} alt={promotion.title} className="w-full h-56 object-cover" />
+      <div className={`absolute top-0 right-0 mt-4 mr-4 px-3 py-1 text-sm font-semibold text-white bg-red-500 rounded-full shadow-md`}>
+        <FaGift className="inline-block mr-2" />{promotion.discount_value}{promotion.discount_type === 'percentage' ? '%' : ' OFF'}
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-70"></div>
       <div className="absolute bottom-0 left-0 p-6">
@@ -83,23 +47,41 @@ const PromotionCard = ({ promotion, index }) => (
       <div className="space-y-3 text-sm text-gray-700 mb-4 border-t border-gray-100 pt-4">
         <div className="flex items-center">
           <FaCalendarAlt className="mr-2 text-gray-500" />
-          <span>Expires on: <strong>{new Date(promotion.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</strong></span>
+          <span>Expires on: <strong>{new Date(promotion.end_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</strong></span>
         </div>
-        <div className="flex items-center">
-          {typeIcons[promotion.type]}
-          <span>Applies to: <strong>{promotion.scope} ({promotion.type})</strong></span>
+        <div className="flex items-center capitalize">
+          {typeIcons[promotion.scope_type]}
+          <span>Applies to: <strong>{promotion.scope_value || promotion.scope_type.replace('_', ' ')}</strong></span>
         </div>
       </div>
 
-      <Link to={promotion.link} className="inline-flex items-center font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-300 mt-auto">
+      <Link to={getPromotionLink(promotion)} className="inline-flex items-center font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-300 mt-auto">
         Shop Now <FaArrowRight className="ml-2" />
       </Link>
     </div>
   </motion.div>
 );
 
-
 const PromotionsPage = () => {
+  const [promotions, setPromotions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        const response = await api.get('/promotions/active');
+        setPromotions(response.data.promotions || response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch promotions:", error);
+        // Optionally set an error state here to show in the UI
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPromotions();
+  }, []);
+
   return (
     <div className="container mx-auto px-4 py-12">
       <motion.div
@@ -113,11 +95,23 @@ const PromotionsPage = () => {
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {promotions.map((promo, index) => (
-          <PromotionCard key={promo.id} promotion={promo} index={index} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Spinner />
+        </div>
+      ) : promotions.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {promotions.map((promo, index) => (
+            <PromotionCard key={promo.id} promotion={promo} index={index} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16">
+            <FaTag className="mx-auto text-5xl text-gray-300"/>
+            <h2 className="mt-4 text-2xl font-bold text-gray-700">No Active Promotions</h2>
+            <p className="mt-2 text-gray-500">Check back later for new deals and offers!</p>
+        </div>
+      )}
 
       <div className="mt-16 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
         <div className="flex">

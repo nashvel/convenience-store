@@ -45,6 +45,7 @@ import { ChatProvider, useChat } from './context/ChatContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { SettingsProvider } from './context/SettingsContext';
 import ChatPopup from './components/Chat/ChatPopup';
+import ProductLoader from './components/ProductLoader';
 
 
 
@@ -97,55 +98,56 @@ const MainLayout = () => {
 
 const App = () => (
   <Router>
-    <ScrollToTop />
-    <ThemeProvider>
-      <AuthProvider>
-        <SettingsProvider>
-          <CartProvider>
-          <NotificationProvider>
-            <StoreProvider>
-              <UIProvider>
-                <ChatProvider>
-                  <AnimatePresence mode="wait">
-                    <Routes>
-                      <Route element={<MainLayout />}>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/patch-notes" element={<PatchNotes />} />
-                        <Route path="/faq" element={<FAQPage />} />
-                        <Route path="/contact" element={<ContactPage />} />
-                        <Route path="/help-center" element={<HelpCenterPage />} />
-                        <Route path="/products" element={<Products />} />
-                        <Route path="/product/:id/:productName" element={<ProductDetails />} />
-                        <Route path="/cart" element={<Cart />} />
-                        <Route path="/stores" element={<StoresListPage />} />
-                        <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
-                        <Route path="/restaurants" element={<RestaurantsPage />} />
-                        <Route path="/promotions" element={<PromotionsPage />} />
-                        <Route path="/partners" element={<Partners />} />
-                        <Route path="/login" element={<SignIn />} />
-                        <Route path="/signup" element={<SignUp />} />
-                        <Route path="/forgot-password" element={<ForgotPassword />} />
-                        <Route path="/my-orders" element={<MyOrdersList />} />
-                        <Route path="/my-orders/:id" element={<MyOrderDetail />} />
-                        <Route path="/track-order/:id" element={<TrackOrder />} />
-                        <Route path="/profile/settings" element={<Settings />} />
-                      </Route>
+    <StoreProvider>
+      <ProductLoader />
+      <ScrollToTop />
+      <ThemeProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <CartProvider>
+              <NotificationProvider>
+                <UIProvider>
+                  <ChatProvider>
+                    <AnimatePresence mode="wait">
+                      <Routes>
+                        <Route element={<MainLayout />}>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/patch-notes" element={<PatchNotes />} />
+                          <Route path="/faq" element={<FAQPage />} />
+                          <Route path="/contact" element={<ContactPage />} />
+                          <Route path="/help-center" element={<HelpCenterPage />} />
+                          <Route path="/products" element={<Products />} />
+                          <Route path="/product/:id/:productName" element={<ProductDetails />} />
+                          <Route path="/cart" element={<Cart />} />
+                          <Route path="/stores" element={<StoresListPage />} />
+                          <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
+                          <Route path="/restaurants" element={<RestaurantsPage />} />
+                          <Route path="/promotions" element={<PromotionsPage />} />
+                          <Route path="/partners" element={<Partners />} />
+                          <Route path="/login" element={<SignIn />} />
+                          <Route path="/signup" element={<SignUp />} />
+                          <Route path="/forgot-password" element={<ForgotPassword />} />
+                          <Route path="/my-orders" element={<MyOrdersList />} />
+                          <Route path="/my-orders/:id" element={<MyOrderDetail />} />
+                          <Route path="/track-order/:id" element={<TrackOrder />} />
+                          <Route path="/profile/settings" element={<Settings />} />
+                        </Route>
 
-                      <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
-                      <Route path="/admin/*" element={<AdminApp />} />
-                      <Route path="/rider/*" element={<RiderPanel />} />
-                      
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </AnimatePresence>
-                </ChatProvider>
-              </UIProvider>
-            </StoreProvider>
-          </NotificationProvider>
-        </CartProvider>
-        </SettingsProvider>
-      </AuthProvider>
-    </ThemeProvider>
+                        <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
+                        <Route path="/admin/*" element={<AdminApp />} />
+                        <Route path="/rider/*" element={<RiderPanel />} />
+                        
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </AnimatePresence>
+                  </ChatProvider>
+                </UIProvider>
+              </NotificationProvider>
+            </CartProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </StoreProvider>
   </Router>
 );
 

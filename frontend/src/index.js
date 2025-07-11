@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
-import { StoreProvider } from './context/StoreContext';
+
 import { UIProvider } from './context/UIContext';
 import reportWebVitals from './reportWebVitals';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
@@ -10,11 +10,9 @@ import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 const root = createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <StoreProvider>
-      <UIProvider>
-        <App />
-      </UIProvider>
-    </StoreProvider>
+    <UIProvider>
+      <App />
+    </UIProvider>
   </React.StrictMode>
 );
 
