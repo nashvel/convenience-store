@@ -68,6 +68,8 @@ export const StoreProvider = ({ children }) => {
       } catch (error) {
         console.error('Failed to fetch initial data', error);
         setError('Failed to load initial store data.');
+      } finally {
+        setLoading(false);
       }
     };
 
