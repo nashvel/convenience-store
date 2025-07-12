@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../../api/axios-config';
 import { toast } from 'react-toastify';
 import { FaSpinner, FaMapMarkerAlt, FaCheck, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import OrdersSkeleton from '../../skeleton/OrdersSkeleton';
 import AssignRiderModal from '../modals/AssignRiderModal';
 import { useAuth } from '../../../context/AuthContext';
 import { PRODUCT_ASSET_URL } from '../../../config';
@@ -211,8 +212,8 @@ const Orders = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-screen">
-                <FaSpinner className="animate-spin text-primary text-4xl" />
+            <div className="p-6">
+                <OrdersSkeleton />
             </div>
         );
     }

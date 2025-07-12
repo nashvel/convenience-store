@@ -10,6 +10,89 @@ class StoreController extends ResourceController
     protected $modelName = 'App\Models\StoreModel';
     protected $format    = 'json';
 
+    public function getStoreForSeller()
+    {
+        try {
+            // The AuthMiddleware has already verified the user and attached the user object to the request.
+            $userId = $this->request->user->id;
+
+            if (!$userId) {
+                return $this->failUnauthorized('User ID not found in request.');
+            }
+
+            $store = $this->model->where('client_id', $userId)->first();
+
+            if (!$store) {
+                return $this->failNotFound('No store associated with this seller.');
+            }
+
+            return $this->respond($store);
+        } catch (\Exception $e) {
+            log_message('error', 'Error in getStoreForSeller: ' . $e->getMessage());
+            return $this->failServerError('An internal error occurred while fetching store data.');
+        }
+    }
+
+    public function update($id = null)
+    {
+        log_message('info', 'Store update request received for store ID: ' . $id);
+
+        $userId = $this->request->user->id;
+        $data = $this->request->getJSON(true);
+
+        log_message('debug', 'Update data received: ' . json_encode($data));
+
+        if (!$userId) {
+            return $this->failUnauthorized('User not logged in or session expired.');
+        }
+
+        $store = $this->model->find($id);
+        if (!$store) {
+            return $this->failNotFound('Store not found.');
+        }
+
+        if ($store['client_id'] != $userId) {
+            log_message('warning', 'Forbidden attempt to update store ID: ' . $id . ' by user ID: ' . $userId);
+            return $this->failForbidden('You are not authorized to update this store.');
+        }
+
+        $updateData = [];
+        $fieldMapping = [
+            'storeName' => 'name',
+            'openingTime' => 'opening_time',
+            'closingTime' => 'closing_time',
+            'contactNumber' => 'contact_number',
+            'paymentMethods' => 'payment_methods',
+            'address' => 'address',
+            'latitude' => 'latitude',
+            'longitude' => 'longitude',
+            'description' => 'description',
+        ];
+
+        foreach ($fieldMapping as $jsonKey => $dbKey) {
+            if (array_key_exists($jsonKey, $data)) {
+                $updateData[$dbKey] = $data[$jsonKey];
+            }
+        }
+
+
+
+        log_message('info', 'Attempting to update store with data: ' . json_encode($updateData));
+
+        try {
+            if ($this->model->update($id, $updateData)) {
+                log_message('info', 'Store ID: ' . $id . ' updated successfully.');
+                return $this->respondUpdated($data, 'Store updated successfully.');
+            } else {
+                $errors = $this->model->errors();
+                log_message('warning', 'Store update validation failed for store ID: ' . $id . '. Errors: ' . json_encode($errors));
+                return $this->failValidationErrors($errors);
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Exception during store update for store ID: ' . $id . '. Message: ' . $e->getMessage());
+            return $this->failServerError('An internal error occurred while updating the store.');
+        }
+    }
     public function index()
     {
         try {

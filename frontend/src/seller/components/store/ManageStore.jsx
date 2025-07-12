@@ -1,95 +1,137 @@
-import React, { useState } from 'react';
-import { FaSave, FaStore, FaClock, FaPhone, FaCreditCard } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import ManageStoreSkeleton from '../../skeleton/ManageStoreSkeleton';
+import api from '../../../api/axios-config';
+import { toast } from 'react-toastify';
+import { FaSave, FaEdit, FaTimes } from 'react-icons/fa';
+import EditStoreForm from './EditStoreForm';
 
 const ManageStore = () => {
-  const [storeName, setStoreName] = useState('My Awesome Store');
-  const [logo, setLogo] = useState('https://via.placeholder.com/150');
-  const [openingTime, setOpeningTime] = useState('09:00');
-  const [closingTime, setClosingTime] = useState('21:00');
-  const [contactNumber, setContactNumber] = useState('123-456-7890');
-  const [paymentMethods, setPaymentMethods] = useState('Credit Card, PayPal, Crypto');
+  const [isEditing, setIsEditing] = useState(false);
+  const [storeData, setStoreData] = useState(null);
+    const [initialStoreData, setInitialStoreData] = useState({ storeName: '', openingTime: '', closingTime: '', contactNumber: '', paymentMethods: '', address: '', logo: '', latitude: null, longitude: null, description: '' });
+  const [position, setPosition] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const handleLogoChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setLogo(URL.createObjectURL(e.target.files[0]));
+  useEffect(() => {
+    const fetchStoreData = async () => {
+      try {
+        const response = await api.get('/seller/store');
+        const data = response.data;
+        const formattedData = {
+          id: data.id,
+          storeName: data.name,
+          logo: data.logo_url || 'https://via.placeholder.com/150',
+          openingTime: data.opening_time,
+          closingTime: data.closing_time,
+          contactNumber: data.contact_number,
+          paymentMethods: data.payment_methods,
+          address: data.address || '',
+                    latitude: data.latitude,
+          longitude: data.longitude,
+          description: data.description || ''
+        };
+        setStoreData(formattedData);
+        setInitialStoreData(formattedData);
+        if (data.latitude && data.longitude) {
+          setPosition({ lat: parseFloat(data.latitude), lng: parseFloat(data.longitude) });
+        } else {
+          // Default to Tagoloan, PH if no coordinates are available
+          setPosition({ lat: 8.4836, lng: 124.7533 });
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStoreData();
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === 'logo' && files && files[0]) {
+      const file = files[0];
+      setStoreData(prev => ({ ...prev, logo: URL.createObjectURL(file) }));
+    } else {
+      setStoreData(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSave = () => {
-    // In a real app, this would save to a backend.
-    alert('Store settings saved!');
+  const handleEdit = () => {
+    setIsEditing(true);
   };
 
-  const Card = ({ children }) => (
-    <div className="bg-white rounded-xl shadow-md p-6 flex flex-col gap-6">
-      {children}
-    </div>
-  );
+  const handleCancel = () => {
+    setStoreData(initialStoreData);
+    setIsEditing(false);
+  };
 
-  const CardHeader = ({ icon, title }) => (
-    <div className="flex items-center gap-4 text-xl font-bold text-gray-700">
-      {icon} {title}
-    </div>
-  );
+  const handleSave = async () => {
+    const dataToSave = {
+      ...storeData,
+      latitude: position ? position.lat : storeData.latitude,
+      longitude: position ? position.lng : storeData.longitude,
+    };
+    try {
+      const response = await api.put(`/seller/store/update/${storeData.id}`, dataToSave);
+      if (response.status !== 200) {
+        throw new Error('Failed to update store data.');
+      }
+      setInitialStoreData(dataToSave);
+      setIsEditing(false);
+      toast.success('Store details updated successfully!');
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 'Failed to update store. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    }
+  };
 
-  const FormGroup = ({ label, children }) => (
-    <div className="flex flex-col gap-2">
-      <label className="font-semibold text-gray-600">{label}</label>
-      {children}
-    </div>
-  );
+  if (error) {
+    return <div className="p-8 text-center text-red-500">Error: {error}</div>;
+  }
 
-  const Input = (props) => (
-    <input {...props} className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary-light focus:border-primary-light outline-none transition-colors" />
-  );
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4 md:p-6 lg:p-8">
+        <ManageStoreSkeleton />
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8">
+    <div className="container mx-auto p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Manage Store</h1>
-        <button onClick={handleSave} className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors">
-          <FaSave />
-          Save Changes
-        </button>
+        <h1 className="text-3xl font-bold text-blue-800">Manage Store</h1>
+        {isEditing ? (
+          <div className="flex gap-4">
+            <button onClick={handleCancel} className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors">
+              <FaTimes />
+              Cancel
+            </button>
+            <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors">
+              <FaSave />
+              Save Changes
+            </button>
+          </div>
+        ) : (
+          <button onClick={handleEdit} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors">
+            <FaEdit />
+            Edit
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-        <Card>
-          <CardHeader icon={<FaStore />} title="Store Details" />
-          <FormGroup label="Store Name">
-            <Input type="text" value={storeName} onChange={(e) => setStoreName(e.target.value)} />
-          </FormGroup>
-          <FormGroup label="Store Logo">
-            <div className="flex items-center gap-4">
-              <img src={logo} alt="Store Logo" className="w-20 h-20 rounded-full object-cover border-4 border-gray-100" />
-              <label htmlFor="logo-upload" className="cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">
-                Change Logo
-              </label>
-              <input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
-            </div>
-          </FormGroup>
-        </Card>
-
-        <Card>
-          <CardHeader icon={<FaClock />} title="Operating Hours" />
-          <FormGroup label="Opening & Closing Time">
-            <div className="flex gap-4">
-              <Input type="time" value={openingTime} onChange={(e) => setOpeningTime(e.target.value)} />
-              <Input type="time" value={closingTime} onChange={(e) => setClosingTime(e.target.value)} />
-            </div>
-          </FormGroup>
-        </Card>
-
-        <Card>
-          <CardHeader icon={<FaPhone />} title="Contact & Payment" />
-          <FormGroup label="Contact Number">
-            <Input type="tel" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
-          </FormGroup>
-          <FormGroup label="Payment Methods">
-            <Input type="text" value={paymentMethods} onChange={(e) => setPaymentMethods(e.target.value)} placeholder="e.g., Visa, Mastercard, PayPal" />
-          </FormGroup>
-        </Card>
-      </div>
+            <EditStoreForm
+        storeData={storeData}
+        isEditing={isEditing}
+        position={position}
+        handleInputChange={handleInputChange}
+        setPosition={setPosition}
+        setStoreData={setStoreData}
+      />
     </div>
   );
 };

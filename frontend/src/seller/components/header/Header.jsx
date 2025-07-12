@@ -28,7 +28,7 @@ const Header = ({ setActiveView }) => {
   const QuickAccessButton = ({ icon, label, onClick }) => (
     <button 
       onClick={onClick}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-primary-light hover:text-primary text-gray-600 font-semibold text-sm transition-colors duration-200"
+      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold text-sm transition-colors duration-200"
     >
       {icon}
       <span>{label}</span>
@@ -36,9 +36,9 @@ const Header = ({ setActiveView }) => {
   );
 
   const IconButton = ({ icon, badge, onClick = () => {} }) => (
-    <button onClick={onClick} className="relative flex items-center justify-center w-11 h-11 rounded-full bg-gray-100 text-gray-600 hover:bg-primary-light hover:text-primary transition-colors duration-200">
+    <button onClick={onClick} className="relative flex items-center justify-center w-11 h-11 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors duration-200">
       {icon}
-      {badge && <span className="absolute top-0 right-0 block w-4 h-4 text-xs font-bold text-white bg-primary rounded-full transform translate-x-1/4 -translate-y-1/4">{badge}</span>}
+      {badge && <span className="absolute top-0 right-0 block w-4 h-4 text-xs font-bold text-white bg-blue-600 rounded-full transform translate-x-1/4 -translate-y-1/4">{badge}</span>}
     </button>
   );
 
@@ -50,16 +50,16 @@ const Header = ({ setActiveView }) => {
   );
 
   return (
-    <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-gray-200 h-24">
+    <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-blue-200 h-24">
       {/* Search Bar */}
       <div className="relative w-full max-w-xs">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <FaSearch className="text-gray-400" />
+          <FaSearch className="text-blue-500" />
         </div>
         <input 
           type="text" 
           placeholder="Search..." 
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-full bg-gray-50 focus:ring-2 focus:ring-primary-light focus:border-primary-light outline-none transition-colors"
+          className="w-full pl-10 pr-4 py-2.5 border border-blue-300 rounded-full bg-blue-100 focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-colors"
         />
       </div>
 

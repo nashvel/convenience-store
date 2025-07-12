@@ -124,7 +124,9 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
         $routes->post('profile/update', 'UserController::updateProfile');
         $routes->post('password/change', 'UserController::changePassword');
 
-        $routes->resource('users', ['controller' => 'UserController', 'filter' => 'auth']);
+        $routes->resource('users', ['controller' => 'UserController']);
+        $routes->get('seller/store', 'StoreController::getStoreForSeller', ['filter' => 'auth']);
+        $routes->put('seller/store/update/(:num)', 'StoreController::update/$1', ['filter' => 'auth']);
     });
 });
 

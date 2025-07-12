@@ -1,5 +1,5 @@
-import React from 'react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FaDollarSign, FaShoppingCart, FaBox } from 'react-icons/fa';
 
 // Mock Data
@@ -28,7 +28,7 @@ const categoryData = [
   { name: 'Components', value: 200 },
 ];
 
-const COLORS = ['#FF5722', '#00C49F', '#FFBB28', '#0088FE'];
+const COLORS = ['#1E88E5', '#42A5F5', '#64B5F6', '#90CAF9'];
 
 const SummaryCard = ({ icon, title, value, colorClass }) => (
   <div className="bg-white p-6 rounded-xl shadow-md flex items-center gap-6">
@@ -36,15 +36,15 @@ const SummaryCard = ({ icon, title, value, colorClass }) => (
       {icon}
     </div>
     <div>
-      <h3 className="text-3xl font-bold text-gray-800">{value}</h3>
-      <p className="text-gray-500 font-medium">{title}</p>
+      <h3 className="text-3xl font-bold text-blue-900">{value}</h3>
+      <p className="text-blue-700 font-medium">{title}</p>
     </div>
   </div>
 );
 
 const ChartCard = ({ title, children, className }) => (
   <div className={`bg-white p-6 rounded-xl shadow-md ${className}`}>
-    <h2 className="text-xl font-bold text-gray-800 mb-4">{title}</h2>
+    <h2 className="text-xl font-bold text-blue-800 mb-4">{title}</h2>
     <div className="h-80">
       <ResponsiveContainer width="100%" height="100%">
         {children}
@@ -54,25 +54,43 @@ const ChartCard = ({ title, children, className }) => (
 );
 
 const SellerHome = () => {
+  const [animatedData, setAnimatedData] = useState(categoryData.map(item => ({ ...item, value: 0 })));
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimatedData(categoryData), 100);
+    return () => clearTimeout(timer);
+  }, []);
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
   return (
     <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <SummaryCard 
         icon={<FaDollarSign className="text-white text-3xl" />} 
         title="Total Sales" 
         value="₱24,800" 
-        colorClass="bg-green-500"
+        colorClass="bg-blue-500"
       />
       <SummaryCard 
         icon={<FaShoppingCart className="text-white text-3xl" />} 
         title="New Orders" 
         value="350" 
-        colorClass="bg-blue-500"
+        colorClass="bg-blue-400"
       />
       <SummaryCard 
         icon={<FaBox className="text-white text-3xl" />} 
         title="Products In Stock" 
         value="1,250" 
-        colorClass="bg-orange-500"
+        colorClass="bg-blue-300"
       />
 
       <ChartCard title="Sales Trend (Last 7 Days)" className="md:col-span-2 lg:col-span-2">
@@ -82,13 +100,24 @@ const SellerHome = () => {
           <YAxis stroke="#666" />
           <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc' }} />
           <Legend />
-          <Line type="monotone" dataKey="sales" stroke="#FF5722" strokeWidth={3} activeDot={{ r: 8 }} />
+          <Line type="monotone" dataKey="sales" stroke="#1E88E5" strokeWidth={3} activeDot={{ r: 8 }} />
         </LineChart>
       </ChartCard>
 
       <ChartCard title="Category Distribution" className="md:col-span-1 lg:col-span-1">
         <PieChart>
-          <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} fill="#8884d8">
+          <Pie
+            data={animatedData}
+            animationDuration={1000}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={100}
+            fill="#8884d8"
+            labelLine={false}
+            label={renderCustomizedLabel}
+          >
             {categoryData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
@@ -99,14 +128,20 @@ const SellerHome = () => {
       </ChartCard>
 
       <ChartCard title="Top Selling Products" className="md:col-span-2 lg:col-span-3">
-        <BarChart data={topProductsData}>
+        <AreaChart data={topProductsData}>
+          <defs>
+            <linearGradient id="colorSold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#42A5F5" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="#42A5F5" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
           <XAxis dataKey="name" stroke="#666" />
           <YAxis stroke="#666" />
           <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc' }} />
           <Legend />
-          <Bar dataKey="sold" fill="#00C49F" />
-        </BarChart>
+          <Area type="monotone" dataKey="sold" stroke="#1E88E5" fill="url(#colorSold)" />
+        </AreaChart>
       </ChartCard>
     </div>
   );
