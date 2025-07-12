@@ -21,7 +21,14 @@ import ForgotPassword from './pages/Auth/ForgotPassword';
 import StoresListPage from './pages/Stores/StoresListPage';
 import RestaurantsPage from './pages/Restaurants/Restaurants';
 import StorePage from './pages/Stores/StorePage';
-import SellerDashboard from './seller/home/SellerDashboard.jsx';
+import SellerLayout from './seller/SellerLayout';
+import SellerDashboard from './seller/home/SellerDashboard';
+import ManageProducts from './seller/components/product/ManageProducts';
+import AddProduct from './seller/components/product/AddProduct';
+import Orders from './seller/components/orders/Orders';
+import Reviews from './seller/components/reviews/Reviews';
+import Chat from './seller/components/chat/Chat';
+import ManageStore from './seller/components/store/ManageStore';
 import AdminApp from './admin/AdminApp';
 import Partners from './pages/Partners/Partners';
 import Settings from './pages/Profile/Settings';
@@ -133,7 +140,15 @@ const App = () => (
                           <Route path="/profile/settings" element={<Settings />} />
                         </Route>
 
-                        <Route path="/seller/dashboard/*" element={<SellerDashboard />} />
+                        <Route path="/seller" element={<SellerLayout />}>
+                          <Route path="dashboard" element={<SellerDashboard />} />
+                          <Route path="products/manage" element={<ManageProducts />} />
+                          <Route path="products/add" element={<AddProduct />} />
+                          <Route path="orders" element={<Orders />} />
+                          <Route path="reviews" element={<Reviews />} />
+                          <Route path="chat" element={<Chat />} />
+                          <Route path="manage-store" element={<ManageStore />} />
+                        </Route>
                         <Route path="/admin/*" element={<AdminApp />} />
                         <Route path="/rider/*" element={<RiderPanel />} />
                         
