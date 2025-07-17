@@ -35,6 +35,10 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
     // Protected routes that require authentication
     $routes->group('admin', ['filter' => 'auth'], function($routes) {
         $routes->get('clients', 'AdminController::getClients');
+        $routes->post('clients', 'AdminController::createClient', ['filter' => 'auth']);
+        $routes->get('clients/(:num)', 'AdminController::getClient/$1', ['filter' => 'auth']);
+        $routes->put('clients/(:num)', 'AdminController::updateClient/$1', ['filter' => 'auth']);
+        $routes->delete('clients/(:num)', 'AdminController::deleteClient/$1', ['filter' => 'auth']);
         $routes->get('customers', 'AdminController::getCustomers');
         $routes->put('customers/(:num)', 'AdminController::updateCustomer/$1');
         $routes->post('customers/(:num)/blacklist', 'AdminController::toggleBlacklist/$1');
@@ -49,14 +53,14 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
         $routes->post('settings', 'AdminController::updateSettings');
 
         // Product Management
-        $routes->get('products', 'AdminController::getProducts');
-    $routes->delete('products/(:num)', 'AdminController::deleteProduct/$1');
-    $routes->post('products/update/(:num)', 'AdminController::updateProduct/$1');
-    $routes->get('categories', 'AdminController::getCategories');
-    $routes->get('profile', 'AdminController::getProfile');
-    $routes->put('profile', 'AdminController::updateProfile');
-    $routes->get('monthly-sales', 'AdminController::getMonthlySales');
-    $routes->get('statistics', 'AdminController::getStatistics');
+        $routes->get('products', 'AdminProductController::getProducts');
+        $routes->delete('products/(:num)', 'AdminProductController::deleteProduct/$1');
+        $routes->post('products/update/(:num)', 'AdminProductController::updateProduct/$1');
+        $routes->get('categories', 'AdminProductController::getCategories');
+        $routes->get('profile', 'AdminController::getProfile');
+        $routes->put('profile', 'AdminController::updateProfile');
+        $routes->get('monthly-sales', 'AdminController::getMonthlySales');
+        $routes->get('statistics', 'AdminController::getStatistics');
 
         // Promotions Management
         $routes->post('promotions', 'PromotionController::createPromotion', ['filter' => 'auth']);

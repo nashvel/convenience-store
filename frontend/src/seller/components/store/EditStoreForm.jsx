@@ -29,6 +29,14 @@ const Input = (props) => (
 );
 
 const EditStoreForm = ({ storeData, isEditing, position, handleInputChange, setPosition, setStoreData }) => {
+    const getInitials = (name) => {
+        if (!name) return '?';
+        const words = name.split(' ').filter(Boolean);
+        if (words.length > 1) {
+            return words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    };
     const [isMapModalOpen, setMapModalOpen] = useState(false);
 
     if (!storeData) {
@@ -45,7 +53,13 @@ const EditStoreForm = ({ storeData, isEditing, position, handleInputChange, setP
                     </FormGroup>
                     <FormGroup label="Store Logo">
                         <div className="flex items-center gap-4">
-                            <img src={storeData.logo} alt="Store Logo" className="w-20 h-20 rounded-full object-cover border-4 border-gray-100" />
+                            {storeData.logo ? (
+                                <img src={storeData.logo} alt="Store Logo" className="w-20 h-20 rounded-full object-cover border-4 border-gray-100" />
+                            ) : (
+                                <div className="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold border-4 border-gray-100">
+                                    {getInitials(storeData.storeName)}
+                                </div>
+                            )}
                             {isEditing && (
                                 <label htmlFor="logo-upload" className="cursor-pointer bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-2 px-4 rounded-lg transition-colors">
                                     Change Logo

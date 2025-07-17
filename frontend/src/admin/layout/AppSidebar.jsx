@@ -1,342 +1,208 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import axios from 'axios';
-import { API_BASE_URL } from "../../config";
-import { Link, useLocation } from "react-router";
-
-// Assume these icons are imported from an icon library
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
-  BoxCubeIcon,
-  CalenderIcon,
-  ChevronDownIcon,
-  GridIcon,
-  HorizontaLDots,
-  ListIcon,
-  PageIcon,
-  PieChartIcon,
-  PlugInIcon,
-  TableIcon,
-  UserCircleIcon,
-} from "../icons";
-import { useSidebar } from "../context/SidebarContext";
-import SidebarWidget from "./SidebarWidget";
+  FaStore, FaTachometerAlt, FaBoxOpen, FaChevronDown, FaUsers,
+  FaChartLine, FaCog, FaMobileAlt, FaComments, FaFile, FaBars, FaTimes
+} from 'react-icons/fa';
+import { useSidebar } from '../context/SidebarContext';
 
 const navItems = [
+  { icon: <FaTachometerAlt />, name: "Dashboard", path: "/admin" },
   {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    path: "/admin",
-  },
-  {
-    icon: <UserCircleIcon />,
+    icon: <FaUsers />,
     name: "User Management",
     subItems: [
-      { name: "User Roles", path: "/admin/user-roles", pro: false },
-      { name: "Clients", path: "/admin/clients", pro: false },
-      { name: "Customers", path: "/admin/customers", pro: false },
-      { name: "Riders", path: "/admin/riders", pro: false },
-      { name: "Add Rider", path: "/admin/add-rider", pro: false }
+      { name: "User Roles", path: "/admin/user-roles" },
+      { name: "Clients", path: "/admin/clients" },
+      { name: "Customers", path: "/admin/customers" },
+      { name: "Riders", path: "/admin/riders" }
     ],
   },
   {
-    icon: <BoxCubeIcon />,
+    icon: <FaBoxOpen />,
     name: "Product Management",
     subItems: [
-      { name: "Product List", path: "/admin/product-list", pro: false },
-      { name: "Approval Queue", path: "/admin/approval-queue", pro: false },
+      { name: "Product List", path: "/admin/product-list" },
+      { name: "Approval Queue", path: "/admin/approval-queue" },
     ],
   },
   {
-    icon: <PieChartIcon />,
+    icon: <FaChartLine />,
     name: "Sales & Analytics",
     subItems: [
-      { name: "Sales Overview", path: "/admin/sales-overview", pro: false },
-      { name: "Client Reports", path: "/admin/client-reports", pro: false },
-      { name: "Rider Earnings", path: "/admin/rider-earnings", pro: false },
-      { name: "Best Sellers", path: "/admin/best-sellers", pro: false },
+      { name: "Sales Overview", path: "/admin/sales-overview" },
+      { name: "Client Reports", path: "/admin/client-reports" },
+      { name: "Rider Earnings", path: "/admin/rider-earnings" },
+      { name: "Best Sellers", path: "/admin/best-sellers" },
     ],
   },
   {
-    icon: <PageIcon />,
+    icon: <FaCog />,
     name: "Settings",
     path: "/admin/settings-general",
   },
   {
-    icon: <PlugInIcon />,
+    icon: <FaMobileAlt />,
     name: "App Management",
     subItems: [
-      { name: "Home", path: "/admin/app-home", pro: false },
-      { name: "App", path: "/admin/app-preview", pro: false },
-      { name: "Support", path: "/admin/app-support", pro: false },
-      { name: "Manage Promotions", path: "/admin/manage-promotions", pro: false },
-      { name: "Site Settings", path: "/admin/site-settings", pro: false }
+      { name: "Home", path: "/admin/app-home" },
+      { name: "App", path: "/admin/app-preview" },
+      { name: "Support", path: "/admin/app-support" },
+      { name: "Manage Promotions", path: "/admin/manage-promotions" },
+      { name: "Site Settings", path: "/admin/site-settings" }
     ],
   },
   {
-    icon: <TableIcon />,
+    icon: <FaComments />,
     name: "Chat Management",
     subItems: [
-      { name: "Admin Chat", path: "/admin/chat/admin", pro: false },
-      { name: "Client Chat", path: "/admin/chat/client", pro: false },
-      { name: "Store Chat", path: "/admin/chat/store", pro: false }
+      { name: "Admin Chat", path: "/admin/chat/admin" },
+      { name: "Client Chat", path: "/admin/chat/client" },
+      { name: "Store Chat", path: "/admin/chat/store" }
     ],
   },
   {
-    icon: <BoxCubeIcon />,
+    icon: <FaFile />,
     name: "Blank Page",
     path: "/admin/blank",
   }
 ];
 
-const othersItems = [];
-
 const AppSidebar = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, toggleSidebar, isMobileOpen, toggleMobileSidebar } = useSidebar();
+  const [openSubmenus, setOpenSubmenus] = useState({});
+  const [currentTime, setCurrentTime] = useState(new Date());
   const location = useLocation();
 
-  const [openSubmenu, setOpenSubmenu] = useState(null);
-  const [subMenuHeight, setSubMenuHeight] = useState({});
-  const subMenuRefs = useRef({});
-  const [settings, setSettings] = useState({});
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/public-settings`);
-        setSettings(response.data);
-      } catch (error) {
-        console.error('Error fetching public settings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSettings();
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  const isActive = useCallback(
-    (path) => location.pathname === path,
-    [location.pathname]
-  );
-
   useEffect(() => {
-    let submenuMatched = false;
-    ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType,
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
-        }
-      });
-    });
-
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
+    const activeSubmenu = navItems.find(item => 
+      item.subItems && item.subItems.some(child => location.pathname.startsWith(child.path))
+    );
+    if (activeSubmenu) {
+      setOpenSubmenus(prev => ({ ...prev, [activeSubmenu.name]: true }));
     }
-  }, [location, isActive]);
+  }, [location.pathname]);
 
-  useEffect(() => {
-    if (openSubmenu !== null) {
-      const key = `${openSubmenu.type}-${openSubmenu.index}`;
-      if (subMenuRefs.current[key]) {
-        setSubMenuHeight((prevHeights) => ({
-          ...prevHeights,
-          [key]: subMenuRefs.current[key]?.scrollHeight || 0,
-        }));
-      }
-    }
-  }, [openSubmenu]);
-
-  const handleSubmenuToggle = (index, menuType) => {
-    setOpenSubmenu((prevOpenSubmenu) => {
-      if (
-        prevOpenSubmenu &&
-        prevOpenSubmenu.type === menuType &&
-        prevOpenSubmenu.index === index
-      ) {
-        return null;
-      }
-      return { type: menuType, index };
-    });
+  const handleSubmenuToggle = (name) => {
+    setOpenSubmenus(prev => ({ ...prev, [name]: !prev[name] }));
   };
 
-  const renderMenuItems = (items, menuType) => (
-    <ul className="flex flex-col gap-4">
-      {items.map((nav, index) => (
-        <li key={nav.name}>
-          {nav.subItems ? (
-            <>
-              <button
-                onClick={() => handleSubmenuToggle(index, menuType)}
-                className={`group relative flex w-full items-center gap-2.5 rounded-md px-4 py-2 font-medium text-gray-600 duration-300 ease-in-out hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 ${
-                  nav.subItems.some((subItem) => isActive(subItem.path))
-                    ? "bg-gray-100 dark:bg-gray-800"
-                    : ""
-                }`}
-              >
-                {nav.icon}
-                <span
-                  className={`duration-300 ease-in-out ${
-                    !isExpanded && !isHovered && "lg:opacity-0"
-                  }`}
-                >
-                  {nav.name}
-                </span>
-                <ChevronDownIcon
-                  className={`absolute right-4 top-1/2 -translate-y-1/2 transform duration-300 ease-in-out ${
-                    openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index &&
-                    "rotate-180"
-                  } ${!isExpanded && !isHovered && "lg:opacity-0"}`}
-                />
-              </button>
-              {/* Submenu */}
-              <div
-                ref={(el) => (subMenuRefs.current[`${menuType}-${index}`] = el)}
-                className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{
-                  height:
-                    openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
-                      ? subMenuHeight[`${menuType}-${index}`]
-                      : 0,
-                }}
-              >
-                <ul className="mb-5.5 mt-2 flex flex-col gap-2.5 pl-6">
-                  {nav.subItems.map((subItem) => (
-                    <li key={subItem.name}>
-                      <Link
-                        to={subItem.path}
-                        className={`group relative flex items-center gap-2.5 rounded-md px-4 py-2 font-medium duration-300 ease-in-out ${
-                          isActive(subItem.path)
-                            ? "bg-blue-100 text-primary dark:bg-gray-700"
-                            : "text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary"
-                        }`}
-                      >
-                        <span>{subItem.name}</span>
-                        <span className="absolute right-4 flex items-center gap-2">
-                          {subItem.new && (
-                            <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                              NEW
-                            </span>
-                          )}
-                          {subItem.pro && (
-                            <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-300">
-                              PRO
-                            </span>
-                          )}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          ) : (
-            <Link
-              to={nav.path}
-              className={`group relative flex items-center gap-2.5 rounded-md px-4 py-2 font-medium text-gray-600 duration-300 ease-in-out hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400 ${
-                isActive(nav.path) && "bg-gray-100 dark:bg-gray-800"
-              }`}
-            >
-              {nav.icon}
-              <span
-                className={`duration-300 ease-in-out ${
-                  !isExpanded && !isHovered && "lg:opacity-0"
-                }`}
-              >
-                {nav.name}
-              </span>
-            </Link>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
+  const MenuLink = ({ item }) => {
+    const baseClasses = 'flex items-center w-full text-left px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200';
+    const activeClasses = 'bg-blue-700 text-white';
+    const inactiveClasses = 'text-gray-300 hover:bg-blue-600 hover:text-white';
+    const isCollapsed = !isExpanded;
+
+    return (
+      <NavLink
+        to={item.path}
+        end={!item.subItems}
+        className={({ isActive }) => `${baseClasses} ${isActive ? activeClasses : inactiveClasses} ${isCollapsed ? 'justify-center' : ''}`}
+        onClick={() => {
+          if (window.innerWidth < 768) {
+            toggleMobileSidebar();
+          }
+        }}
+      >
+        <span className="flex-shrink-0 text-lg">{item.icon}</span>
+        <span className={`flex-grow ml-3 ${isCollapsed ? 'hidden' : 'block'}`}>{item.name}</span>
+      </NavLink>
+    );
+  };
+
+  const MenuButton = ({ item, onClick, isCollapsed, isActive, hasChildren, isOpen }) => {
+    const baseClasses = 'flex items-center w-full text-left px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200';
+    const activeClasses = 'bg-blue-700 text-white';
+    const inactiveClasses = 'text-gray-300 hover:bg-blue-600 hover:text-white';
+
+    return (
+      <button
+        onClick={onClick}
+        className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses} ${isCollapsed ? 'justify-center' : ''}`}
+      >
+        <span className="flex-shrink-0 text-lg">{item.icon}</span>
+        <span className={`flex-grow ml-3 ${isCollapsed ? 'hidden' : 'block'}`}>{item.name}</span>
+        {hasChildren && !isCollapsed && <FaChevronDown className={`ml-auto transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />}
+      </button>
+    );
+  };
+
+  const isCollapsed = !isExpanded;
 
   return (
-    <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
-        ${
-          isExpanded || isMobileOpen
-            ? "w-[290px]"
-            : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
-        }
-        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
-      onMouseEnter={() => !isExpanded && setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div
-        className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-        }`}
+    <>
+      <div 
+        className={`fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden transition-opacity duration-300 ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={toggleMobileSidebar}
+      ></div>
+       <button 
+        onClick={toggleMobileSidebar} 
+        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-white text-gray-800 shadow-lg"
       >
-        <Link to="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">
-              {loading ? 'Loading...' : (settings.app_name || 'TailAdmin')}
-            </h1>
-          ) : (
-            <img
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
-          )}
-        </Link>
-      </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Menu"
+        {isMobileOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+      </button>
+      <aside className={`fixed md:relative flex flex-col bg-blue-800 shadow-lg z-40 h-full transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'} ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div 
+          className={`flex items-center h-20 px-4 border-b border-blue-900 cursor-pointer flex-shrink-0 ${isCollapsed ? 'justify-center' : ''}`}
+          onClick={toggleSidebar}
+        >
+          <FaStore className="text-white text-3xl flex-shrink-0" />
+          <span className={`ml-3 text-xl font-bold text-white whitespace-nowrap ${isCollapsed ? 'hidden' : 'block'}`}>Admin Panel</span>
+        </div>
+
+        {/* Navigation Menu with Scrolling */}
+        <div className="flex-grow overflow-y-auto custom-scrollbar">
+          <nav className="p-4 space-y-2">
+            {navItems.map(item => (
+              <div key={item.name}>
+                {item.subItems ? (
+                  <>
+                    <MenuButton 
+                      item={item} 
+                      onClick={() => handleSubmenuToggle(item.name)}
+                      isCollapsed={isCollapsed} 
+                      isActive={item.subItems.some(child => location.pathname.startsWith(child.path))}
+                      hasChildren={!!item.subItems}
+                      isOpen={openSubmenus[item.name]}
+                    />
+                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${!isCollapsed && openSubmenus[item.name] ? 'max-h-96 mt-2' : 'max-h-0'}`}>
+                      <div className="pl-8 space-y-2 border-l border-blue-700 ml-4">
+                        {item.subItems.map(child => (
+                          <MenuLink key={child.path} item={{...child, icon: ''}} />
+                        ))}
+                      </div>
+                    </div>
+                  </>
                 ) : (
-                  <HorizontaLDots className="size-6" />
+                  <MenuLink item={item} />
                 )}
-              </h2>
-              {renderMenuItems(navItems, "main")}
-            </div>
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
-                ) : (
-                  <HorizontaLDots />
-                )}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
+              </div>
+            ))}
+          </nav>
+        </div>
+
+        {/* Footer Clock */}
+        <div className="flex-shrink-0 p-4 border-t border-blue-900">
+          <div className={`transition-all duration-300 overflow-hidden ${isCollapsed ? 'opacity-0 max-h-0' : 'opacity-100 max-h-40 mb-4'}`}>
+            <div className="flex items-center justify-around text-center p-2 rounded-lg bg-blue-700">
+              <div>
+                <div className="text-xs font-bold text-blue-300">{currentTime.toLocaleDateString(undefined, { month: 'short' }).toUpperCase()}</div>
+                <div className="text-2xl font-bold text-white">{currentTime.getDate()}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+                <div className="text-xs text-blue-300">{currentTime.toLocaleDateString(undefined, { weekday: 'long' })}</div>
+              </div>
             </div>
           </div>
-        </nav>
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
-      </div>
-    </aside>
+        </div>
+      </aside>
+    </>
   );
 };
 

@@ -24,7 +24,7 @@ export default function MonthlyTarget() {
           size: "80%",
         },
         track: {
-          background: "#E4E7EC",
+          background: "#DBEAFE", // blue-100
           strokeWidth: "100%",
           margin: 5, // margin is in pixels
         },
@@ -36,7 +36,7 @@ export default function MonthlyTarget() {
             fontSize: "36px",
             fontWeight: "600",
             offsetY: -40,
-            color: "#1D2939",
+            color: "#1E3A8A", // blue-900
             formatter: function (val) {
               return val + "%";
             },
@@ -63,20 +63,20 @@ export default function MonthlyTarget() {
     setIsOpen(false);
   }
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
-      <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
+    <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-gray-800">
+      <div className="px-5 pt-5 bg-white shadow-sm rounded-lg pb-11 dark:bg-gray-800 sm:px-6 sm:pt-6">
         <div className="flex justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-white">
               Monthly Target
             </h3>
-            <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
+            <p className="mt-1 text-blue-500 text-theme-sm dark:text-blue-400">
               Target you’ve set for each month
             </p>
           </div>
           <div className="relative inline-block">
             <button className="dropdown-toggle" onClick={toggleDropdown}>
-              <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
+              <MoreDotIcon className="text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 size-6" />
             </button>
             <Dropdown
               isOpen={isOpen}
@@ -85,13 +85,13 @@ export default function MonthlyTarget() {
             >
               <DropdownItem
                 onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                className="flex w-full font-normal text-left text-blue-500 rounded-lg hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/50 dark:hover:text-blue-300"
               >
                 View More
               </DropdownItem>
               <DropdownItem
                 onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                className="flex w-full font-normal text-left text-blue-500 rounded-lg hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/50 dark:hover:text-blue-300"
               >
                 Delete
               </DropdownItem>
@@ -112,7 +112,7 @@ export default function MonthlyTarget() {
             +10%
           </span>
         </div>
-        <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
+        <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-blue-500 sm:text-base">
           You earn $3287 today, it's higher than last month. Keep up your good
           work!
         </p>
@@ -120,10 +120,10 @@ export default function MonthlyTarget() {
 
       <div className="flex items-center justify-center gap-5 px-6 py-3.5 sm:gap-8 sm:py-5">
         <div>
-          <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
+          <p className="mb-1 text-center text-blue-500 text-theme-xs dark:text-blue-400 sm:text-sm">
             Target
           </p>
-          <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+          <p className="flex items-center justify-center gap-1 text-base font-semibold text-blue-900 dark:text-white sm:text-lg">
             $20K
             <svg
               width="16"
@@ -142,13 +142,13 @@ export default function MonthlyTarget() {
           </p>
         </div>
 
-        <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+        <div className="w-px bg-blue-200 h-7 dark:bg-blue-800"></div>
 
         <div>
-          <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
+          <p className="mb-1 text-center text-blue-500 text-theme-xs dark:text-blue-400 sm:text-sm">
             Revenue
           </p>
-          <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+          <p className="flex items-center justify-center gap-1 text-base font-semibold text-blue-900 dark:text-white sm:text-lg">
             $20K
             <svg
               width="16"
@@ -167,13 +167,13 @@ export default function MonthlyTarget() {
           </p>
         </div>
 
-        <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+        <div className="w-px bg-blue-200 h-7 dark:bg-blue-800"></div>
 
         <div>
-          <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
+          <p className="mb-1 text-center text-blue-500 text-theme-xs dark:text-blue-400 sm:text-sm">
             Today
           </p>
-          <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+          <p className="flex items-center justify-center gap-1 text-base font-semibold text-blue-900 dark:text-white sm:text-lg">
             $20K
             <svg
               width="16"

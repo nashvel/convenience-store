@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaStore, FaTachometerAlt, FaBoxOpen, FaChevronDown, FaPlusCircle, FaTasks, FaClipboardList, FaComments, FaBars, FaTimes, FaStar, FaCog } from 'react-icons/fa';
+import { FaStore, FaTachometerAlt, FaBoxOpen, FaChevronDown, FaPlusCircle, FaTasks, FaClipboardList, FaComments, FaBars, FaTimes, FaStar, FaCog, FaExclamationTriangle } from 'react-icons/fa';
+import api from '../../../api/axios-config';
+import { useTutorial } from '../../context/TutorialContext';
 
 const Sidebar = ({ isCollapsed, setCollapsed }) => {
   const [isOpenOnMobile, setOpenOnMobile] = useState(false);
   const [isProductsOpen, setProductsOpen] = useState(false);
   const [isAutoCloseEnabled, setAutoCloseEnabled] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
+  const [missingFields, setMissingFields] = useState([]);
   const location = useLocation();
+  const { startTutorial } = useTutorial();
 
   const handleToggleAutoClose = () => {
     setAutoCloseEnabled(!isAutoCloseEnabled);
@@ -22,6 +27,32 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
 
   useEffect(() => {
     setProductsOpen(location.pathname.startsWith('/seller/products'));
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const checkStoreProfile = async () => {
+      try {
+        const response = await api.get('/seller/store');
+        const store = response.data;
+        const fields = [];
+        if (!store.name) fields.push('store name');
+        if (!store.address) fields.push('address');
+        if (!store.closing_time) fields.push('closing time');
+
+        if (fields.length > 0) {
+          setIsProfileIncomplete(true);
+          setMissingFields(fields);
+        } else {
+          setIsProfileIncomplete(false);
+          setMissingFields([]);
+        }
+      } catch (error) {
+        // It's okay if this fails, we just won't show the notice.
+        console.error('Could not check store profile status:', error);
+      }
+    };
+
+    checkStoreProfile();
   }, [location.pathname]);
 
   const menuItems = [
@@ -49,9 +80,9 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
         end={!item.children}
         className={({ isActive }) => `${baseClasses} ${isActive ? activeClasses : inactiveClasses} ${isCollapsed ? 'justify-center' : ''}`}
         onClick={() => {
-            if (window.innerWidth < 768) {
-              setOpenOnMobile(false);
-            }
+          if (window.innerWidth < 768) {
+            setOpenOnMobile(false);
+          }
         }}
       >
         <span className="flex-shrink-0">{item.icon}</span>
@@ -122,6 +153,17 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
               )}
             </div>
           ))}
+          {!isCollapsed && isProfileIncomplete && (
+            <Link to="/seller/manage-store" onClick={startTutorial} className="mt-4 mx-2 block p-3 rounded-lg bg-yellow-100 text-yellow-900 hover:bg-yellow-200 dark:bg-yellow-800 dark:text-yellow-100 dark:hover:bg-yellow-700 transition-colors">
+              <div className="flex items-start">
+                <FaExclamationTriangle className="w-4 h-4 mr-3 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-sm">Store Incomplete</p>
+                  <p className="text-xs">Please add: {missingFields.join(', ')}.</p>
+                </div>
+              </div>
+            </Link>
+          )}
         </nav>
         <div className="mt-auto p-4 border-t border-blue-900">
           <div className={`transition-all duration-300 overflow-hidden ${isCollapsed ? 'opacity-0 max-h-0' : 'opacity-100 max-h-40 mb-4'}`}>

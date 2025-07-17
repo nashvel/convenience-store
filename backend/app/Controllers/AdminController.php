@@ -5,7 +5,6 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use App\Models\StoreModel;
 use App\Models\SettingsModel;
-use App\Models\ProductModel;
 use App\Models\CategoryModel;
 use App\Models\OrderModel;
 use App\Models\AddressModel;
@@ -19,7 +18,6 @@ class AdminController extends ResourceController
     protected $userModel;
     protected $storeModel;
     protected $settingsModel;
-    protected $productModel;
     protected $categoryModel;
     protected $orderModel;
     protected $addressModel;
@@ -29,7 +27,6 @@ class AdminController extends ResourceController
         $this->userModel = new UserModel();
         $this->storeModel = new StoreModel();
         $this->settingsModel = new SettingsModel();
-        $this->productModel = new ProductModel();
         $this->categoryModel = new CategoryModel();
         $this->orderModel = new OrderModel();
         $this->addressModel = new AddressModel();
@@ -37,9 +34,6 @@ class AdminController extends ResourceController
 
     public function getClients()
     {
-        // For now, we will assume an admin check has been performed by a filter.
-        // A real implementation should have a robust JWT or session-based auth check.
-
         try {
             $clients = $this->userModel
                 ->select('users.id, users.first_name, users.last_name, users.email, users.created_at, users.is_verified, stores.name as store_name, stores.logo as store_logo')
@@ -54,7 +48,169 @@ class AdminController extends ResourceController
         }
     }
 
-        public function getCustomers()
+    public function createClient()
+    {
+        try {
+            $data = $this->request->getJSON(true);
+
+            // First, check if the email already exists
+            $existingUser = $this->userModel->where('email', $data['email'])->first();
+            if ($existingUser) {
+                return $this->fail('This email address is already registered.', 409);
+            }
+
+            // Basic validation
+            if (empty($data['name']) || empty($data['email']) || empty($data['password'])) {
+                return $this->failValidationErrors('Name, email, and password are required.');
+            }
+
+            // Split name into first and last
+            $nameParts = explode(' ', $data['name'], 2);
+            $firstName = $nameParts[0];
+            $lastName = $nameParts[1] ?? '';
+
+            $clientData = [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
+                'password_hash' => password_hash($data['password'], PASSWORD_DEFAULT),
+                'role_id' => 2, // Client role
+                'is_verified' => 1 // Automatically verify admin-created clients
+            ];
+
+            $newUserId = $this->userModel->insert($clientData);
+
+            if ($newUserId) {
+                // Create a corresponding store for the new client
+                $storeModel = new \App\Models\StoreModel();
+                $storeModel->insert(['client_id' => $newUserId]);
+
+                // Check if email notification should be sent
+                if (!empty($data['notifyByEmail']) && $data['notifyByEmail'] === true) {
+                    $settings = $this->settingsModel->first();
+                    $appName = $settings['app_name'] ?? 'Quick Mart';
+
+                    $email = \Config\Services::email();
+                    $email->setTo($data['email']);
+                    $email->setSubject('Your New Client Account on ' . $appName);
+                    
+                    $message = "<h1>Welcome to {$appName}!</h1>"
+                             . "<p>A new client account has been created for you.</p>"
+                             . "<p>You can now log in using the following credentials:</p>"
+                             . "<ul>"
+                             . "<li><strong>Email:</strong> " . $data['email'] . "</li>"
+                             . "<li><strong>Password:</strong> " . $data['password'] . "</li>"
+                             . "</ul>"
+                             . "<p>We recommend changing your password after your first login.</p>";
+                    
+                    $email->setMessage($message);
+
+                    if (!$email->send(false)) { // pass false to avoid clearing config
+                        // Log email error but don't fail the whole request
+                        log_message('error', 'Email could not be sent to ' . $data['email'] . ': ' . $email->printDebugger(['headers']));
+                    }
+                }
+                return $this->respondCreated(['message' => 'Client created successfully']);
+            } else {
+                return $this->fail($this->userModel->errors());
+            }
+
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('An unexpected error occurred while creating the client.');
+        }
+    }
+
+    public function getClient($id)
+    {
+        try {
+            $client = $this->userModel
+                ->select('users.id, users.first_name, users.last_name, users.email, users.phone, stores.name as store_name, stores.address as store_address, stores.logo as store_logo')
+                ->join('stores', 'stores.client_id = users.id', 'left')
+                ->where('users.id', $id)
+                ->where('users.role_id', 2)
+                ->first();
+
+            if (!$client) {
+                return $this->failNotFound('Client not found.');
+            }
+
+            return $this->respond($client);
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('An error occurred while fetching client data.');
+        }
+    }
+
+    public function updateClient($id)
+    {
+        try {
+            $data = $this->request->getJSON(true);
+
+            // Validation
+            $validation =  \Config\Services::validation();
+            $validation->setRules([
+                'first_name' => 'required|string|max_length[50]',
+                'last_name'  => 'required|string|max_length[50]',
+                'email'      => "required|valid_email|is_unique[users.email,id,{$id}]",
+                'phone'      => 'permit_empty|string|max_length[20]'
+            ]);
+
+            if (!$validation->run($data)) {
+                return $this->fail($validation->getErrors());
+            }
+
+            $userData = [
+                'first_name' => $data['first_name'],
+                'last_name'  => $data['last_name'],
+                'email'      => $data['email'],
+                'phone'      => $data['phone']
+            ];
+
+            if ($this->userModel->update($id, $userData)) {
+                return $this->respondUpdated(['message' => 'Client updated successfully.']);
+            } else {
+                return $this->fail($this->userModel->errors());
+            }
+
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('An unexpected error occurred while updating the client.');
+        }
+    }
+
+    public function deleteClient($id)
+    {
+        try {
+            $user = $this->userModel->find($id);
+
+            if (!$user) {
+                return $this->failNotFound('Client not found.');
+            }
+
+            // Ensure the user is a client
+            if ($user['role_id'] != 2) {
+                return $this->failForbidden('This user is not a client.');
+            }
+
+            // First, delete the associated store
+            $storeModel = new \App\Models\StoreModel();
+            $storeModel->where('client_id', $id)->delete();
+
+            // Then, delete the user
+            if ($this->userModel->delete($id)) {
+                return $this->respondDeleted(['message' => 'Client and associated store deleted successfully.']);
+            } else {
+                return $this->fail($this->userModel->errors());
+            }
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('An unexpected error occurred while deleting the client.');
+        }
+    }
+
+    public function getCustomers()
     {
         try {
             $customers = $this->userModel
@@ -77,6 +233,12 @@ class AdminController extends ResourceController
                 ->where('role_id', 3)
                 ->findAll();
 
+            // Cast is_blacklisted to boolean for correct frontend interpretation
+            $riders = array_map(function($rider) {
+                $rider['is_blacklisted'] = (bool)$rider['is_blacklisted'];
+                return $rider;
+            }, $riders);
+
             return $this->respond($riders);
         } catch (\Exception $e) {
             log_message('error', '[ERROR] {exception}', ['exception' => $e]);
@@ -88,11 +250,7 @@ class AdminController extends ResourceController
     {
         try {
             $data = $this->request->getJSON(true);
-
-            // Add validation logic here if needed
-
             $this->userModel->update($id, $data);
-
             return $this->respondUpdated(['message' => 'Rider updated successfully']);
         } catch (\Exception $e) {
             log_message('error', '[ERROR] {exception}', ['exception' => $e]);
@@ -104,11 +262,7 @@ class AdminController extends ResourceController
     {
         try {
             $data = $this->request->getJSON(true);
-
-            // Add validation logic here if needed
-
             $this->userModel->update($id, $data);
-
             return $this->respondUpdated(['message' => 'Customer updated successfully']);
         } catch (\Exception $e) {
             log_message('error', '[ERROR] {exception}', ['exception' => $e]);
@@ -120,13 +274,10 @@ class AdminController extends ResourceController
     {
         try {
             $user = $this->userModel->find($id);
-
             if (!$user) {
                 return $this->failNotFound('User not found');
             }
-
             $this->userModel->update($id, ['is_blacklisted' => !$user['is_blacklisted']]);
-
             return $this->respondUpdated(['message' => 'User blacklist status updated successfully']);
         } catch (\Exception $e) {
             log_message('error', '[ERROR] {exception}', ['exception' => $e]);
@@ -153,141 +304,19 @@ class AdminController extends ResourceController
     {
         try {
             $data = $this->request->getJSON(true);
-
-            // The frontend sends data nested under a 'settings' key.
             $settings = $data['settings'] ?? null;
-
             if (!$settings || !is_array($settings)) {
                 return $this->fail('Invalid data format. Expected a "settings" object.', 400);
             }
-
             foreach ($settings as $key => $value) {
-                // Allow strings, numbers, booleans, and null values.
                 if (is_string($key) && (is_string($value) || is_numeric($value) || is_bool($value) || is_null($value))) {
                     $this->settingsModel->where('key', $key)->set('value', $value)->update();
                 }
             }
-
             return $this->respondUpdated(['message' => 'Settings updated successfully']);
         } catch (\Exception $e) {
             log_message('error', '[ERROR] {exception}', ['exception' => $e]);
             return $this->failServerError('An unexpected error occurred while updating settings.');
-        }
-    }
-
-    public function getProducts()
-    {
-        $productModel = new \App\Models\ProductModel();
-
-        $page = $this->request->getVar('page') ?? 1;
-        $perPage = $this->request->getVar('perPage') ?? 20;
-
-        $products = $productModel->select('products.*, stores.name as store_name, categories.name as category_name')
-                                 ->join('stores', 'stores.id = products.store_id', 'left')
-                                 ->join('categories', 'categories.id = products.category_id', 'left')
-                                 ->paginate($perPage, 'default', $page);
-
-        $pager = $productModel->pager;
-
-        $response = [
-            'products' => $products,
-            'pager' => [
-                'currentPage' => $pager->getCurrentPage(),
-                'perPage'     => $pager->getPerPage(),
-                'total'       => $pager->getTotal(),
-                'pageCount'   => $pager->getPageCount(),
-            ]
-        ];
-
-        return $this->respond($response);
-    }
-
-    public function deleteProduct($id = null)
-    {
-        if ($id === null) {
-            return $this->fail('Product ID is required.');
-        }
-
-        $product = $this->productModel->find($id);
-
-        if (!$product) {
-            return $this->failNotFound('Product not found with ID: ' . $id);
-        }
-
-        try {
-            if ($this->productModel->delete($id)) {
-                return $this->respondDeleted(['id' => $id], 'Product successfully deleted.');
-            } else {
-                return $this->failServerError('Failed to delete product.');
-            }
-        } catch (\Exception $e) {
-            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
-            return $this->failServerError('An unexpected error occurred while deleting the product.');
-        }
-    }
-
-    public function updateProduct($id = null)
-    {
-        if ($id === null) {
-            return $this->fail('Product ID is required.');
-        }
-
-        $product = $this->productModel->find($id);
-
-        if (!$product) {
-            return $this->failNotFound('Product not found with ID: ' . $id);
-        }
-
-        $data = $this->request->getJSON(true);
-
-        $updateData = [];
-
-        if (array_key_exists('name', $data)) {
-            $updateData['name'] = $data['name'];
-        }
-        if (array_key_exists('price', $data)) {
-            $updateData['price'] = $data['price'];
-        }
-        if (array_key_exists('category_id', $data)) {
-            if (empty($data['category_id'])) {
-                return $this->failValidationErrors(['category_id' => 'A category must be selected.']);
-            }
-            
-            $category = $this->categoryModel->find($data['category_id']);
-            if (!$category) {
-                return $this->failValidationErrors(['category_id' => 'The selected category is invalid.']);
-            }
-            $updateData['category_id'] = $data['category_id'];
-        }
-
-        if (empty($updateData)) {
-            return $this->fail('No data provided for update.', 400);
-        }
-
-        try {
-            if ($this->productModel->update($id, $updateData)) {
-                $updatedProduct = $this->productModel
-                    ->select('products.*, categories.name as category_name')
-                    ->join('categories', 'categories.id = products.category_id', 'left')
-                    ->find($id);
-                return $this->respond($updatedProduct);
-            } else {
-                return $this->failServerError('Failed to update product.');
-            }
-        } catch (\Exception $e) {
-            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
-            return $this->failServerError('An unexpected error occurred while updating the product.');
-        }
-    }
-
-    public function getCategories()
-    {
-        try {
-            $categories = $this->categoryModel->findAll();
-            return $this->respond($categories);
-        } catch (\Exception $e) {
-            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
-            return $this->failServerError('An unexpected error occurred while fetching categories.');
         }
     }
 

@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../api/axios-config';
+import toast from 'react-hot-toast';
 import {
   UserIcon,
-  OfficeBuildingIcon,
   MailIcon,
   PhoneIcon,
-  LocationMarkerIcon,
   LockClosedIcon,
   KeyIcon,
   BellIcon,
-  BadgeCheckIcon,
   PlusCircleIcon
 } from '@heroicons/react/outline';
 
 const ClientForm = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const formStyles = {
     label: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1',
     input: 'block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
@@ -25,26 +29,42 @@ const ClientForm = () => {
     name: '',
     email: '',
     phone: '',
-    storeName: '',
-    address: '',
     password: '',
     confirmPassword: '',
-    notifyByEmail: false,
-    status: 'active'
+    notifyByEmail: true
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Submitting client:', formData);
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const toastId = toast.loading('Creating client...');
+
+    try {
+      await api.post('/admin/clients', formData);
+      toast.success('Client created successfully!', { id: toastId });
+      navigate('/admin/clients');
+    } catch (error) {
+      if (error.response && error.response.status === 409) {
+        toast.error(error.response.data.messages.error, { id: toastId });
+      } else {
+        toast.error('An unexpected error occurred.', { id: toastId });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -88,35 +108,8 @@ const ClientForm = () => {
         </div>
 
         <div className="border-b border-gray-900/10 dark:border-gray-700 pb-12">
-          <h2 className="text-base font-semibold leading-7 text-blue-900 dark:text-blue-300">Store Information</h2>
-          <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">Details about the client's store.</p>
-
-          <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-            <div className="sm:col-span-3">
-              <label htmlFor="storeName" className={formStyles.label}>Store Name</label>
-              <div className="mt-2 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <OfficeBuildingIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input type="text" name="storeName" id="storeName" value={formData.storeName} onChange={handleChange} required className={`${formStyles.input} pl-10`} placeholder="Store name" />
-              </div>
-            </div>
-
-            <div className="col-span-full">
-              <label htmlFor="address" className={formStyles.label}>Store Address</label>
-              <div className="mt-2 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LocationMarkerIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input type="text" name="address" id="address" value={formData.address} onChange={handleChange} required className={`${formStyles.input} pl-10`} placeholder="123 Store Street, City, Country" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-b border-gray-900/10 dark:border-gray-700 pb-12">
           <h2 className="text-base font-semibold leading-7 text-blue-900 dark:text-blue-300">Account Security</h2>
-          <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">Manage account credentials and status.</p>
+          <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">Manage account credentials.</p>
 
           <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
             <div className="sm:col-span-3">
@@ -139,19 +132,7 @@ const ClientForm = () => {
               </div>
             </div>
 
-            <div className="sm:col-span-3">
-              <label htmlFor="status" className={formStyles.label}>Status</label>
-              <div className="mt-2 relative">
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <BadgeCheckIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <select id="status" name="status" value={formData.status} onChange={handleChange} className={`${formStyles.select} pl-10`}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="pending">Pending Approval</option>
-                </select>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -174,10 +155,14 @@ const ClientForm = () => {
       </div>
 
       <div className="mt-6 flex items-center justify-end gap-x-6">
-        <button type="button" className="text-sm font-semibold leading-6 text-gray-900 dark:text-white">Cancel</button>
-        <button type="submit" className={formStyles.button}>
+        <button type="button" onClick={() => navigate('/admin/clients')} className="text-sm font-semibold leading-6 text-gray-900 dark:text-white">Cancel</button>
+        <button 
+          type="submit" 
+          className={`${formStyles.button} disabled:opacity-50`}
+          disabled={isSubmitting}
+        >
             <PlusCircleIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            Add Client
+            {isSubmitting ? 'Adding Client...' : 'Add Client'}
         </button>
       </div>
     </form>

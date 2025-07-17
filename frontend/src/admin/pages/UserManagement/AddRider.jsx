@@ -1,21 +1,22 @@
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import PageMeta from "../../components/common/PageMeta";
+import React from 'react';
+import UserManagementQuickLinks from '../../components/UserManagement/QuickLinks';
 import RiderForm from "../../components/UserManagement/RiderForm";
 
 export default function AddRider() {
   return (
-    <>
-      <PageMeta
-        title="Add New Rider | Admin Dashboard"
-        description="Add new rider to the system"
-      />
-      <PageBreadcrumb pageTitle="Add New Rider" />
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-        <h3 className="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
-          Add New Rider
-        </h3>
-        <RiderForm />
+    <div className="px-4 sm:px-6 lg:px-8 pb-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <UserManagementQuickLinks />
+      <div className="pt-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+            <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Add New Rider</h1>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Create a new rider account and add them to the system.</p>
+            </div>
+        </div>
+        <div className="bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-lg">
+          <RiderForm />
+        </div>
       </div>
-    </>
+    </div>
   );
 }

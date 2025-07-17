@@ -4,12 +4,14 @@ import Sidebar from './components/sidebar/Sidebar';
 import Header from './components/header/Header';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { TutorialProvider } from './context/TutorialContext';
 
 const SellerLayout = () => {
   const [isCollapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="relative flex h-screen bg-white font-sans">
+    <TutorialProvider>
+      <div className="relative flex h-screen bg-white font-sans">
       <Sidebar isCollapsed={isCollapsed} setCollapsed={setCollapsed} />
       <ToastContainer
         position="top-right"
@@ -29,6 +31,7 @@ const SellerLayout = () => {
         </main>
       </div>
     </div>
+    </TutorialProvider>
   );
 };
 

@@ -282,6 +282,7 @@ class ProductController extends ResourceController
             'rating' => $productData['rating'], // Include rating
             'review_count' => $productData['review_count'], // Include review count
             'variants' => $productData['variants'],
+            'category_id' => $productData['category_id'], // Add the missing category_id
             'category_name' => $productData['category_name'],
             'parent_category_name' => $productData['parent_category_name'],
             'store' => [

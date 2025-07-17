@@ -6,10 +6,12 @@ import Home from './pages/Dashboard/Home.jsx';
 import UserProfiles from './pages/UserProfiles.jsx';
 import UserRoles from './pages/UserRoles.jsx';
 import AddClient from './pages/UserManagement/AddClient.jsx';
+import AddCustomer from './pages/UserManagement/AddCustomer.jsx';
 import AddRider from './pages/UserManagement/AddRider.jsx';
 import Clients from './pages/UserManagement/Clients.jsx';
 import Customers from './pages/UserManagement/Customers.jsx';
 import Riders from './pages/UserManagement/Riders.jsx';
+import EditClient from './pages/UserManagement/EditClient.jsx';
 import Blank from './pages/Blank.jsx';
 import AppHome from './pages/AppManagement/AppHome';
 import AppPreview from './pages/AppManagement/AppPreview';
@@ -43,10 +45,12 @@ function AdminApp() {
         <Route path="user-profiles" element={<UserProfiles />} />
         <Route path="user-roles" element={<UserRoles />} />
         <Route path="add-client" element={<AddClient />} />
+        <Route path="add-customer" element={<AddCustomer />} />
         <Route path="add-rider" element={<AddRider />} />
         <Route path="clients" element={<Clients />} />
         <Route path="customers" element={<Customers />} />
         <Route path="riders" element={<Riders />} />
+        <Route path="clients/edit/:id" element={<EditClient />} />
 
         {/* Product Management */}
         <Route path="product-list" element={<ProductList />} />

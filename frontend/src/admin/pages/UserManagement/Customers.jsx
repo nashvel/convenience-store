@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { FiSearch, FiPlus, FiLoader, FiAlertTriangle, FiCheckCircle, FiXCircle, FiMoreVertical, FiUserX } from 'react-icons/fi';
+import UserManagementQuickLinks from '../../components/UserManagement/QuickLinks';
 
 const Customers = () => {
     const [users, setUsers] = useState([]);
@@ -13,6 +14,16 @@ const Customers = () => {
     const dropdownRef = useRef(null);
     const { user } = useAuth();
     const navigate = useNavigate();
+
+    const getInitials = (firstName, lastName) => {
+        if (firstName && lastName) {
+            return `${firstName[0]}${lastName[0]}`.toUpperCase();
+        }
+        if (firstName) {
+            return firstName.substring(0, 2).toUpperCase();
+        }
+        return '?';
+    };
 
     // Effect to handle clicks outside the dropdown
     useEffect(() => {
@@ -108,7 +119,7 @@ const Customers = () => {
             }
 
             await fetchCustomers();
-            setEditingUser(null);
+            setEditingUser(null); // Close the modal on success
         } catch (err) {
             console.error('Failed to update user:', err);
             // Optionally, show an error message to the user
@@ -145,51 +156,51 @@ const Customers = () => {
 
         return (
             <div className="overflow-x-auto">
-                <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow-md">
-                    <thead>
-                        <tr className="bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            <th className="px-6 py-3">Customer</th>
-                            <th className="px-6 py-3">Contact</th>
-                            <th className="px-6 py-3">Status</th>
-                            <th className="px-6 py-3">Joined Date</th>
-                            <th className="px-6 py-3 text-center">Actions</th>
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date Joined</th>
+                            <th scope="col" className="relative px-6 py-3">
+                                <span className="sr-only">Actions</span>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody className="text-gray-700 dark:text-gray-200">
-                        {filteredUsers.map(user => (
-                            <tr key={user.id} className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 ${user.is_blacklisted ? 'bg-red-50 dark:bg-red-900/20' : ''}`}>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {filteredUsers.map((user) => (
+                            <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
-                                        <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&background=random`} alt={`${user.first_name} ${user.last_name}`} className="w-10 h-10 rounded-full mr-4"/>
-                                        <div>
-                                            <div className="font-semibold text-sm">{user.first_name} {user.last_name}</div>
-                                            <div className="text-xs text-gray-500 dark:text-gray-400">ID: {user.id}</div>
+                                        <div className="flex-shrink-0 h-10 w-10">
+                                            {user.avatar ? (
+                                                <img className="h-10 w-10 rounded-full object-cover" src={user.avatar} alt={`${user.first_name} ${user.last_name}`} />
+                                            ) : (
+                                                <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{getInitials(user.first_name, user.last_name)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="ml-4">
+                                            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.first_name} {user.last_name}</div>
+                                            <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm">{user.email}</div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">{user.phone || 'N/A'}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {user.is_blacklisted == 1 ? (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300">
+                                    {user.is_blacklisted ? (
+                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300">
                                             <FiUserX className="mr-1.5" />
                                             Blacklisted
                                         </span>
-                                    ) : user.is_verified == 1 ? (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">
-                                            <FiCheckCircle className="mr-1.5" />
-                                            Verified
-                                        </span>
                                     ) : (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300">
-                                            <FiXCircle className="mr-1.5" />
-                                            Not Verified
+                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
+                                            <FiCheckCircle className="mr-1.5" />
+                                            Active
                                         </span>
                                     )}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                     {new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-center relative">
@@ -220,13 +231,13 @@ const Customers = () => {
     };
 
     return (
-        <>
+        <div className="px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
             {editingUser && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-md">
-                        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Edit Customer</h2>
-                        <form onSubmit={handleUpdateUser}>
-                            <div className="grid grid-cols-1 gap-6">
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg p-8 transform transition-all duration-300 scale-100 opacity-100">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Edit Customer</h2>
+                        <form onSubmit={handleUpdateUser} className="space-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <input type="text" placeholder="First Name" value={editingUser.first_name || ''} onChange={(e) => setEditingUser({...editingUser, first_name: e.target.value})} className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500" />
                                 <input type="text" placeholder="Last Name" value={editingUser.last_name || ''} onChange={(e) => setEditingUser({...editingUser, last_name: e.target.value})} className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500" />
                                 <input type="email" placeholder="Email" value={editingUser.email || ''} onChange={(e) => setEditingUser({...editingUser, email: e.target.value})} className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500" />
@@ -240,7 +251,8 @@ const Customers = () => {
                     </div>
                 </div>
             )}
-            <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+            <UserManagementQuickLinks />
+            <div className="pt-4 sm:pt-6 lg:pt-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Customer Management</h1>
@@ -271,7 +283,7 @@ const Customers = () => {
                     {renderContent()}
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

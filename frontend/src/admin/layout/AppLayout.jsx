@@ -1,3 +1,5 @@
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
 import { ThemeProvider } from "../context/ThemeContext";
 import { Outlet } from "react-router";
@@ -6,23 +8,31 @@ import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
 
 const LayoutContent = () => {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const { isExpanded } = useSidebar();
 
   return (
-    <div className="flex h-screen bg-white dark:bg-gray-900">
-      {/* Sidebar */}
-      <div className={`transition-all duration-300 ease-in-out flex-shrink-0 ${
-        isExpanded || isHovered ? "lg:w-[290px]" : "lg:w-[90px]"
-      } ${isMobileOpen ? "w-full" : "w-0"}`}>
-        <AppSidebar />
-        <Backdrop />
-      </div>
-
+    <div className="flex h-screen bg-blue-50/50 dark:bg-gray-900">
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+      <AppSidebar />
+      
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
         <AppHeader />
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+        <main className="flex-1">
+          <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
