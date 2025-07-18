@@ -2,14 +2,22 @@ import React, { useState, useRef } from 'react';
 import { PencilIcon, TrashIcon, UploadIcon } from '@heroicons/react/solid';
 
 const VariantItem = ({ variant, onUpdate, onDelete, onImageChange }) => {
+  const [attributes, setAttributes] = useState(variant.attributes || {});
   const [isHovered, setIsHovered] = useState(false);
   const fileInputRef = useRef(null);
 
   const PRODUCT_ASSET_URL = process.env.REACT_APP_PRODUCT_ASSET_URL || 'http://localhost:8080/uploads/products';
 
+    const handleAttributeChange = (e) => {
+    const { name, value } = e.target;
+    const newAttributes = { ...attributes, [name]: value };
+    setAttributes(newAttributes);
+    onUpdate(variant.id, { attributes: newAttributes });
+  };
+
   const handlePriceChange = (e) => {
     const newPrice = e.target.value;
-    onUpdate(variant.id, { ...variant, price: newPrice });
+    onUpdate(variant.id, { price: newPrice });
   };
 
   const handleImageClick = () => {
@@ -36,10 +44,10 @@ const VariantItem = ({ variant, onUpdate, onDelete, onImageChange }) => {
             alt="New preview"
             className="h-28 w-28 object-cover rounded-lg shadow-md mb-2"
           />
-        ) : variant.image_url ? (
+        ) : variant.image ? (
           <img
-            src={`${PRODUCT_ASSET_URL}/${variant.image_url}`}
-            alt={variant.attributes?.map(a => a.attribute_value).join(' / ') || 'Variant'}
+            src={variant.image}
+            alt={variant.attributes ? Object.values(variant.attributes).join(' / ') : 'Variant'}
             className="h-28 w-28 object-cover rounded-lg shadow-md mb-2"
           />
         ) : (
@@ -79,8 +87,17 @@ const VariantItem = ({ variant, onUpdate, onDelete, onImageChange }) => {
       </div>
 
       <div className="text-xs font-medium text-gray-600 px-1 mt-2">
-        {variant.attributes?.map(attr => (
-          <div key={attr.attribute_name} className="truncate">{`${attr.attribute_name}: ${attr.attribute_value}`}</div>
+                {Object.entries(attributes).map(([key, value]) => (
+          <div key={key} className="flex items-center gap-1 mb-1">
+            <span className="text-xs font-semibold">{key}:</span>
+            <input
+              type="text"
+              name={key}
+              value={value}
+              onChange={handleAttributeChange}
+              className="w-full px-1 py-0.5 border border-gray-300 rounded-md text-xs focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         ))}
       </div>
       <div className="relative mt-1">

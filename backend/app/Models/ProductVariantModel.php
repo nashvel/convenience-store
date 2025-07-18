@@ -12,7 +12,7 @@ class ProductVariantModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['product_id', 'price', 'stock', 'sku', 'image_url'];
+    protected $allowedFields    = ['product_id', 'price', 'stock', 'sku', 'image_url', 'attributes'];
 
     // Dates
     protected $useTimestamps = false;

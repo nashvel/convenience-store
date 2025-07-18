@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const PRODUCT_ASSET_URL = process.env.REACT_APP_PRODUCT_ASSET_URL || 'http://localhost:8080/uploads/products';
 
@@ -13,13 +14,15 @@ const ProductCard = ({ product, size = 'normal' }) => {
     return null; 
   }
 
-  const { name, price, image, stock, store_name, product_type, variant_count } = product;
+  const { id, name, price, image, stock, store_name, product_type, variant_count } = product;
   const stockStatus = getStockStatus(stock);
 
   const isSmall = size === 'small';
 
+  const slug = name.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-');
+
   return (
-    <div className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl flex flex-col ${isSmall ? 'w-full' : 'max-w-sm'}`}>
+    <Link to={`/product/${id}/${slug}`} className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl flex flex-col ${isSmall ? 'w-full' : 'max-w-sm'}`}>
       {store_name && (
         <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-md z-10">
           {store_name}
@@ -53,7 +56,7 @@ const ProductCard = ({ product, size = 'normal' }) => {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

@@ -9,6 +9,7 @@ export const StoreContext = createContext();
 export const StoreProvider = ({ children }) => {
   const [stores, setStores] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [categories, setCategories] = useState([]);
   const [favorites, setFavorites] = useState(() => {
     try {
@@ -111,6 +112,8 @@ export const StoreProvider = ({ children }) => {
     stores,
     allProducts,
     setAllProducts,
+    pagination,
+    setPagination,
     loading,
     setLoading,
     error,

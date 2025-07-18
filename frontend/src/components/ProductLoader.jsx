@@ -4,7 +4,7 @@ import { StoreContext } from '../context/StoreContext';
 import { fetchAllProducts } from '../api/productApi';
 
 const ProductLoader = () => {
-  const { setAllProducts, setLoading, setError } = useContext(StoreContext);
+  const { setAllProducts, setPagination, setLoading, setError } = useContext(StoreContext);
   const location = useLocation();
 
   useEffect(() => {
@@ -12,8 +12,15 @@ const ProductLoader = () => {
       setLoading(true);
       try {
         const params = new URLSearchParams(location.search);
-        const productsRes = await fetchAllProducts(params);
-        setAllProducts(productsRes.data);
+        const response = await fetchAllProducts(params);
+        if (response.data && response.data.products) {
+          setAllProducts(response.data.products);
+          setPagination(response.data.pager);
+        } else {
+          // Handle non-paginated or empty responses gracefully
+          setAllProducts(response.data || []);
+          setPagination(null);
+        }
       } catch (error) {
         console.error('Failed to fetch products', error);
         setError('Failed to load products.');
@@ -25,7 +32,7 @@ const ProductLoader = () => {
     if (location.pathname.startsWith('/products')) {
         loadProducts();
     }
-  }, [location.search, location.pathname, setAllProducts, setLoading, setError]);
+  }, [location.search, location.pathname, setAllProducts, setPagination, setLoading, setError]);
 
   return null; // This component does not render anything
 };

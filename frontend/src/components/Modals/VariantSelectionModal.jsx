@@ -16,6 +16,9 @@ const VariantSelectionModal = ({ isOpen, onClose, product }) => {
   const [selectedImageUrl, setSelectedImageUrl] = useState('');
 
   useEffect(() => {
+    if (isOpen) {
+      console.log('VariantSelectionModal product data:', product);
+    }
     if (product && product.variants && product.variants.length > 0) {
       setSelectedVariant(product.variants[0]);
     } else {
@@ -46,7 +49,7 @@ const VariantSelectionModal = ({ isOpen, onClose, product }) => {
       ...product,
       price: selectedVariant.price,
       stock: selectedVariant.stock,
-      image: selectedVariant.image_url || product.image,
+      image: selectedVariant.image || product.image,
       variant_id: selectedVariant.id,
       attributes: selectedVariant.attributes,
     };
@@ -59,7 +62,7 @@ const VariantSelectionModal = ({ isOpen, onClose, product }) => {
       ...product,
       price: selectedVariant.price,
       stock: selectedVariant.stock,
-      image: selectedVariant.image_url || product.image,
+      image: selectedVariant.image || product.image,
       variant_id: selectedVariant.id,
       attributes: selectedVariant.attributes,
     };
@@ -75,7 +78,7 @@ const VariantSelectionModal = ({ isOpen, onClose, product }) => {
   const displayPrice = getPrice(selectedVariant ? selectedVariant.price : product.price);
   const originalPrice = getPrice(selectedVariant?.original_price);
   const displayStock = selectedVariant ? selectedVariant.stock : product.stock;
-  const displayImage = selectedVariant?.image_url ? `${PRODUCT_ASSET_URL}/${selectedVariant.image_url}` : `${PRODUCT_ASSET_URL}/${product.image}`;
+  const displayImage = selectedVariant?.image ? `${PRODUCT_ASSET_URL}/${selectedVariant.image}` : `${PRODUCT_ASSET_URL}/${product.image}`;
 
   const isOutOfStock = displayStock === 0;
 
@@ -124,22 +127,35 @@ const VariantSelectionModal = ({ isOpen, onClose, product }) => {
                   )}
                 </div>
                 <p className="text-sm text-gray-500">Stock: {displayStock}</p>
+                {selectedVariant && (
+                  <>
+                    <p className="text-sm text-gray-500 mt-1">SKU: {selectedVariant.sku || 'N/A'}</p>
+                    <p className="text-sm text-gray-500">Size: {selectedVariant.attributes?.Size || 'N/A'}</p>
+                  </>
+                )}
               </div>
             </div>
 
             {product.product_type === 'variable' && product.variants && (
               <div className="mb-4">
                 <h3 className="text-md font-semibold mb-2">Color</h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {product.variants.map((variant) => (
-                    <button
+                    <div
                       key={variant.id}
                       onClick={() => handleVariantSelect(variant)}
-                      className={`px-4 py-2 border rounded-lg text-sm ${selectedVariant?.id === variant.id ? 'border-blue-500 text-blue-500' : 'border-gray-300'}`}
-                      disabled={variant.stock === 0}
+                      className={`cursor-pointer border-2 p-2 rounded-lg flex flex-col items-center ${selectedVariant?.id === variant.id ? 'border-blue-500' : 'border-transparent'}`}
+                      style={{ opacity: variant.stock === 0 ? 0.5 : 1 }}
                     >
-                      {variant.attributes.find(a => a.attribute_name.toLowerCase() === 'color')?.attribute_value || 'N/A'}
-                    </button>
+                      <img 
+                        src={`${PRODUCT_ASSET_URL}/${variant.image || product.image}`}
+                        alt={variant.attributes?.Color || 'Variant'}
+                        className="w-16 h-16 object-cover rounded-md mb-2"
+                      />
+                      <p className="text-sm text-center">
+                        {variant.attributes?.Color || 'N/A'}
+                      </p>
+                    </div>
                   ))}
                 </div>
               </div>

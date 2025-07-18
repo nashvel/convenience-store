@@ -20,7 +20,7 @@ const ManageProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
         try {
-            const response = await api.get('/seller/products');
+            const response = await api.get('/seller/products/my-products');
             setProducts(response.data);
         } catch (err) {
             setError(err.message);
@@ -52,12 +52,12 @@ const ManageProducts = () => {
     try {
         if (productToSave.id) {
             // Update existing product
-            await api.put(`/seller/products/${productToSave.id}`, productToSave);
+            await api.put(`/seller/products/my-products/${productToSave.id}`, productToSave);
             setProducts(products.map(p => (p.id === productToSave.id ? productToSave : p)));
             toast.success('Product updated successfully!');
         } else {
             // Add new product
-            const response = await api.post('/seller/products', productToSave);
+            const response = await api.post('/seller/products/my-products', productToSave);
             const newProduct = response.data;
             setProducts([newProduct, ...products]);
             toast.success('Product added successfully!');
@@ -77,7 +77,7 @@ const ManageProducts = () => {
         return;
     }
     try {
-        await api.delete(`/seller/products/${id}`);
+        await api.delete(`/seller/products/my-products/${id}`);
         setProducts(products.filter(p => p.id !== id));
         if (selectedProduct && selectedProduct.id === id) {
             handleCancelForm();

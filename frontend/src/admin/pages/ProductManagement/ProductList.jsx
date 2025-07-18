@@ -24,6 +24,8 @@ const ProductList = () => {
   const [productToEdit, setProductToEdit] = useState(null);
   const [allCategories, setAllCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [deleteConfirmationName, setDeleteConfirmationName] = useState('');
+
 
   // Debounce search term
   useEffect(() => {
@@ -123,17 +125,24 @@ const ProductList = () => {
     setIsDeleteModalOpen(true);
   };
 
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeleteConfirmationName('');
+  };
+
   const handleDelete = async () => {
-    if (!productToDelete) return;
+    if (!productToDelete || deleteConfirmationName !== productToDelete.name) {
+      toast.error('Please type the product name correctly to confirm deletion.');
+      return;
+    }
     try {
       await api.delete(`/admin/products/${productToDelete.id}`);
       toast.success(`Product "${productToDelete.name}" deleted successfully.`);
-      fetchProducts(); // Refetch products
+      fetchProducts(); // Refresh the product list
+      handleCloseDeleteModal(); // Close modal and reset state
     } catch (error) {
       toast.error('Failed to delete product.');
     }
-    setIsDeleteModalOpen(false);
-    setProductToDelete(null);
   };
 
   const handleSaveProduct = async (productData) => {
@@ -303,15 +312,31 @@ const ProductList = () => {
       </div>
     
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center p-4">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
             <h3 className="text-lg font-bold text-gray-900">Confirm Deletion</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Are you sure you want to delete the product "{productToDelete?.name}"? This action cannot be undone.
+            <p className="mt-4 text-sm text-gray-600">
+              To confirm, please type <strong className="font-semibold text-gray-800">{productToDelete?.name}</strong> in the box below.
             </p>
-            <div className="mt-4 flex justify-end gap-4">
-              <button onClick={() => setIsDeleteModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Cancel</button>
-              <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
+            <input
+              type="text"
+              value={deleteConfirmationName}
+              onChange={(e) => setDeleteConfirmationName(e.target.value)}
+              className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Enter product name"
+            />
+            <p className="mt-2 text-sm text-gray-500">
+              This action cannot be undone and will permanently delete the product.
+            </p>
+            <div className="mt-6 flex justify-end gap-4">
+              <button onClick={handleCloseDeleteModal} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Cancel</button>
+              <button 
+                onClick={handleDelete} 
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                disabled={deleteConfirmationName !== productToDelete?.name}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

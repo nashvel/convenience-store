@@ -167,6 +167,7 @@ try {
             stock INT(11) NOT NULL,
             sku VARCHAR(100) NULL UNIQUE,
             image_url VARCHAR(255) NULL,
+            attributes JSON NULL,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
             FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE

@@ -7,6 +7,7 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 $routes->get('/uploads/logos/(:segment)', 'FileController::serveLogo/$1', ['filter' => 'cors']);
+$routes->get('/uploads/products/(:segment)', 'FileController::serveProductImage/$1', ['filter' => 'cors']);
 
 $routes->group('api', ['filter' => 'cors'], function ($routes) {
     // Publicly accessible routes
@@ -131,6 +132,13 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
         $routes->resource('users', ['controller' => 'UserController']);
         $routes->get('seller/store', 'StoreController::getStoreForSeller', ['filter' => 'auth']);
         $routes->put('seller/store/update/(:num)', 'StoreController::update/$1', ['filter' => 'auth']);
+
+        $routes->group('seller/products', ['filter' => 'auth'], function ($routes) {
+            $routes->get('my-products', 'SellerProductController::getProducts');
+            $routes->post('my-products', 'SellerProductController::createProduct');
+            $routes->put('my-products/(:num)', 'SellerProductController::updateProduct/$1');
+            $routes->delete('my-products/(:num)', 'SellerProductController::deleteProduct/$1');
+        });
     });
 });
 

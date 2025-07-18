@@ -73,9 +73,9 @@ class ProductSeeder extends Seeder
             [
                 'store_id' => $store_ids[0], 'category_name' => 'Computers & Accessories', 'name' => 'Wireless Mouse', 'description' => 'Ergonomic wireless mouse with multiple color options.', 'price' => null, 'image' => 'mouse.jpg', 'stock' => null, 'featured' => 1, 'sales_count' => 250, 'is_approved' => 1, 'product_type' => 'variable',
                 'variants' => [
-                                        ['price' => 25.00, 'stock' => 50, 'sku' => 'WM-BLK', 'attributes' => ['Color' => 'Black']],
-                    ['price' => 25.00, 'stock' => 35, 'sku' => 'WM-BLU', 'image_url' => 'mouse_blue.jpg', 'attributes' => ['Color' => 'Blue']],
-                    ['price' => 22.00, 'stock' => 75, 'sku' => 'WM-WHT', 'image_url' => 'mouse_white.jpg', 'attributes' => ['Color' => 'White']],
+                    ['price' => 25.00, 'stock' => 50, 'sku' => 'WM-BLK', 'image_url' => 'mouse_black.jpg', 'attributes' => ['Color' => 'Black', 'Size' => 'Medium']],
+                    ['price' => 25.00, 'stock' => 35, 'sku' => 'WM-BLU', 'image_url' => 'mouse_blue.jpg', 'attributes' => ['Color' => 'Blue', 'Size' => 'Medium']],
+                    ['price' => 22.00, 'stock' => 75, 'sku' => 'WM-WHT', 'image_url' => 'mouse_white.jpg', 'attributes' => ['Color' => 'White', 'Size' => 'Medium']],
                 ]
             ],
             ['store_id' => $store_ids[0], 'category_name' => 'Computers & Accessories', 'name' => 'Mechanical Keyboard', 'description' => 'RGB mechanical keyboard.', 'price' => 69.99, 'image' => 'keyboard.jpg', 'stock' => 120, 'featured' => 0, 'sales_count' => 120, 'is_approved' => 1, 'product_type' => 'single'],
@@ -151,6 +151,7 @@ class ProductSeeder extends Seeder
                         'stock' => $variant_data['stock'],
                         'sku' => $variant_data['sku'],
                         'image_url' => $variant_data['image_url'] ?? null,
+                        'attributes' => json_encode($variant_data['attributes']),
                         'created_at' => date('Y-m-d H:i:s')
                     ];
                     $this->db->table('product_variants')->insert($variant);

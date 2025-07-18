@@ -72,7 +72,13 @@ export const useProductForm = (isOpen, product, categories) => {
           const response = await axios.get(`/products/${product.id}`);
           const fullProduct = response.data;
           setFormData(fullProduct);
-          setVariants(fullProduct.variants || []);
+          // Transform variants to include full image URLs
+          const variantsWithImageUrls = (fullProduct.variants || []).map(variant => ({
+            ...variant,
+            image: variant.image ? `${PRODUCT_ASSET_URL}/${variant.image}` : null
+          }));
+          setVariants(variantsWithImageUrls);
+
           if (fullProduct.image) {
             setImagePreview(`${PRODUCT_ASSET_URL}/${fullProduct.image}`);
           } else {

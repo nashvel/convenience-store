@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
+import { PRODUCT_ASSET_URL } from '../../../../config';
 import { FaEdit, FaTrash, FaChevronDown } from 'react-icons/fa';
 
 const ProductListItem = ({ product, onSelect, onDelete, isSelected }) => {
+
+
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleToggleExpand = () => {
     if (product.product_type === 'variable') {
       setIsExpanded(!isExpanded);
     }
+  };
+
+  const getAttribute = (variant, attributeName) => {
+    if (!variant || !variant.attributes || typeof variant.attributes !== 'object') {
+      return '';
+    }
+    const attributeKey = Object.keys(variant.attributes).find(key => key.toLowerCase() === attributeName.toLowerCase());
+    return attributeKey ? variant.attributes[attributeKey] : '';
   };
 
   const displayInfo = product.product_type === 'single'
@@ -19,7 +30,7 @@ const ProductListItem = ({ product, onSelect, onDelete, isSelected }) => {
       <div className="p-4 grid grid-cols-12 gap-4 items-center cursor-pointer" onClick={product.product_type === 'variable' ? handleToggleExpand : () => onSelect(product)}>
         {/* Product Image */}
         <div className="col-span-2 flex items-center">
-          <img src={product.imageUrl || 'https://via.placeholder.com/80'} alt={product.name} className="w-16 h-16 object-cover rounded-md" />
+          <img src={product.image ? `${PRODUCT_ASSET_URL}/${product.image}` : 'https://via.placeholder.com/80'} alt={product.name} className="w-16 h-16 object-cover rounded-md" />
         </div>
 
         {/* Product Info */}
@@ -28,7 +39,7 @@ const ProductListItem = ({ product, onSelect, onDelete, isSelected }) => {
           {product.product_type === 'variable' ? (
             <p className="text-sm text-gray-500">{product.variants?.length || 0} variant(s)</p>
           ) : (
-            <p className="text-sm text-gray-500">${product.price} - {product.stock} in stock</p>
+            <p className="text-sm text-gray-500">₱{product.price} - {product.stock} in stock</p>
           )}
         </div>
 
@@ -48,30 +59,36 @@ const ProductListItem = ({ product, onSelect, onDelete, isSelected }) => {
 
       {product.product_type === 'variable' && (
         <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-96' : 'max-h-0'}`}>
-          <div className="p-4 bg-gray-50 border-t border-gray-200">
-            <h4 className="font-semibold text-md mb-2 text-gray-700">Variants:</h4>
-            <div className="grid grid-cols-6 gap-2 text-sm font-semibold text-gray-600 mb-2 px-2">
-              <div className="col-span-1">Size</div>
-              <div className="col-span-1">Color</div>
-              <div className="col-span-1">SKU</div>
-              <div className="col-span-1">Price</div>
-              <div className="col-span-1">Stock</div>
-              <div className="col-span-1">Image</div>
-            </div>
-            <ul className="space-y-2">
-              {product.variants?.map((variant, index) => (
-                <li key={index} className="grid grid-cols-6 gap-2 items-center text-sm bg-white p-2 rounded-md shadow-sm">
-                  <div className="col-span-1">{variant.size}</div>
-                  <div className="col-span-1">{variant.color}</div>
-                  <div className="col-span-1 truncate">{variant.sku}</div>
-                  <div className="col-span-1">${variant.price}</div>
-                  <div className="col-span-1">{variant.stock}</div>
-                  <div className="col-span-1">
-                    <img src={variant.variantImage || 'https://via.placeholder.com/40'} alt={`${product.name} ${variant.color} ${variant.size}`} className="w-10 h-10 object-cover rounded-md" />
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <h4 className="text-md font-semibold mb-3 text-gray-700">Variants:</h4>
+            <div className="space-y-2">
+              {/* Header */}
+              <div className="grid grid-cols-6 gap-2 text-sm font-semibold text-gray-600 px-3 py-2 border-b">
+                <div>Size</div>
+                <div>Color</div>
+                <div className="truncate">SKU</div>
+                <div>Price</div>
+                <div>Stock</div>
+                <div>Image</div>
+              </div>
+              {/* Rows */}
+              {product.variants?.map((variant) => (
+                <div key={variant.id} className="grid grid-cols-6 gap-2 items-center text-sm bg-white p-2 rounded-lg shadow-sm">
+                  <div>{getAttribute(variant, 'Size')}</div>
+                  <div>{getAttribute(variant, 'Color')}</div>
+                  <div className="truncate">{variant.sku}</div>
+                  <div>₱{variant.price}</div>
+                  <div>{variant.stock}</div>
+                  <div>
+                    <img 
+                      src={`${PRODUCT_ASSET_URL}/${variant.image || product.image}`}
+                      alt={`${product.name} - ${getAttribute(variant, 'Color')}`}
+                      className="w-12 h-12 object-cover rounded-md border"
+                    />
                   </div>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       )}
