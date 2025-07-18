@@ -10,7 +10,8 @@ import {
   LockClosedIcon,
   KeyIcon,
   BellIcon,
-  PlusCircleIcon
+  PlusCircleIcon,
+  OfficeBuildingIcon
 } from '@heroicons/react/outline';
 
 const ClientForm = () => {
@@ -26,12 +27,14 @@ const ClientForm = () => {
     button: 'inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
   };
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
     password: '',
     confirmPassword: '',
-    notifyByEmail: true
+    notifyByEmail: true,
+    store_type: 'convenience'
   });
 
   const handleChange = (e) => {
@@ -76,12 +79,22 @@ const ClientForm = () => {
 
           <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
             <div className="sm:col-span-3">
-              <label htmlFor="name" className={formStyles.label}>Client Name</label>
+              <label htmlFor="first_name" className={formStyles.label}>First Name</label>
               <div className="mt-2 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <UserIcon className="h-5 w-5 text-gray-400" />
                 </div>
-                <input type="text" name="name" id="name" value={formData.name} onChange={handleChange} required className={`${formStyles.input} pl-10`} placeholder="Enter client name" />
+                <input type="text" name="first_name" id="first_name" value={formData.first_name} onChange={handleChange} required className={`${formStyles.input} pl-10`} placeholder="Enter first name" />
+              </div>
+            </div>
+
+            <div className="sm:col-span-3">
+              <label htmlFor="last_name" className={formStyles.label}>Last Name</label>
+              <div className="mt-2 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <UserIcon className="h-5 w-5 text-gray-400" />
+                </div>
+                <input type="text" name="last_name" id="last_name" value={formData.last_name} onChange={handleChange} required className={`${formStyles.input} pl-10`} placeholder="Enter last name" />
               </div>
             </div>
 
@@ -102,6 +115,19 @@ const ClientForm = () => {
                   <PhoneIcon className="h-5 w-5 text-gray-400" />
                 </div>
                 <input type="tel" name="phone" id="phone" value={formData.phone} onChange={handleChange} required className={`${formStyles.input} pl-10`} placeholder="+1 234 567 8900" />
+              </div>
+            </div>
+
+            <div className="sm:col-span-3">
+              <label htmlFor="store_type" className={formStyles.label}>Store Type</label>
+              <div className="mt-2 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <OfficeBuildingIcon className="h-5 w-5 text-gray-400" />
+                </div>
+                <select id="store_type" name="store_type" value={formData.store_type} onChange={handleChange} required className={`${formStyles.select} pl-10`}>
+                  <option value="convenience">Convenience</option>
+                  <option value="restaurant">Restaurant</option>
+                </select>
               </div>
             </div>
           </div>

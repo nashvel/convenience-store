@@ -15,9 +15,18 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
   const location = useLocation();
   const { startTutorial } = useTutorial();
 
-  const handleToggleAutoClose = () => {
-    setAutoCloseEnabled(!isAutoCloseEnabled);
-    toast.info(`Store auto-close ${!isAutoCloseEnabled ? 'enabled' : 'disabled'}.`);
+  const handleToggleAutoClose = async () => {
+    const newStatus = !isAutoCloseEnabled;
+    setAutoCloseEnabled(newStatus); // Optimistic update
+
+    try {
+      await api.post('/seller/store/toggle-status', { is_active: newStatus });
+      toast.success(`Store is now ${newStatus ? 'open' : 'closed'}.`);
+    } catch (error) {
+      console.error('Failed to update store status:', error);
+      toast.error('Failed to update store status.');
+      setAutoCloseEnabled(!newStatus); // Revert on failure
+    }
   };
 
   useEffect(() => {
@@ -34,6 +43,9 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
       try {
         const response = await api.get('/seller/store');
         const store = response.data;
+        
+        setAutoCloseEnabled(!!store.is_active);
+
         const fields = [];
         if (!store.name) fields.push('store name');
         if (!store.address) fields.push('address');

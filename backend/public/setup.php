@@ -108,7 +108,7 @@ try {
             latitude DECIMAL(10, 8) NULL,
             longitude DECIMAL(11, 8) NULL,
             is_active BOOLEAN DEFAULT TRUE,
-            store_type VARCHAR(50) NOT NULL DEFAULT 'convenience',
+            store_type VARCHAR(50) NOT NULL,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
             FOREIGN KEY (client_id) REFERENCES users(id)

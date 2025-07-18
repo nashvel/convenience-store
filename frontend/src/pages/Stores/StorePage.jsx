@@ -52,17 +52,18 @@ const StorePage = () => {
   }, [storeId]);
 
   const storeProducts = useMemo(() => {
-        let filtered = products || [];
-    
+    const filtered = Array.isArray(products) ? products : [];
+
+    let searched = filtered;
     if (debouncedSearchQuery) {
       const lowercasedQuery = debouncedSearchQuery.toLowerCase();
-      filtered = filtered.filter(p =>
+      searched = filtered.filter(p =>
         p.name.toLowerCase().includes(lowercasedQuery) ||
         (p.description && p.description.toLowerCase().includes(lowercasedQuery))
       );
     }
 
-    const sorted = [...filtered];
+    const sorted = [...searched];
     switch (sortOption) {
       case 'price-asc': sorted.sort((a, b) => a.price - b.price); break;
       case 'price-desc': sorted.sort((a, b) => b.price - a.price); break;

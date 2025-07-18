@@ -59,19 +59,22 @@ class AdminController extends ResourceController
                 return $this->fail('This email address is already registered.', 409);
             }
 
-            // Basic validation
-            if (empty($data['name']) || empty($data['email']) || empty($data['password'])) {
-                return $this->failValidationErrors('Name, email, and password are required.');
+            // Validation rules
+            $rules = [
+                'first_name' => 'required',
+                'last_name'  => 'required',
+                'email'      => 'required|valid_email',
+                'password'   => 'required|min_length[8]',
+                'store_type' => 'required|in_list[convenience,restaurant]'
+            ];
+
+            if (!$this->validate($rules)) {
+                return $this->failValidationErrors($this->validator->getErrors());
             }
 
-            // Split name into first and last
-            $nameParts = explode(' ', $data['name'], 2);
-            $firstName = $nameParts[0];
-            $lastName = $nameParts[1] ?? '';
-
             $clientData = [
-                'first_name' => $firstName,
-                'last_name' => $lastName,
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
                 'password_hash' => password_hash($data['password'], PASSWORD_DEFAULT),
@@ -83,8 +86,13 @@ class AdminController extends ResourceController
 
             if ($newUserId) {
                 // Create a corresponding store for the new client
-                $storeModel = new \App\Models\StoreModel();
-                $storeModel->insert(['client_id' => $newUserId]);
+                $storeData = [
+                    'client_id'  => $newUserId,
+                    'name'       => $data['first_name'] . " " . $data['last_name'] . "'s Store",
+                    'address'    => 'Default Address, please update',
+                    'store_type' => $data['store_type']
+                ];
+                $this->storeModel->insert($storeData);
 
                 // Check if email notification should be sent
                 if (!empty($data['notifyByEmail']) && $data['notifyByEmail'] === true) {

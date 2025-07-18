@@ -22,6 +22,7 @@ class StoreSeeder extends Seeder
                 'description' => 'Your one-stop shop for all things tech.',
                 'address' => '123 Tech Street, Tagoloan, Misamis Oriental',
                 'is_active' => true,
+                'store_type' => 'convenience',
                 'created_at' => date('Y-m-d H:i:s')
             ],
             [
@@ -30,6 +31,7 @@ class StoreSeeder extends Seeder
                 'description' => 'The latest trends in fashion.',
                 'address' => '456 Fashion Ave, Tagoloan, Misamis Oriental',
                 'is_active' => true,
+                'store_type' => 'convenience',
                 'created_at' => date('Y-m-d H:i:s')
             ],
             [
@@ -38,6 +40,7 @@ class StoreSeeder extends Seeder
                 'description' => 'Everything you need for your home.',
                 'address' => '789 Home Blvd, Tagoloan, Misamis Oriental',
                 'is_active' => true,
+                'store_type' => 'convenience',
                 'created_at' => date('Y-m-d H:i:s')
             ],
             [
@@ -46,6 +49,7 @@ class StoreSeeder extends Seeder
                 'description' => 'Delicious pizzas made fresh.',
                 'address' => '101 Pizza Lane, Tagoloan, Misamis Oriental',
                 'is_active' => true,
+                'store_type' => 'restaurant',
                 'created_at' => date('Y-m-d H:i:s')
             ],
         ];

@@ -10,7 +10,7 @@ import EditStoreForm from './EditStoreForm';
 const ManageStore = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [storeData, setStoreData] = useState(null);
-    const [initialStoreData, setInitialStoreData] = useState({ storeName: '', openingTime: '', closingTime: '', contactNumber: '', paymentMethods: '', address: '', logo: '', latitude: null, longitude: null, description: '' });
+    const [initialStoreData, setInitialStoreData] = useState({ storeName: '', openingTime: '', closingTime: '', contactNumber: '', paymentMethods: '', address: '', logo: '', latitude: null, longitude: null, description: '', store_type: '' });
   const [position, setPosition] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -51,7 +51,8 @@ const ManageStore = () => {
           address: data.address || '',
                     latitude: data.latitude,
           longitude: data.longitude,
-          description: data.description || ''
+          description: data.description || '',
+          store_type: data.store_type
         };
         setStoreData(formattedData);
         setInitialStoreData(formattedData);

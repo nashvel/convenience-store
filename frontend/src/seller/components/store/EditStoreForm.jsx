@@ -51,6 +51,9 @@ const EditStoreForm = ({ storeData, isEditing, position, handleInputChange, setP
                     <FormGroup label="Store Name">
                         <Input type="text" name="storeName" value={storeData.storeName} onChange={handleInputChange} disabled={!isEditing} />
                     </FormGroup>
+                    <FormGroup label="Store Type">
+                        <Input type="text" name="storeType" value={storeData.store_type.charAt(0).toUpperCase() + storeData.store_type.slice(1)} disabled />
+                    </FormGroup>
                     <FormGroup label="Store Logo">
                         <div className="flex items-center gap-4">
                             {storeData.logo ? (

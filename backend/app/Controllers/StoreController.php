@@ -100,6 +100,7 @@ class StoreController extends ResourceController
                 ->select('stores.*, owners.id as owner_id, owners.first_name, owners.last_name, owners.email, roles.name as role, owners.avatar')
                 ->join('users as owners', 'owners.id = stores.client_id', 'left')
                 ->join('roles', 'roles.id = owners.role_id', 'left')
+                ->where('stores.is_active', 1)
                 ->findAll();
 
             $result = array_map(function($store) {
@@ -150,6 +151,32 @@ class StoreController extends ResourceController
         } catch (\Exception $e) {
             log_message('error', 'Database error in StoreController::show: ' . $e->getMessage());
             return $this->failServerError('An error occurred while fetching the store.');
+        }
+    }
+
+    public function toggleStatus()
+    {
+        $userId = $this->request->user->id;
+        if (!$userId) {
+            return $this->failUnauthorized('User not logged in.');
+        }
+
+        $store = $this->model->where('client_id', $userId)->first();
+        if (!$store) {
+            return $this->failNotFound('Store not found for this user.');
+        }
+
+        $data = $this->request->getJSON(true);
+        if (!isset($data['is_active'])) {
+            return $this->failValidationErrors('is_active field is required.');
+        }
+
+        $updateData = ['is_active' => $data['is_active'] ? 1 : 0];
+
+        if ($this->model->update($store['id'], $updateData)) {
+            return $this->respondUpdated(['status' => 'success'], 'Store status updated.');
+        } else {
+            return $this->failServerError('Could not update store status.');
         }
     }
 }

@@ -8,9 +8,7 @@ const ProductListItem = ({ product, onSelect, onDelete, isSelected }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleToggleExpand = () => {
-    if (product.product_type === 'variable') {
-      setIsExpanded(!isExpanded);
-    }
+    setIsExpanded(!isExpanded);
   };
 
   const getAttribute = (variant, attributeName) => {
@@ -21,13 +19,9 @@ const ProductListItem = ({ product, onSelect, onDelete, isSelected }) => {
     return attributeKey ? variant.attributes[attributeKey] : '';
   };
 
-  const displayInfo = product.product_type === 'single'
-    ? `$${parseFloat(product.price).toFixed(2)} · ${product.stock} in stock`
-    : `${(product.variants || []).length} variant(s)`;
-
   return (
     <div className={`bg-white rounded-lg shadow-md transition-all duration-300 ${isSelected ? 'ring-2 ring-primary' : ''}`}>
-      <div className="p-4 grid grid-cols-12 gap-4 items-center cursor-pointer" onClick={product.product_type === 'variable' ? handleToggleExpand : () => onSelect(product)}>
+      <div className="p-4 grid grid-cols-12 gap-4 items-center cursor-pointer" onClick={handleToggleExpand}>
         {/* Product Image */}
         <div className="col-span-2 flex items-center">
           <img src={product.image ? `${PRODUCT_ASSET_URL}/${product.image}` : 'https://via.placeholder.com/80'} alt={product.name} className="w-16 h-16 object-cover rounded-md" />
@@ -47,13 +41,9 @@ const ProductListItem = ({ product, onSelect, onDelete, isSelected }) => {
         <div className="col-span-4 flex items-center justify-end gap-3">
           <button onClick={(e) => { e.stopPropagation(); onSelect(product); }} className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">Edit</button>
           <button onClick={(e) => { e.stopPropagation(); onDelete(product.id); }} className="p-2 text-gray-500 hover:text-red-600 transition-colors"><FaTrash /></button>
-          {product.product_type === 'variable' ? (
-            <div className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-              <FaChevronDown className="text-gray-500" />
-            </div>
-          ) : (
-            <div className="w-5"></div> // Placeholder for alignment
-          )}
+          <div className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+            <FaChevronDown className="text-gray-500" />
+          </div>
         </div>
       </div>
 
@@ -89,6 +79,15 @@ const ProductListItem = ({ product, onSelect, onDelete, isSelected }) => {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {product.product_type === 'single' && (
+        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-96' : 'max-h-0'}`}>
+          <div className="p-4 border-t border-gray-200">
+            <h4 className="text-md font-semibold mb-2 text-gray-700">Description:</h4>
+            <p className="text-sm text-gray-600 whitespace-pre-wrap">{product.description || 'No description available.'}</p>
           </div>
         </div>
       )}

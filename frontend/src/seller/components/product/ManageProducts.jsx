@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus } from 'react-icons/fa';
+import JoyRide from 'react-joyride';
+import { FaPlus, FaBoxOpen } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import AddProduct from './AddProduct';
 import ProductForm from './manage/ProductForm';
@@ -14,6 +15,7 @@ const ManageProducts = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [runTour, setRunTour] = useState(false);
 
     const emptyProduct = { id: null, name: '', product_type: 'single', price: '', stock: '', imageUrl: '', variants: [] };
 
@@ -22,6 +24,9 @@ const ManageProducts = () => {
         try {
             const response = await api.get('/seller/products/my-products');
             setProducts(response.data);
+            if (response.data.length === 0) {
+                setRunTour(true);
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -97,11 +102,31 @@ const ManageProducts = () => {
     return <div className="p-6 text-center text-red-500">Error fetching products: {error}</div>;
   }
 
+  const tourSteps = [
+    {
+      target: '.add-new-product-button',
+      content: 'Click here to add your first product!',
+      placement: 'bottom',
+    },
+  ];
+
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg">
+       <JoyRide
+        steps={tourSteps}
+        run={runTour}
+        continuous
+        showProgress
+        showSkipButton
+        styles={{
+          options: {
+            primaryColor: '#1d4ed8',
+          },
+        }}
+      />
       <header className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6 border-b pb-4">
         <h1 className="text-2xl font-bold text-blue-800">Manage Products</h1>
-        <button onClick={handleAddNew} className="flex items-center gap-2 px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors font-semibold">
+        <button onClick={handleAddNew} className="add-new-product-button flex items-center gap-2 px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors font-semibold">
           <FaPlus /> Add New Product
         </button>
       </header>
@@ -126,15 +151,23 @@ const ManageProducts = () => {
         )}
 
         <div className="space-y-4">
-          {products.map(product => (
-            <ProductListItem 
-              key={product.id} 
-              product={product}
-              onSelect={handleSelectProduct}
-              onDelete={handleDelete}
-              isSelected={selectedProduct && selectedProduct.id === product.id}
-            />
-          ))}
+          {products.length === 0 && !isFormVisible ? (
+            <div className="text-center py-16 px-6 bg-gray-50 rounded-lg">
+              <FaBoxOpen className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900">No products yet</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by adding your first product.</p>
+            </div>
+          ) : (
+            products.map(product => (
+              <ProductListItem 
+                key={product.id} 
+                product={product}
+                onSelect={handleSelectProduct}
+                onDelete={handleDelete}
+                isSelected={selectedProduct && selectedProduct.id === product.id}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>
