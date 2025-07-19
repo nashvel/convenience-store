@@ -84,6 +84,10 @@ class SellerProductController extends ResourceController
 
         $data = $this->request->getJSON(true);
         $data['store_id'] = $storeId;
+        
+        // Ensure product requires approval before going live
+        $data['is_approved'] = false;
+        $data['is_active'] = true;
 
         if ($this->productModel->insert($data)) {
             return $this->respondCreated($this->productModel->find($this->productModel->insertID()));

@@ -16,7 +16,7 @@ try {
     $mysqli->query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Drop all tables
-    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'product_variants', 'attributes', 'attribute_values', 'product_variant_attributes', 'orders', 'order_items', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications', 'achievements', 'rider_achievements', 'promotions', 'promotion_scopes', 'store_promotions', 'site_settings'];
+    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'product_variants', 'attributes', 'attribute_values', 'product_variant_attributes', 'orders', 'order_items', 'order_item_addons', 'addons', 'addon_variants', 'addon_categories', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications', 'achievements', 'rider_achievements', 'promotions', 'promotion_scopes', 'store_promotions', 'site_settings'];
     foreach ($tables as $table) {
         $mysqli->query("DROP TABLE IF EXISTS $table");
     }
@@ -168,6 +168,8 @@ try {
             sku VARCHAR(100) NULL UNIQUE,
             image_url VARCHAR(255) NULL,
             attributes JSON NULL,
+            is_active BOOLEAN DEFAULT TRUE,
+            is_approved BOOLEAN DEFAULT FALSE,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
             FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
@@ -281,6 +283,77 @@ try {
             created_at DATETIME NULL,
             FOREIGN KEY (order_id) REFERENCES orders(id),
             FOREIGN KEY (product_id) REFERENCES products(id)
+        )
+    ");
+
+    // Create addon_categories table (for organizing add-ons like Drinks, Sides, etc.)
+    $mysqli->query("
+        CREATE TABLE addon_categories (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            store_id INT(11) UNSIGNED NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            description TEXT NULL,
+            display_order INT(11) DEFAULT 0,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at DATETIME NULL,
+            updated_at DATETIME NULL,
+            FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE
+        )
+    ");
+
+    // Create addons table (main add-ons like Coke, Fries, etc.)
+    $mysqli->query("
+        CREATE TABLE addons (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            store_id INT(11) UNSIGNED NOT NULL,
+            addon_category_id INT(11) UNSIGNED NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            description TEXT NULL,
+            image VARCHAR(255) NULL,
+            base_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            is_required BOOLEAN DEFAULT FALSE,
+            max_selections INT(11) DEFAULT 1,
+            display_order INT(11) DEFAULT 0,
+            is_active BOOLEAN DEFAULT TRUE,
+            is_approved BOOLEAN DEFAULT FALSE,
+            created_at DATETIME NULL,
+            updated_at DATETIME NULL,
+            FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
+            FOREIGN KEY (addon_category_id) REFERENCES addon_categories(id) ON DELETE CASCADE
+        )
+    ");
+
+    // Create addon_variants table (for size, color, etc. variations)
+    $mysqli->query("
+        CREATE TABLE addon_variants (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            addon_id INT(11) UNSIGNED NOT NULL,
+            variant_name VARCHAR(100) NOT NULL,
+            variant_value VARCHAR(100) NOT NULL,
+            price_modifier DECIMAL(10,2) DEFAULT 0.00,
+            stock_quantity INT(11) DEFAULT 0,
+            is_unlimited_stock BOOLEAN DEFAULT TRUE,
+            is_active BOOLEAN DEFAULT TRUE,
+            is_approved BOOLEAN DEFAULT FALSE,
+            created_at DATETIME NULL,
+            updated_at DATETIME NULL,
+            FOREIGN KEY (addon_id) REFERENCES addons(id) ON DELETE CASCADE
+        )
+    ");
+
+    // Create order_item_addons table (links order items to selected add-ons)
+    $mysqli->query("
+        CREATE TABLE order_item_addons (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            order_item_id INT(11) UNSIGNED NOT NULL,
+            addon_id INT(11) UNSIGNED NOT NULL,
+            addon_variant_id INT(11) UNSIGNED NULL,
+            quantity INT(11) NOT NULL DEFAULT 1,
+            price DECIMAL(10,2) NOT NULL,
+            created_at DATETIME NULL,
+            FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE,
+            FOREIGN KEY (addon_id) REFERENCES addons(id) ON DELETE CASCADE,
+            FOREIGN KEY (addon_variant_id) REFERENCES addon_variants(id) ON DELETE CASCADE
         )
     ");
 

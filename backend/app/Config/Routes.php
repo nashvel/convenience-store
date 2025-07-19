@@ -140,6 +140,17 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
             $routes->put('my-products/(:num)', 'SellerProductController::updateProduct/$1');
             $routes->delete('my-products/(:num)', 'SellerProductController::deleteProduct/$1');
         });
+
+        // Add-ons Management
+        $routes->group('addons', ['filter' => 'auth'], function ($routes) {
+            $routes->get('my-store', 'AddOnController::getMyStoreAddOns');
+            $routes->get('store/(:num)', 'AddOnController::getStoreAddOns/$1');
+            $routes->post('categories', 'AddOnController::createCategory');
+            $routes->post('', 'AddOnController::createAddOn');
+        });
+        
+        // Test endpoint for Pizza Palace add-ons
+        $routes->get('test/pizza-palace-addons', 'AddOnController::testPizzaPalaceAddOns');
     });
 });
 

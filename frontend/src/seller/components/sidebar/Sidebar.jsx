@@ -9,6 +9,7 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
   const [isOpenOnMobile, setOpenOnMobile] = useState(false);
   const [isProductsOpen, setProductsOpen] = useState(false);
   const [isAutoCloseEnabled, setAutoCloseEnabled] = useState(false);
+  const [isLoadingStatus, setIsLoadingStatus] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
   const [missingFields, setMissingFields] = useState([]);
@@ -41,10 +42,16 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
   useEffect(() => {
     const checkStoreProfile = async () => {
       try {
+        console.log('Fetching store data...');
         const response = await api.get('/seller/store');
         const store = response.data;
+        console.log('Store data received:', store);
+        console.log('Store is_active value:', store.is_active);
         
-        setAutoCloseEnabled(!!store.is_active);
+        const isActive = store.is_active === 1 || store.is_active === '1' || store.is_active === true;
+        setAutoCloseEnabled(isActive);
+        setIsLoadingStatus(false);
+        console.log('Toggle state set to:', isActive);
 
         const fields = [];
         if (!store.name) fields.push('store name');
@@ -61,6 +68,8 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
       } catch (error) {
         // It's okay if this fails, we just won't show the notice.
         console.error('Could not check store profile status:', error);
+        setIsLoadingStatus(false);
+        console.log('Failed to fetch store data, loading state set to false');
       }
     };
 
@@ -69,12 +78,7 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
 
   const menuItems = [
     { path: '/seller/dashboard', icon: <FaTachometerAlt />, label: 'Dashboard' },
-    {
-      id: 'products', icon: <FaBoxOpen />, label: 'Products', children: [
-        { path: '/seller/products/manage', icon: <FaTasks />, label: 'Manage' },
-        { path: '/seller/products/add', icon: <FaPlusCircle />, label: 'Add New' },
-      ]
-    },
+    { path: '/seller/products/manage', icon: <FaTasks />, label: 'Manage Products' },
     { path: '/seller/orders', icon: <FaClipboardList />, label: 'Orders' },
     { path: '/seller/reviews', icon: <FaStar />, label: 'Reviews' },
     { path: '/seller/chat', icon: <FaComments />, label: 'Chat' },
@@ -132,7 +136,7 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
       >
         {isOpenOnMobile ? <FaTimes size={20} /> : <FaBars size={20} />}
       </button>
-      <aside className={`fixed md:relative flex flex-col bg-blue-800 shadow-lg z-40 h-full transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'} ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <aside className={`fixed flex flex-col bg-blue-800 shadow-lg z-40 h-full transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'} ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div 
           className={`flex items-center h-20 px-4 border-b border-blue-900 cursor-pointer ${isCollapsed ? 'justify-center' : ''}`}
           onClick={() => setCollapsed(!isCollapsed)}
@@ -192,8 +196,14 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
           </div>
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             <span className={`text-gray-300 text-sm font-medium ${isCollapsed ? 'hidden' : 'block'}`}>Auto-Close</span>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" checked={isAutoCloseEnabled} onChange={handleToggleAutoClose} />
+            <label className={`relative inline-flex items-center ${isLoadingStatus ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={isAutoCloseEnabled} 
+                onChange={handleToggleAutoClose} 
+                disabled={isLoadingStatus}
+              />
               <div className="w-11 h-6 bg-blue-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-400 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
             </label>
           </div>

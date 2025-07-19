@@ -11,26 +11,26 @@ const SellerLayout = () => {
 
   return (
     <TutorialProvider>
-      <div className="relative flex h-screen bg-white font-sans">
-      <Sidebar isCollapsed={isCollapsed} setCollapsed={setCollapsed} />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white p-6">
-          <Outlet />
-        </main>
+      <div className="relative h-screen bg-white font-sans">
+        <Sidebar isCollapsed={isCollapsed} setCollapsed={setCollapsed} />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        <div className={`flex flex-col h-full transition-all duration-300 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+          <Header />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white p-6">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
     </TutorialProvider>
   );
 };
