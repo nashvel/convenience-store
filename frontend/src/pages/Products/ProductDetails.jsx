@@ -101,7 +101,19 @@ const ProductDetails = () => {
         role: 'client'
       };
 
-      openChat(chatRecipient);
+      // Create initial message with product information and image
+      const productPrice = selectedVariant ? selectedVariant.price : product.price;
+      const displayPrice = productPrice ? `₱${parseFloat(productPrice).toFixed(2)}` : 'Price not available';
+      const productUrl = `${window.location.origin}/product/${product.id}/${product.name.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-')}`;
+      const productImageUrl = `${PRODUCT_ASSET_URL}/${product.image || 'default.png'}`;
+      
+      const initialMessage = {
+        text: `Hi! I'm interested in this product:\n\n**${product.name}**\n${displayPrice}\n\nProduct Link: ${productUrl}\n\nProduct Image: ${productImageUrl}\n\nCan you help me with more information?`,
+        files: [] // Image will be displayed via URL in the text
+      };
+
+      openChat(chatRecipient, initialMessage);
+      toast.success('Chat opened with product information!');
     } else {
       toast.error('Store information is not available.');
     }

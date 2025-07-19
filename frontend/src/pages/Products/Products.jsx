@@ -7,6 +7,8 @@ import ScrollToTopButton from '../../components/ScrollToTop/ScrollToTopButton';
 import { FaSearch, FaTimes } from 'react-icons/fa';
 import Fuse from 'fuse.js';
 import ProductCardSkeleton from '../../components/Skeletons/ProductCardSkeleton';
+import api from '../../api/axios-config';
+import { toast } from 'react-toastify';
 
 const categoryImageMap = {
   'Books': '/images/cards/books.png',
@@ -20,8 +22,13 @@ const categoryImageMap = {
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { allProducts, categories, loading, error } = useContext(StoreContext);
-  const products = allProducts;
+  const { categories } = useContext(StoreContext); // Only get categories from context
+  
+  // Direct state management like admin product list
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pager, setPager] = useState(null);
 
   // State for controlled inputs, which get their initial value from the URL
   const [searchTerm, setSearchTerm] = useState(new URLSearchParams(location.search).get('search') || '');
@@ -33,6 +40,42 @@ const Products = () => {
     if (!categories) return [];
     return categories.filter(c => !c.parent_id).map(c => c.name);
   }, [categories]);
+
+  // Fetch products from API like admin product list
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams(location.search);
+      
+      // Add pagination
+      params.set('perPage', '50'); // Get more products for better filtering
+      
+      console.log('Fetching products with params:', params.toString());
+      const response = await api.get('/products', { params });
+      console.log('Products API response:', response.data);
+
+      if (response.data && Array.isArray(response.data.products)) {
+        setProducts(response.data.products);
+        setPager(response.data.pager);
+        console.log('Set products count:', response.data.products.length);
+      } else {
+        setError('Received invalid product data from the server.');
+        setProducts([]);
+        setPager(null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+      setError('Failed to fetch products. Please try again later.');
+      toast.error('Failed to fetch products.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch products when component mounts or URL changes
+  useEffect(() => {
+    fetchProducts();
+  }, [location.search]);
 
   // When filters change, reset pagination
   useEffect(() => {

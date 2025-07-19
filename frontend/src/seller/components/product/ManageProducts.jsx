@@ -65,14 +65,38 @@ const ManageProducts = () => {
     const handleSaveForm = async (productToSave) => {
     setIsSaving(true);
     try {
+        let requestData;
+        let headers = {};
+        
+        // Check if there's a file upload (image is a File object)
+        if (productToSave.image && productToSave.image instanceof File) {
+            // Use FormData for file uploads
+            requestData = new FormData();
+            
+            // Append all product data to FormData
+            Object.keys(productToSave).forEach(key => {
+                if (key === 'variants' && Array.isArray(productToSave[key])) {
+                    requestData.append(key, JSON.stringify(productToSave[key]));
+                } else if (productToSave[key] !== null && productToSave[key] !== undefined) {
+                    requestData.append(key, productToSave[key]);
+                }
+            });
+            
+            headers['Content-Type'] = 'multipart/form-data';
+        } else {
+            // Use JSON for regular updates
+            requestData = productToSave;
+            headers['Content-Type'] = 'application/json';
+        }
+        
         if (productToSave.id) {
             // Update existing product
-            await api.put(`/seller/products/my-products/${productToSave.id}`, productToSave);
+            await api.put(`/seller/products/my-products/${productToSave.id}`, requestData, { headers });
             setProducts(products.map(p => (p.id === productToSave.id ? productToSave : p)));
             toast.success('Product updated successfully!');
         } else {
             // Add new product
-            const response = await api.post('/seller/products/my-products', productToSave);
+            const response = await api.post('/seller/products/my-products', requestData, { headers });
             const newProduct = response.data;
             setProducts([newProduct, ...products]);
             toast.success('Product added successfully!');
@@ -81,7 +105,7 @@ const ManageProducts = () => {
         setSelectedProduct(null);
     } catch (err) {
         toast.error('Failed to save product. Please try again.');
-        console.error(err);
+        console.error('Product save error:', err);
     } finally {
         setIsSaving(false);
     }

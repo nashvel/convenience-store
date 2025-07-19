@@ -45,7 +45,7 @@ export const StoreProvider = ({ children }) => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        // Fetch categories and stores only once if they haven't been loaded
+        // Fetch categories, stores, and products only once if they haven't been loaded
         if (categories.length === 0) {
           const categoriesRes = await fetchCategories();
           setCategories(categoriesRes);
@@ -65,6 +65,19 @@ export const StoreProvider = ({ children }) => {
             owner: store.owner
           }));
           setStores(fetchedStores);
+        }
+        // Fetch all approved products from all stores
+        if (allProducts.length === 0) {
+          console.log('StoreContext: Fetching all products...');
+          const productsRes = await fetchAllProducts();
+          console.log('StoreContext: Products response:', productsRes);
+          const fetchedProducts = productsRes.data?.products || [];
+          console.log('StoreContext: Fetched products count:', fetchedProducts.length);
+          console.log('StoreContext: First few products:', fetchedProducts.slice(0, 3));
+          setAllProducts(fetchedProducts);
+          if (productsRes.data?.pager) {
+            setPagination(productsRes.data.pager);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch initial data', error);

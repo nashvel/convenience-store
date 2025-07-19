@@ -478,4 +478,87 @@ class AdminController extends ResourceController
             'revenue' => array_values($monthlyRevenue)
         ]);
     }
+
+    // Notification Management Methods
+    public function getNotifications()
+    {
+        try {
+            $limit = $this->request->getVar('limit') ?? 10;
+            $offset = $this->request->getVar('offset') ?? 0;
+            
+            $db = \Config\Database::connect();
+            
+            // Get notifications ordered by newest first
+            $notifications = $db->table('notifications')
+                ->orderBy('created_at', 'DESC')
+                ->limit($limit, $offset)
+                ->get()
+                ->getResultArray();
+            
+            // Get unread count
+            $unreadCount = $db->table('notifications')
+                ->where('is_read', false)
+                ->countAllResults();
+            
+            return $this->respond([
+                'notifications' => $notifications,
+                'unread_count' => $unreadCount
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Failed to fetch notifications: ' . $e->getMessage());
+            return $this->failServerError('Failed to fetch notifications');
+        }
+    }
+    
+    public function markNotificationAsRead($id)
+    {
+        try {
+            $db = \Config\Database::connect();
+            
+            $result = $db->table('notifications')
+                ->where('id', $id)
+                ->update(['is_read' => true, 'updated_at' => date('Y-m-d H:i:s')]);
+            
+            if ($result) {
+                return $this->respond(['message' => 'Notification marked as read']);
+            } else {
+                return $this->failNotFound('Notification not found');
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Failed to mark notification as read: ' . $e->getMessage());
+            return $this->failServerError('Failed to update notification');
+        }
+    }
+    
+    public function markAllNotificationsAsRead()
+    {
+        try {
+            $db = \Config\Database::connect();
+            
+            $db->table('notifications')
+                ->where('is_read', false)
+                ->update(['is_read' => true, 'updated_at' => date('Y-m-d H:i:s')]);
+            
+            return $this->respond(['message' => 'All notifications marked as read']);
+        } catch (\Exception $e) {
+            log_message('error', 'Failed to mark all notifications as read: ' . $e->getMessage());
+            return $this->failServerError('Failed to update notifications');
+        }
+    }
+    
+    public function getUnreadNotificationCount()
+    {
+        try {
+            $db = \Config\Database::connect();
+            
+            $count = $db->table('notifications')
+                ->where('is_read', false)
+                ->countAllResults();
+            
+            return $this->respond(['unread_count' => $count]);
+        } catch (\Exception $e) {
+            log_message('error', 'Failed to get unread notification count: ' . $e->getMessage());
+            return $this->failServerError('Failed to get notification count');
+        }
+    }
 }

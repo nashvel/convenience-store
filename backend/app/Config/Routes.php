@@ -58,10 +58,22 @@ $routes->group('api', ['filter' => 'cors'], function ($routes) {
         $routes->delete('products/(:num)', 'AdminProductController::deleteProduct/$1');
         $routes->post('products/update/(:num)', 'AdminProductController::updateProduct/$1');
         $routes->get('categories', 'AdminProductController::getCategories');
+        
+        // Product Approval Management
+        $routes->get('products/pending', 'AdminProductController::getPendingProducts');
+        $routes->get('products/rejected', 'AdminProductController::getRejectedProducts');
+        $routes->post('products/(:num)/approve', 'AdminProductController::approveProduct/$1');
+        $routes->post('products/(:num)/reject', 'AdminProductController::rejectProduct/$1');
         $routes->get('profile', 'AdminController::getProfile');
         $routes->put('profile', 'AdminController::updateProfile');
         $routes->get('monthly-sales', 'AdminController::getMonthlySales');
         $routes->get('statistics', 'AdminController::getStatistics');
+        
+        // Notification Management
+        $routes->get('notifications', 'AdminController::getNotifications');
+        $routes->post('notifications/(:num)/read', 'AdminController::markNotificationAsRead/$1');
+        $routes->post('notifications/mark-all-read', 'AdminController::markAllNotificationsAsRead');
+        $routes->get('notifications/unread-count', 'AdminController::getUnreadNotificationCount');
 
         // Promotions Management
         $routes->post('promotions', 'PromotionController::createPromotion', ['filter' => 'auth']);

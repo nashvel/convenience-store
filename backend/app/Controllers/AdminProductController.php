@@ -233,4 +233,144 @@ class AdminProductController extends ResourceController
             return $this->failServerError('An unexpected error occurred while deleting the product.');
         }
     }
+
+    // Product Approval Management Methods
+    public function getPendingProducts()
+    {
+        try {
+            $page = $this->request->getVar('page') ?? 1;
+            $perPage = $this->request->getVar('perPage') ?? 20;
+            $offset = ($page - 1) * $perPage;
+
+            // Get products pending approval (is_approved = false AND is_active != false)
+        // This excludes rejected products which have is_active = false
+        $products = $this->productModel
+            ->select('products.*, categories.name as category_name, stores.name as store_name')
+            ->join('categories', 'categories.id = products.category_id', 'left')
+            ->join('stores', 'stores.id = products.store_id', 'left')
+            ->where('products.is_approved', false)
+            ->where('(products.is_active IS NULL OR products.is_active != 0)')
+            ->orderBy('products.created_at', 'DESC')
+            ->findAll($perPage, $offset);
+
+        // Get total count for pagination
+        $totalCount = $this->productModel
+            ->where('is_approved', false)
+            ->where('(is_active IS NULL OR is_active != 0)')
+            ->countAllResults();
+
+            return $this->respond([
+                'products' => $products,
+                'pagination' => [
+                    'current_page' => (int)$page,
+                    'per_page' => (int)$perPage,
+                    'total' => $totalCount,
+                    'total_pages' => ceil($totalCount / $perPage)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('Failed to fetch pending products.');
+        }
+    }
+
+    public function approveProduct($id)
+    {
+        try {
+            $product = $this->productModel->find($id);
+            if (!$product) {
+                return $this->failNotFound('Product not found.');
+            }
+
+            $updateData = [
+                'is_approved' => true,
+                'is_active' => true
+            ];
+
+            if ($this->productModel->update($id, $updateData)) {
+                return $this->respond([
+                    'message' => 'Product approved successfully.',
+                    'product' => $this->productModel->find($id)
+                ]);
+            } else {
+                return $this->failServerError('Failed to approve product.');
+            }
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('An unexpected error occurred while approving the product.');
+        }
+    }
+
+    public function rejectProduct($id)
+    {
+        try {
+            $product = $this->productModel->find($id);
+            if (!$product) {
+                return $this->failNotFound('Product not found.');
+            }
+
+            // For rejection, we can either delete the product or mark it as rejected
+            // Let's add a rejection reason from the request
+            $data = $this->request->getJSON(true);
+            $rejectionReason = $data['reason'] ?? 'No reason provided';
+
+            $updateData = [
+                'is_approved' => false,
+                'is_active' => false,
+                'rejection_reason' => $rejectionReason
+            ];
+
+            if ($this->productModel->update($id, $updateData)) {
+                return $this->respond([
+                    'message' => 'Product rejected successfully.',
+                    'product' => $this->productModel->find($id)
+                ]);
+            } else {
+                return $this->failServerError('Failed to reject product.');
+            }
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('An unexpected error occurred while rejecting the product.');
+        }
+    }
+
+    public function getRejectedProducts()
+    {
+        try {
+            $page = $this->request->getVar('page') ?? 1;
+            $perPage = $this->request->getVar('perPage') ?? 20;
+            $offset = ($page - 1) * $perPage;
+
+            // Get rejected products (is_approved = false AND is_active = false)
+            $products = $this->productModel
+                ->select('products.*, categories.name as category_name, stores.name as store_name')
+                ->join('categories', 'categories.id = products.category_id', 'left')
+                ->join('stores', 'stores.id = products.store_id', 'left')
+                ->where('products.is_approved', false)
+                ->where('products.is_active', false)
+                ->orderBy('products.updated_at', 'DESC')
+                ->findAll($perPage, $offset);
+
+            // Get total count for pagination
+            $totalCount = $this->productModel
+                ->where('is_approved', false)
+                ->where('is_active', false)
+                ->countAllResults();
+
+            return $this->respond([
+                'products' => $products,
+                'pagination' => [
+                    'current_page' => (int)$page,
+                    'per_page' => (int)$perPage,
+                    'total' => $totalCount,
+                    'total_pages' => ceil($totalCount / $perPage)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            return $this->failServerError('Failed to fetch rejected products.');
+        }
+    }
+
+
 }

@@ -142,7 +142,7 @@ const Sidebar = ({ isCollapsed, setCollapsed }) => {
           onClick={() => setCollapsed(!isCollapsed)}
         >
           <FaStore className="text-white text-3xl flex-shrink-0" />
-          <span className={`ml-3 text-xl font-bold text-white whitespace-nowrap ${isCollapsed ? 'hidden' : 'block'}`}>Admin Panel</span>
+          <span className={`ml-3 text-xl font-bold text-white whitespace-nowrap ${isCollapsed ? 'hidden' : 'block'}`}>Client Panel</span>
         </div>
         <nav className="flex-grow p-4 space-y-2 overflow-y-auto">
           {menuItems.map(item => (

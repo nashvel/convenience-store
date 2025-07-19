@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaCheck, FaTimes, FaEye, FaClock, FaStore, FaTag, FaImage, FaExclamationTriangle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import PageMeta from "../../components/common/PageMeta";
 import api from '../../../api/axios-config';
-import ConfirmationModal from '../../components/common/ConfirmationModal';
+import ConfirmationModal from '../common/ConfirmationModal';
 
-const ApprovalQueue = () => {
+const ProductApprovalManagement = () => {
   const [activeTab, setActiveTab] = useState('pending');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,12 +74,15 @@ const ApprovalQueue = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     });
   };
 
@@ -244,130 +245,125 @@ const ApprovalQueue = () => {
   };
 
   return (
-    <>
-      <PageMeta title="Product Approval Queue" />
-      <div className="p-6">
-        <PageBreadcrumb pageTitle="Product Approval Queue" />
-        
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Approval Management</h1>
-          <p className="text-gray-600">Review and manage product submissions from sellers</p>
-        </div>
-
-        {/* Tabs */}
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('pending')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'pending'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <FaClock className="inline mr-2" />
-                Pending Approval
-              </button>
-              <button
-                onClick={() => setActiveTab('rejected')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'rejected'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <FaTimes className="inline mr-2" />
-                Rejected Products
-              </button>
-            </nav>
-          </div>
-        </div>
-
-        {/* Content */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">
-              {activeTab === 'pending' ? <FaClock /> : <FaTimes />}
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No {activeTab} products found
-            </h3>
-            <p className="text-gray-500">
-              {activeTab === 'pending' 
-                ? 'All products have been reviewed.' 
-                : 'No products have been rejected.'}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-            <Pagination />
-          </div>
-        )}
-
-        {/* Confirmation Modal */}
-        {showConfirmModal && (
-          <ConfirmationModal
-            isOpen={showConfirmModal}
-            onClose={() => setShowConfirmModal(false)}
-            onConfirm={confirmAction}
-            title={`${actionType === 'approve' ? 'Approve' : 'Reject'} Product`}
-            message={`Are you sure you want to ${actionType} "${selectedProduct?.name}"?`}
-            confirmText={actionType === 'approve' ? 'Approve' : 'Reject'}
-            confirmButtonClass={actionType === 'approve' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}
-          />
-        )}
-
-        {/* Rejection Modal */}
-        {showRejectModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Reject Product: {selectedProduct?.name}
-              </h3>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Rejection Reason (Optional)
-                </label>
-                <textarea
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  rows="3"
-                  placeholder="Provide a reason for rejection..."
-                />
-              </div>
-              <div className="flex items-center justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setShowRejectModal(false);
-                    setRejectionReason('');
-                  }}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmAction}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200"
-                >
-                  Reject Product
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Approval Management</h1>
+        <p className="text-gray-600">Review and manage product submissions from sellers</p>
       </div>
-    </>
+
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'pending'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FaClock className="inline mr-2" />
+              Pending Approval
+            </button>
+            <button
+              onClick={() => setActiveTab('rejected')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'rejected'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FaTimes className="inline mr-2" />
+              Rejected Products
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {/* Content */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      ) : products.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-400 text-6xl mb-4">
+            {activeTab === 'pending' ? <FaClock /> : <FaTimes />}
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No {activeTab} products found
+          </h3>
+          <p className="text-gray-500">
+            {activeTab === 'pending' 
+              ? 'All products have been reviewed.' 
+              : 'No products have been rejected.'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+          <Pagination />
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <ConfirmationModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={confirmAction}
+          title={`${actionType === 'approve' ? 'Approve' : 'Reject'} Product`}
+          message={`Are you sure you want to ${actionType} "${selectedProduct?.name}"?`}
+          confirmText={actionType === 'approve' ? 'Approve' : 'Reject'}
+          confirmButtonClass={actionType === 'approve' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}
+        />
+      )}
+
+      {/* Rejection Modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Reject Product: {selectedProduct?.name}
+            </h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rejection Reason (Optional)
+              </label>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                rows="3"
+                placeholder="Provide a reason for rejection..."
+              />
+            </div>
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectionReason('');
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAction}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200"
+              >
+                Reject Product
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
-export default ApprovalQueue;
+export default ProductApprovalManagement;

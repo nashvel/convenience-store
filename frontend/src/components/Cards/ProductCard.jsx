@@ -9,17 +9,57 @@ const getStockStatus = (stock) => {
   return { text: 'Out of Stock', className: 'bg-red-100 text-red-800' };
 };
 
+const calculateTotalStock = (product) => {
+  const { stock, product_type, variants } = product;
+  
+  // For variable products, calculate total stock from variants
+  if (product_type === 'variable' && variants && variants.length > 0) {
+    return variants.reduce((total, variant) => {
+      const variantStock = parseInt(variant.stock) || 0;
+      return total + variantStock;
+    }, 0);
+  }
+  
+  // For single products, use the main stock value
+  return parseInt(stock) || 0;
+};
+
 const ProductCard = ({ product, size = 'normal' }) => {
   if (!product) {
     return null; 
   }
 
-  const { id, name, price, image, stock, store_name, product_type, variant_count } = product;
-  const stockStatus = getStockStatus(stock);
+  const { id, name, price, image, stock, store_name, product_type, variant_count, variants } = product;
+  const totalStock = calculateTotalStock(product);
+  const stockStatus = getStockStatus(totalStock);
 
   const isSmall = size === 'small';
 
   const slug = name.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-');
+
+  // Calculate display price for variable products
+  const getDisplayPrice = () => {
+    if (product_type === 'variable' && variants && variants.length > 0) {
+      const prices = variants.map(v => parseFloat(v.price)).filter(p => !isNaN(p));
+      if (prices.length > 0) {
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        if (minPrice === maxPrice) {
+          return `₱${minPrice.toFixed(2)}`;
+        } else {
+          return `₱${minPrice.toFixed(2)} - ₱${maxPrice.toFixed(2)}`;
+        }
+      }
+    }
+    
+    // For single products or fallback
+    const productPrice = parseFloat(price);
+    if (!isNaN(productPrice)) {
+      return `₱${productPrice.toFixed(2)}`;
+    }
+    
+    return 'Price not available';
+  };
 
   return (
     <Link to={`/product/${id}/${slug}`} className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl flex flex-col ${isSmall ? 'w-full' : 'max-w-sm'}`}>
@@ -41,8 +81,8 @@ const ProductCard = ({ product, size = 'normal' }) => {
         </h3>
         <div className="mt-auto pt-3">
           <p className={`font-bold text-gray-900 dark:text-white ${isSmall ? 'text-base' : 'text-xl'}`}>
-            {product_type === 'variable' && <span className="text-sm font-normal">From </span>}
-            ₱{parseFloat(price).toFixed(2)}
+            {product_type === 'variable' && variants && variants.length > 0 && <span className="text-sm font-normal">From </span>}
+            {getDisplayPrice()}
           </p>
           <div className="flex items-center gap-2 mt-2">
             {product_type === 'variable' && variant_count > 0 && (

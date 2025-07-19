@@ -7,6 +7,7 @@ const AddProduct = ({ onSave, onCancel, loading, storeType }) => {
   const [productData, setProductData] = useState({
     name: '',
     price: '',
+    stock: '',
     category_id: '',
     image: null,
     description: '',
@@ -163,39 +164,17 @@ const AddProduct = ({ onSave, onCancel, loading, storeType }) => {
           {/* Basic Information Section */}
           <div className="bg-gray-50 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={productData.name}
-                  onChange={handleChange}
-                  placeholder="Enter product name"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
-                {loadingCategories ? (
-                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent mr-2"></div>
-                    <span className="text-gray-500">Loading categories...</span>
-                  </div>
-                ) : (
-                  <select
-                    name="category_id"
-                    value={productData.category_id}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {renderCategoryOptions(categories)}
-                  </select>
-                )}
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+              <input
+                type="text"
+                name="name"
+                value={productData.name}
+                onChange={handleChange}
+                placeholder="Enter product name"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+              />
             </div>
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">Product Description</label>
@@ -207,6 +186,26 @@ const AddProduct = ({ onSave, onCancel, loading, storeType }) => {
                 rows="4"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white resize-none"
               />
+            </div>
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+              {loadingCategories ? (
+                <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent mr-2"></div>
+                  <span className="text-gray-500">Loading categories...</span>
+                </div>
+              ) : (
+                <select
+                  name="category_id"
+                  value={productData.category_id}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+                  required
+                >
+                  <option value="">Select a category</option>
+                  {renderCategoryOptions(categories)}
+                </select>
+              )}
             </div>
           </div>
           {/* Pricing Section - Only for Single Products */}
