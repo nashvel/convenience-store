@@ -152,6 +152,8 @@ class ProductSeeder extends Seeder
                         'sku' => $variant_data['sku'],
                         'image_url' => $variant_data['image_url'] ?? null,
                         'attributes' => json_encode($variant_data['attributes']),
+                        'is_active' => 1,
+                        'is_approved' => 1, // Seeded variants are pre-approved
                         'created_at' => date('Y-m-d H:i:s')
                     ];
                     $this->db->table('product_variants')->insert($variant);
