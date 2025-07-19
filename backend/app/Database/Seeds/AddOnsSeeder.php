@@ -25,7 +25,6 @@ class AddOnsSeeder extends Seeder
                 'description' => 'Refreshing drinks to complement your meal',
                 'display_order' => 1,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -35,7 +34,6 @@ class AddOnsSeeder extends Seeder
                 'description' => 'Delicious sides to complete your order',
                 'display_order' => 2,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -45,7 +43,6 @@ class AddOnsSeeder extends Seeder
                 'description' => 'Sweet treats to end your meal',
                 'display_order' => 3,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -55,7 +52,6 @@ class AddOnsSeeder extends Seeder
                 'description' => 'Additional toppings and extras',
                 'display_order' => 4,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ]
@@ -310,7 +306,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 100,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -322,7 +318,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 100,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -334,7 +330,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 100,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -348,7 +344,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 100,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -360,7 +356,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 100,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -372,7 +368,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 100,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -386,7 +382,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 50,
                 'is_unlimited_stock' => false,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -398,7 +394,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 30,
                 'is_unlimited_stock' => false,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -412,7 +408,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 75,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -424,7 +420,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 75,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -438,7 +434,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 25,
                 'is_unlimited_stock' => false,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -450,7 +446,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 20,
                 'is_unlimited_stock' => false,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -462,7 +458,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 0,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ],
@@ -474,7 +470,7 @@ class AddOnsSeeder extends Seeder
                 'stock_quantity' => 0,
                 'is_unlimited_stock' => true,
                 'is_active' => true,
-                'is_approved' => true, // Seeded add-ons are pre-approved
+                'is_approved' => true, // Seeded addon variants are pre-approved
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ]
