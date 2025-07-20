@@ -51,6 +51,8 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
     const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
     const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
     const [isNearTrash, setIsNearTrash] = useState(false);
+    const [isEatingChat, setIsEatingChat] = useState(false);
+    const [magneticAngle, setMagneticAngle] = useState(0);
     const dragControls = useDragControls();
     const fileInputRef = useRef(null);
     const messagesEndRef = useRef(null);
@@ -141,6 +143,12 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                     
                     // Animate trash can when chat head is within 100px
                     setIsNearTrash(distance < 100);
+                    
+                    // Calculate magnetic rotation angle toward chat head
+                    if (distance < 100) {
+                        const angle = Math.atan2(chatCenterY - trashCenterY, chatCenterX - trashCenterX) * (180 / Math.PI);
+                        setMagneticAngle(angle);
+                    }
                 }
             }
         };
@@ -158,8 +166,15 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                     const mouseY = dragPosition.y + 28;
                     
                     if (mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom) {
-                        // Dropped on cart - close chat
+                        // Immediately hide chat head to prevent bounce back
+                        setDragPosition({ x: -9999, y: -9999 }); // Move off-screen instantly
+                        
+                        // Smooth "smoosh" animation - trash can eats the chat head
+                        setIsEatingChat(true);
+                        
+                        // Close immediately - no delay needed since chat head is already hidden
                         onClose(chat.recipient.id);
+                        return; // Exit early to prevent any further processing
                     }
                 }
             }
@@ -259,6 +274,12 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                     
                     // Animate trash can when chat head is within 100px
                     setIsNearTrash(distance < 100);
+                    
+                    // Calculate magnetic rotation angle toward chat head
+                    if (distance < 100) {
+                        const angle = Math.atan2(chatCenterY - trashCenterY, chatCenterX - trashCenterX) * (180 / Math.PI);
+                        setMagneticAngle(angle);
+                    }
                 }
             }
         };
@@ -276,7 +297,15 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                     const touchY = dragPosition.y + 28;
                     
                     if (touchX >= rect.left && touchX <= rect.right && touchY >= rect.top && touchY <= rect.bottom) {
+                        // Immediately hide chat head to prevent bounce back
+                        setDragPosition({ x: -9999, y: -9999 }); // Move off-screen instantly
+                        
+                        // Smooth "smoosh" animation - trash can eats the chat head
+                        setIsEatingChat(true);
+                        
+                        // Close immediately - no delay needed since chat head is already hidden
                         onClose(chat.recipient.id);
+                        return; // Exit early to prevent any further processing
                     }
                 }
             }
@@ -311,7 +340,7 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                         stiffness: 300, 
                         damping: 25
                     }}
-                    className={`${isDragging ? 'fixed' : 'fixed bottom-4 right-4'} w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow flex-shrink-0 ${isDragging ? 'shadow-2xl ring-4 ring-blue-300 cursor-grabbing' : 'cursor-grab'}`}
+                    className={`${isDragging ? 'fixed' : 'fixed bottom-8 right-4'} w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow flex-shrink-0 ${isDragging ? 'shadow-2xl ring-4 ring-blue-300 cursor-grabbing' : 'cursor-grab'}`}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
                     onTouchStart={handleTouchStart}
@@ -392,17 +421,19 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                             id="chat-drop-target"
                             initial={{ scale: 0, opacity: 0, y: 50 }}
                             animate={{ 
-                                scale: isNearTrash ? 1.15 : 1, 
-                                opacity: 1, 
-                                y: isNearTrash ? -5 : 0,
-                                rotate: isNearTrash ? [0, -3, 3, -3, 0] : 0
+                                scale: isEatingChat ? [1, 1.3, 0.8, 1] : (isNearTrash ? 1.15 : 1), 
+                                opacity: isEatingChat ? [1, 1, 1, 0] : 1, 
+                                y: isEatingChat ? [0, -10, 5, 50] : (isNearTrash ? -5 : 0),
+                                rotate: isEatingChat ? [0, -8, 8, 0] : (isNearTrash ? magneticAngle * 0.3 : 0)
                             }}
                             exit={{ scale: 0, opacity: 0, y: 50 }}
                             transition={{ 
-                                type: "spring", 
+                                type: isEatingChat ? "tween" : "spring", 
                                 stiffness: 300, 
                                 damping: 20,
-                                rotate: { duration: 0.8, repeat: isNearTrash ? Infinity : 0 }
+                                duration: isEatingChat ? 0.8 : undefined,
+                                ease: isEatingChat ? "easeInOut" : "easeOut",
+                                rotate: { duration: isEatingChat ? 0.8 : 0.3, repeat: 0 }
                             }}
                             className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50"
                         >
@@ -412,10 +443,16 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                                 <motion.div
                                     className="relative"
                                     animate={{
-                                        y: isNearTrash ? -2 : 0,
-                                        scale: isNearTrash ? 1.2 : 1
+                                        y: isEatingChat ? [0, -8, 2, 0] : (isNearTrash ? -2 : 0),
+                                        scale: isEatingChat ? [1, 1.3, 0.9, 1.1, 1] : (isNearTrash ? 1.2 : 1),
+                                        rotateZ: isEatingChat ? [0, -5, 5, -2, 0] : 0
                                     }}
-                                    transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
+                                    transition={{ 
+                                        duration: isEatingChat ? 0.8 : 0.3, 
+                                        type: isEatingChat ? "tween" : "spring", 
+                                        stiffness: 400,
+                                        ease: isEatingChat ? "easeInOut" : "easeOut"
+                                    }}
                                 >
                                     {/* Custom SVG Trash Can - Blue */}
                                     <svg 
@@ -447,15 +484,22 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                                     </svg>
                                 </motion.div>
                                 
-                                {/* Trash Can Lid (opens when near) - Blue */}
+                                {/* Trash Can Lid (opens when near, closes with smoosh effect) - Blue */}
                                 <motion.div
                                     className="absolute -top-3 left-1/2 transform -translate-x-1/2 origin-bottom-left"
                                     animate={{
-                                        rotate: isNearTrash ? -35 : 0,
-                                        x: isNearTrash ? 15 : 0,
-                                        y: isNearTrash ? -5 : 0
+                                        rotate: isEatingChat ? 0 : (isNearTrash ? -35 : 0),
+                                        x: isEatingChat ? 0 : (isNearTrash ? 15 : 0),
+                                        y: isEatingChat ? 0 : (isNearTrash ? -5 : 0),
+                                        scale: isEatingChat ? [1, 1.2, 0.8, 1] : 1
                                     }}
-                                    transition={{ duration: 0.4, type: "spring", stiffness: 250, damping: 15 }}
+                                    transition={{ 
+                                        duration: isEatingChat ? 0.8 : 0.4, 
+                                        type: isEatingChat ? "tween" : "spring", 
+                                        stiffness: 250, 
+                                        damping: 15,
+                                        ease: isEatingChat ? "easeInOut" : "easeOut"
+                                    }}
                                 >
                                     <svg 
                                         width="28" 
@@ -472,26 +516,27 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                                     </svg>
                                 </motion.div>
                                 
-                                {/* Sparkle Effects - Blue themed */}
+                                {/* Enhanced Sparkle Effects - Blue themed with smoosh effect */}
                                 <AnimatePresence>
-                                    {isNearTrash && (
+                                    {(isNearTrash || isEatingChat) && (
                                         <>
-                                            {[...Array(6)].map((_, i) => (
+                                            {[...Array(isEatingChat ? 12 : 6)].map((_, i) => (
                                                 <motion.div
                                                     key={i}
                                                     className="absolute w-1.5 h-1.5 bg-blue-400 rounded-full"
                                                     initial={{ scale: 0, opacity: 0 }}
                                                     animate={{
-                                                        scale: [0, 1, 0],
-                                                        opacity: [0, 1, 0],
-                                                        x: [0, (Math.random() - 0.5) * 50],
-                                                        y: [0, (Math.random() - 0.5) * 50]
+                                                        scale: isEatingChat ? [0, 1.5, 0] : [0, 1, 0],
+                                                        opacity: isEatingChat ? [0, 1, 0] : [0, 1, 0],
+                                                        x: [0, (Math.random() - 0.5) * (isEatingChat ? 80 : 50)],
+                                                        y: [0, (Math.random() - 0.5) * (isEatingChat ? 80 : 50)]
                                                     }}
                                                     transition={{
-                                                        duration: 1.5,
-                                                        repeat: Infinity,
-                                                        delay: i * 0.2,
-                                                        repeatType: "loop"
+                                                        duration: isEatingChat ? 0.8 : 1.5,
+                                                        repeat: isEatingChat ? 0 : Infinity,
+                                                        delay: i * (isEatingChat ? 0.05 : 0.2),
+                                                        repeatType: isEatingChat ? "tween" : "loop",
+                                                        ease: isEatingChat ? "easeOut" : "linear"
                                                     }}
                                                     style={{
                                                         left: '50%',
@@ -504,21 +549,7 @@ const ChatPopup = ({ chat, onClose, onToggleMinimize }) => {
                                 </AnimatePresence>
                             </div>
                             
-                            <motion.div 
-                                className="text-center mt-2"
-                                animate={{
-                                    scale: isNearTrash ? 1.1 : 1
-                                }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium transition-colors duration-300 ${
-                                    isNearTrash 
-                                        ? 'bg-red-600 text-white shadow-lg' 
-                                        : 'bg-black bg-opacity-75 text-white'
-                                }`}>
-                                    {isNearTrash ? '🔥 Release to delete!' : 'Drop to close chat'}
-                                </span>
-                            </motion.div>
+
                         </motion.div>
                     )}
                 </AnimatePresence>

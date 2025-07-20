@@ -49,6 +49,7 @@ import { StoreProvider } from './context/StoreContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { UIProvider } from './context/UIContext';
 import { ChatProvider, useChat } from './context/ChatContext';
+import { useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { SettingsProvider } from './context/SettingsContext';
 import ChatPopup from './components/Chat/ChatPopup';
@@ -58,6 +59,7 @@ import ProductLoader from './components/ProductLoader';
 
 const MainLayout = () => {
   const { openChats, closeChat, toggleMinimizeChat } = useChat();
+  const { user } = useAuth();
   const location = useLocation();
   const showSidebar = location.pathname.startsWith('/products');
   const showCategoryNavbar = location.pathname.startsWith('/products');
@@ -92,11 +94,14 @@ const MainLayout = () => {
         </div>
       </div>
       <Footer />
-      <div className="fixed bottom-0 right-4 flex flex-row-reverse items-end gap-4 z-50">
-        {Object.values(openChats).map((chat, index) => (
-          <ChatPopup key={chat.id || index} chat={chat} onClose={closeChat} onToggleMinimize={toggleMinimizeChat} />
-        ))}
-      </div>
+      {/* Only show chat heads when user is logged in */}
+      {user && (
+        <div className="fixed bottom-2 right-2 flex flex-row-reverse items-end gap-4 z-50">
+          {Object.values(openChats).map((chat, index) => (
+            <ChatPopup key={chat.id || index} chat={chat} onClose={closeChat} onToggleMinimize={toggleMinimizeChat} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

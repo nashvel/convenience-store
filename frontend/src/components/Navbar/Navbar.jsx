@@ -46,6 +46,10 @@ const Navbar = () => {
         }
       };
       fetchAndSetChats();
+    } else {
+      // Clear chat data when user logs out
+      setChats([]);
+      setLoading(true);
     }
   }, [user]);
 
@@ -64,6 +68,14 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close message dropdown when user logs out
+  useEffect(() => {
+    if (!user) {
+      closeMessageDropdown();
+      setIsNotificationsOpen(false);
+    }
+  }, [user, closeMessageDropdown]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
