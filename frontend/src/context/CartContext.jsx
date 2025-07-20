@@ -1,8 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import api from '../api/axios-config';
 import { AuthContext } from './AuthContext';
-import { StoreContext } from './StoreContext'; // Import StoreContext
 
 export const CartContext = createContext();
 
@@ -14,7 +13,6 @@ export const CartProvider = ({ children }) => {
   const [total, setTotal] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const { user } = useContext(AuthContext);
-  const { stores } = useContext(StoreContext); // Use stores from context
 
   
 
@@ -57,7 +55,36 @@ export const CartProvider = ({ children }) => {
     try {
       const response = await api.get('/cart');
       const fetchedItems = response.data.cart_items || [];
-      setCartItems(fetchedItems);
+      console.log('🛒 Cart items fetched from API:', fetchedItems);
+      
+      // Ensure price is properly set for each item
+      const processedItems = fetchedItems.map(item => {
+        console.log('🔍 Processing cart item:', item);
+        console.log('🔍 Price fields breakdown:', {
+          name: item.name,
+          raw_price: item.price,
+          variant_price: item.variant_price,
+          base_price: item.base_price,
+          product_price: item.product_price,
+          variant_id: item.variant_id,
+          variant_details: item.variant_details
+        });
+        
+        const finalPrice = Number(item.price) || Number(item.variant_price) || Number(item.base_price) || Number(item.product_price) || 0;
+        
+        console.log('💰 Final calculated price:', finalPrice);
+        
+        return {
+          ...item,
+          price: finalPrice,
+          quantity: Number(item.quantity) || 1,
+          variant_details: item.variant_details || null,
+          variant_id: item.variant_id || null
+        };
+      });
+      
+      console.log('✅ Final processed cart items:', processedItems);
+      setCartItems(processedItems);
       setSelectedItems([]);
     } catch (error) {
       console.error('Failed to fetch cart:', error);
@@ -89,7 +116,17 @@ export const CartProvider = ({ children }) => {
       return;
     }
     try {
-      await api.post('/cart', { product_id: product.id, quantity });
+      const cartData = { 
+        product_id: product.id, 
+        quantity 
+      };
+      
+      // Add variant_id if product has a variant selected
+      if (product.variant_id) {
+        cartData.variant_id = product.variant_id;
+      }
+      
+      await api.post('/cart', cartData);
       toast.success(`${product.name} added to cart!`);
       fetchCart();
     } catch (error) {

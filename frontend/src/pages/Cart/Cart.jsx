@@ -178,29 +178,52 @@ const Cart = () => {
       ) : (
         <>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-            <h1 className="text-4xl font-extrabold text-gray-800 mb-4 md:mb-0">Your Shopping Cart</h1>
-            <Link to="/stores" className="text-primary font-semibold hover:underline">
+            <div className="flex items-center gap-4 mb-4 md:mb-0">
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                <FaShoppingCart className="text-white text-2xl" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Your Shopping Cart</h1>
+                <p className="text-gray-600 text-sm">{cartCount} items in your cart</p>
+              </div>
+            </div>
+            <Link
+              to="/stores"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              <FaArrowLeft className="text-sm" />
               Continue Shopping
             </Link>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-lg">
-              <div className="p-4 border-b flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
-                    checked={cartItems.length > 0 && selectedItems.length === cartItems.length}
-                    onChange={toggleSelectAll}
-                    id="select-all"
-                  />
-                  <label htmlFor="select-all" className="font-semibold text-gray-700 cursor-pointer">
-                    Select All ({selectedItems.length} / {cartCount} items)
-                  </label>
+            <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5 rounded-lg border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer transition-all"
+                        checked={cartItems.length > 0 && selectedItems.length === cartItems.length}
+                        onChange={toggleSelectAll}
+                        id="select-all"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="select-all" className="font-bold text-gray-800 cursor-pointer text-lg">
+                        Select All
+                      </label>
+                      <p className="text-sm text-gray-600">{selectedItems.length} of {cartCount} items selected</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={clearCart} 
+                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 hover:text-red-700 transition-all duration-200 border border-red-200"
+                  >
+                    <FaTrash className="text-sm" />
+                    Clear All
+                  </button>
                 </div>
-                <button onClick={clearCart} className="text-sm font-semibold text-red-500 hover:text-red-700 transition-colors">
-                  Clear All
-                </button>
               </div>
               {Object.entries(groupedCart).map(([storeId, storeData]) => (
                 <div key={storeId} className="p-4 border-b last:border-b-0">

@@ -105,69 +105,144 @@ const AddressModal = ({ isOpen, onClose, onSave, initialAddress, addressLabel })
           onClick={onClose}
         >
           <motion.div
-            className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative"
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 relative overflow-hidden"
             variants={modalVariants}
             onClick={(e) => e.stopPropagation()}
           >
-            <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
-              <FaTimes size={20} />
-            </button>
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">{addressLabel || 'Delivery Address'}</h2>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-white">{addressLabel || 'Edit Address'}</h2>
+                <button 
+                  onClick={onClose} 
+                  className="text-white hover:text-gray-200 transition-colors p-1 rounded-full hover:bg-white/10"
+                >
+                  <FaTimes size={18} />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
             
               <button
                 type="button"
                 onClick={handleLocateMe}
-                className="w-full flex items-center justify-center px-4 py-2 mb-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark disabled:opacity-50"
+                className="w-full flex items-center justify-center px-4 py-3 mb-6 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 font-medium hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isLocating}
               >
                 {isLocating ? <FaSpinner className="animate-spin mr-2" /> : <FaMapMarkerAlt className="mr-2" />} 
                 {isLocating ? 'Locating...' : 'Locate Me'}
               </button>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <input type="text" name="full_name" value={address.full_name || ''} onChange={handleChange} placeholder="Full Name" className="w-full p-2 border border-gray-300 rounded-md" required />
-                </div>
+              <div className="space-y-4">
                 <div>
-                  <input type="text" name="province" value={address.province || ''} onChange={handleChange} placeholder="Province" className="w-full p-2 border border-gray-300 rounded-md" required />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <input 
+                    type="text" 
+                    name="full_name" 
+                    value={address.full_name || ''} 
+                    onChange={handleChange} 
+                    placeholder="Enter your full name" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                    required 
+                  />
                 </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Province</label>
+                    <input 
+                      type="text" 
+                      name="province" 
+                      value={address.province || ''} 
+                      onChange={handleChange} 
+                      placeholder="Province" 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input 
+                      type="text" 
+                      name="city" 
+                      value={address.city || ''} 
+                      onChange={handleChange} 
+                      placeholder="City" 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                      required 
+                    />
+                  </div>
+                </div>
+                
                 <div>
-                  <input type="text" name="city" value={address.city || ''} onChange={handleChange} placeholder="City" className="w-full p-2 border border-gray-300 rounded-md" required />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                  <input 
+                    type="text" 
+                    name="zipCode" 
+                    value={address.zipCode || ''} 
+                    onChange={handleChange} 
+                    placeholder="Enter ZIP code" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                    required 
+                  />
                 </div>
-                <div className="col-span-2">
-                  <input type="text" name="zipCode" value={address.zipCode || ''} onChange={handleChange} placeholder="ZIP Code" className="w-full p-2 border border-gray-300 rounded-md" required />
-                </div>
-                <div className="col-span-2">
-                  <input type="tel" name="phone" value={address.phone || ''} onChange={handleChange} placeholder="Phone Number" className="w-full p-2 border border-gray-300 rounded-md" required />
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    name="phone" 
+                    value={address.phone || ''} 
+                    onChange={handleChange} 
+                    placeholder="Enter phone number" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                    required 
+                  />
                 </div>
               </div>
 
               <div className="mt-6">
-                <p className="text-sm font-medium text-gray-700 mb-2">Address Type</p>
-                <div className="flex gap-4">
-                  <label className={`flex items-center p-3 border rounded-lg cursor-pointer flex-1 ${address.type === 'home' ? 'border-primary ring-2 ring-primary' : 'border-gray-300'}`}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Address Type</label>
+                <div className="flex gap-3">
+                  <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer flex-1 transition-all duration-200 ${address.type === 'home' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'}`}>
                     <input type="radio" name="type" value="home" checked={address.type === 'home'} onChange={handleChange} className="sr-only" />
-                    <FaHome className={`mr-2 ${address.type === 'home' ? 'text-primary' : 'text-gray-500'}`} /> Home
+                    <FaHome className={`mr-2 ${address.type === 'home' ? 'text-blue-600' : 'text-gray-500'}`} /> 
+                    <span className="font-medium">Home</span>
                   </label>
-                  <label className={`flex items-center p-3 border rounded-lg cursor-pointer flex-1 ${address.type === 'office' ? 'border-primary ring-2 ring-primary' : 'border-gray-300'}`}>
+                  <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer flex-1 transition-all duration-200 ${address.type === 'office' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'}`}>
                     <input type="radio" name="type" value="office" checked={address.type === 'office'} onChange={handleChange} className="sr-only" />
-                    <FaBriefcase className={`mr-2 ${address.type === 'office' ? 'text-primary' : 'text-gray-500'}`} /> Office
+                    <FaBriefcase className={`mr-2 ${address.type === 'office' ? 'text-blue-600' : 'text-gray-500'}`} /> 
+                    <span className="font-medium">Office</span>
                   </label>
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-4">
-                <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+              <div className="mt-8 flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={onClose} 
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark disabled:opacity-50"
+                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   disabled={isSaving}
                 >
-                  {isSaving ? <FaSpinner className="animate-spin mr-2" /> : null}
-                  Save Address
+                  {isSaving ? (
+                    <>
+                      <FaSpinner className="animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Address'
+                  )}
                 </button>
               </div>
+            </div>
             
           </motion.div>
         </motion.div>

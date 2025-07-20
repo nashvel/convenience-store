@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaStar, FaHeart, FaRegHeart, FaShoppingCart, FaArrowLeft, FaCheck, FaTimes, FaBolt, FaShippingFast, FaShieldAlt, FaChevronDown, FaChevronUp, FaChevronRight, FaCheckCircle, FaComments } from 'react-icons/fa';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import { StoreContext } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';

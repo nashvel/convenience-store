@@ -111,10 +111,19 @@ export const StoreProvider = ({ children }) => {
   const isFavorite = (productId) => favorites.includes(productId);
 
   const handleAddToCart = (product, quantity) => {
+    if (!cartContext || !cartContext.addToCart) {
+      console.error('Cart context is not available');
+      return;
+    }
+    
+    // Pass the product with variant_id if it exists
     cartContext.addToCart(product, quantity);
+    
+    // Update stock for the base product
+    const baseProductId = product.id;
     setAllProducts(prevProducts =>
       prevProducts.map(p =>
-        p.id === product.id
+        p.id === baseProductId
           ? { ...p, stock: Number(p.stock) - quantity }
           : p
       )

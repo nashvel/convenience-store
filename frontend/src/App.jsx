@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
 import ScrollToTop from './utils/ScrollToTop';
 
@@ -110,13 +111,13 @@ const MainLayout = () => {
 
 const App = () => (
   <Router>
-    <StoreProvider>
-      <ProductLoader />
-      <ScrollToTop />
-      <ThemeProvider>
-        <AuthProvider>
-          <SettingsProvider>
-            <CartProvider>
+    <ScrollToTop />
+    <ThemeProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <CartProvider>
+            <StoreProvider>
+              <ProductLoader />
               <NotificationProvider>
                 <UIProvider>
                   <ChatProvider>
@@ -163,11 +164,43 @@ const App = () => (
                   </ChatProvider>
                 </UIProvider>
               </NotificationProvider>
-            </CartProvider>
-          </SettingsProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </StoreProvider>
+            </StoreProvider>
+          </CartProvider>
+        </SettingsProvider>
+      </AuthProvider>
+      
+      {/* Hot Toast with Blue Theme */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#3B82F6',
+            color: '#FFFFFF',
+            fontWeight: '600',
+            borderRadius: '12px',
+            padding: '12px 16px',
+            boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.3), 0 4px 6px -2px rgba(59, 130, 246, 0.1)',
+          },
+          success: {
+            iconTheme: {
+              primary: '#FFFFFF',
+              secondary: '#3B82F6',
+            },
+          },
+          error: {
+            style: {
+              background: '#EF4444',
+              color: '#FFFFFF',
+            },
+            iconTheme: {
+              primary: '#FFFFFF',
+              secondary: '#EF4444',
+            },
+          },
+        }}
+      />
+    </ThemeProvider>
   </Router>
 );
 

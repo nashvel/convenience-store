@@ -193,11 +193,13 @@ try {
             id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             user_id INT(11) UNSIGNED NOT NULL,
             product_id INT(11) UNSIGNED NOT NULL,
+            variant_id INT(11) UNSIGNED NULL,
             quantity INT(11) NOT NULL DEFAULT 1,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+            FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE CASCADE
         )
     ");
 

@@ -8,6 +8,6 @@ class CartItemModel extends Model
 {
     protected $table = 'cart_items';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['user_id', 'product_id', 'quantity'];
+    protected $allowedFields = ['user_id', 'product_id', 'quantity', 'variant_id'];
     protected $useTimestamps = true;
 }
