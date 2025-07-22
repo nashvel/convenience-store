@@ -76,7 +76,7 @@ const Footer = () => {
               <li>
                 <Link to="/stores" className="flex items-center gap-3 text-gray-600 hover:text-purple-600 transition-all duration-200 group">
                   <div className="w-2 h-2 bg-purple-500 rounded-full group-hover:bg-purple-600 transition-colors"></div>
-                  <span className="group-hover:translate-x-1 transition-transform">Stores</span>
+                  <span className="group-hover:translate-x-1 transition-transform">Store Directory</span>
                 </Link>
               </li>
               <li>
@@ -89,6 +89,18 @@ const Footer = () => {
                 <Link to="/my-orders" className="flex items-center gap-3 text-gray-600 hover:text-yellow-600 transition-all duration-200 group">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full group-hover:bg-yellow-600 transition-colors"></div>
                   <span className="group-hover:translate-x-1 transition-transform">My Orders</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/appliances" className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-all duration-200 group">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full group-hover:bg-blue-600 transition-colors"></div>
+                  <span className="group-hover:translate-x-1 transition-transform">Appliances</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/pc-builder" className="flex items-center gap-3 text-gray-600 hover:text-cyan-500 transition-all duration-200 group">
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full group-hover:bg-cyan-600 transition-colors"></div>
+                  <span className="group-hover:translate-x-1 transition-transform">PC Builder</span>
                 </Link>
               </li>
             </ul>

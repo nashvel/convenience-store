@@ -79,8 +79,22 @@ class ProductController extends ResourceController
             $this->model->where('products.store_id', $storeId);
         }
 
-        $perPage = $this->request->getGet('perPage') ?? 10;
+        // Filter by store type (convenience, restaurant, etc.)
+        $storeType = $this->request->getGet('store_type');
+        if ($storeType) {
+            $this->model->where('stores.store_type', $storeType);
+        }
+
+        $perPage = $this->request->getGet('perPage') ?? 50; // Increased default to show more products
         $products = $this->model->paginate($perPage);
+        
+        // Debug logging
+        log_message('debug', 'ProductController::index - Store type filter: ' . ($storeType ?? 'none'));
+        log_message('debug', 'ProductController::index - Found ' . count($products) . ' products');
+        if (!empty($products)) {
+            log_message('debug', 'ProductController::index - First product store_id: ' . $products[0]['store_id']);
+            log_message('debug', 'ProductController::index - First product: ' . json_encode($products[0], JSON_PRETTY_PRINT));
+        }
 
         $variantController = new ProductVariantController();
         foreach ($products as &$product) {
@@ -94,6 +108,14 @@ class ProductController extends ResourceController
 
         $pager = $this->model->pager;
 
+        // Final debug logging before response
+        log_message('debug', 'ProductController::index - Final products count: ' . count($products));
+        if (!empty($products)) {
+            foreach ($products as $i => $product) {
+                log_message('debug', "Product {$i}: ID={$product['id']}, store_id={$product['store_id']}, name={$product['name']}");
+            }
+        }
+        
         $response = [
             'products' => $products,
             'pager' => [

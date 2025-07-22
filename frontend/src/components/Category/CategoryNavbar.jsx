@@ -29,7 +29,12 @@ const CategoryNavbar = () => {
     return !!(dealsParam || searchParam || minPriceParam || maxPriceParam);
   }, [dealsParam, searchParam, minPriceParam, maxPriceParam]);
 
-  const mainCategories = useMemo(() => categories.filter(c => !c.parent_id), [categories]);
+  // Filter out restaurant-specific categories for products page
+  const restaurantCategories = ['Pizza', 'Burgers', 'Asian', 'Healthy', 'Desserts', 'Coffee', 'Fast Food', 'Seafood'];
+  const mainCategories = useMemo(() => 
+    categories.filter(c => !c.parent_id && !restaurantCategories.includes(c.name)), 
+    [categories]
+  );
 
   if (areFiltersActive) {
     return null;

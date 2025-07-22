@@ -50,6 +50,9 @@ const Products = () => {
       // Add pagination
       params.set('perPage', '50'); // Get more products for better filtering
       
+      // Filter to only show convenience store products on /products page
+      params.set('store_type', 'convenience');
+      
       console.log('Fetching products with params:', params.toString());
       const response = await api.get('/products', { params });
       console.log('Products API response:', response.data);

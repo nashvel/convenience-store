@@ -21,6 +21,8 @@ import ForgotPassword from './pages/Auth/ForgotPassword';
 
 import StoresListPage from './pages/Stores/StoresListPage';
 import RestaurantsPage from './pages/Restaurants/Restaurants';
+import Appliances from './pages/Appliances/Appliances';
+import PCBuilder from './pages/PCBuilder/PCBuilder';
 import StorePage from './pages/Stores/StorePage';
 import SellerLayout from './seller/SellerLayout';
 import SellerDashboard from './seller/home/SellerDashboard';
@@ -135,6 +137,8 @@ const App = () => (
                           <Route path="/stores" element={<StoresListPage />} />
                           <Route path="/stores/:storeId/:storeName" element={<StorePage />} />
                           <Route path="/restaurants" element={<RestaurantsPage />} />
+                          <Route path="/appliances" element={<Appliances />} />
+                          <Route path="/pc-builder" element={<PCBuilder />} />
                           <Route path="/promotions" element={<PromotionsPage />} />
                           <Route path="/partners" element={<Partners />} />
                           <Route path="/login" element={<SignIn />} />

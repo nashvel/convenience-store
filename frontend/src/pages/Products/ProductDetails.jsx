@@ -113,7 +113,6 @@ const ProductDetails = () => {
       };
 
       openChat(chatRecipient, initialMessage);
-      toast.success('Chat opened with product information!');
     } else {
       toast.error('Store information is not available.');
     }

@@ -26,6 +26,31 @@ class CategorySeeder extends Seeder
             ]],
             ['name' => 'Food & Grocery', 'icon' => 'fas fa-utensils', 'sub_categories' => [
                 ['name' => 'Fresh Produce'], ['name' => 'Beverages'], ['name' => 'Snacks'], ['name' => 'Dairy & Chilled']
+            ]],
+            // Restaurant Food Categories
+            ['name' => 'Pizza', 'icon' => 'fas fa-pizza-slice', 'sub_categories' => [
+                ['name' => 'Margherita'], ['name' => 'Pepperoni'], ['name' => 'Supreme'], ['name' => 'Vegetarian']
+            ]],
+            ['name' => 'Burgers', 'icon' => 'fas fa-hamburger', 'sub_categories' => [
+                ['name' => 'Beef Burgers'], ['name' => 'Chicken Burgers'], ['name' => 'Veggie Burgers'], ['name' => 'Fish Burgers']
+            ]],
+            ['name' => 'Asian', 'icon' => 'fas fa-bowl-rice', 'sub_categories' => [
+                ['name' => 'Chinese'], ['name' => 'Japanese'], ['name' => 'Thai'], ['name' => 'Korean']
+            ]],
+            ['name' => 'Healthy', 'icon' => 'fas fa-leaf', 'sub_categories' => [
+                ['name' => 'Salads'], ['name' => 'Smoothies'], ['name' => 'Grain Bowls'], ['name' => 'Wraps']
+            ]],
+            ['name' => 'Desserts', 'icon' => 'fas fa-ice-cream', 'sub_categories' => [
+                ['name' => 'Cakes'], ['name' => 'Ice Cream'], ['name' => 'Pastries'], ['name' => 'Cookies']
+            ]],
+            ['name' => 'Coffee', 'icon' => 'fas fa-coffee', 'sub_categories' => [
+                ['name' => 'Espresso'], ['name' => 'Latte'], ['name' => 'Cappuccino'], ['name' => 'Cold Brew']
+            ]],
+            ['name' => 'Fast Food', 'icon' => 'fas fa-hotdog', 'sub_categories' => [
+                ['name' => 'Fried Chicken'], ['name' => 'Hot Dogs'], ['name' => 'Tacos'], ['name' => 'Sandwiches']
+            ]],
+            ['name' => 'Seafood', 'icon' => 'fas fa-fish', 'sub_categories' => [
+                ['name' => 'Grilled Fish'], ['name' => 'Shrimp'], ['name' => 'Crab'], ['name' => 'Sushi']
             ]]
         ];
 

@@ -97,7 +97,7 @@ class StoreController extends ResourceController
     {
         try {
             $stores = $this->model
-                ->select('stores.*, owners.id as owner_id, owners.first_name, owners.last_name, owners.email, roles.name as role, owners.avatar')
+                ->select('stores.*, stores.store_type, owners.id as owner_id, owners.first_name, owners.last_name, owners.email, roles.name as role, owners.avatar')
                 ->join('users as owners', 'owners.id = stores.client_id', 'left')
                 ->join('roles', 'roles.id = owners.role_id', 'left')
                 ->where('stores.is_active', 1)

@@ -52,6 +52,70 @@ class StoreSeeder extends Seeder
                 'store_type' => 'restaurant',
                 'created_at' => date('Y-m-d H:i:s')
             ],
+            // Additional Restaurant Stores
+            [
+                'client_id' => $client_ids[0], // Reusing client IDs for demo
+                'name' => 'Burger Junction',
+                'description' => 'Gourmet burgers and fries.',
+                'address' => '202 Burger Street, Tagoloan, Misamis Oriental',
+                'is_active' => true,
+                'store_type' => 'restaurant',
+                'created_at' => date('Y-m-d H:i:s')
+            ],
+            [
+                'client_id' => $client_ids[1],
+                'name' => 'Asian Fusion',
+                'description' => 'Authentic Asian cuisine with a modern twist.',
+                'address' => '303 Asia Avenue, Tagoloan, Misamis Oriental',
+                'is_active' => true,
+                'store_type' => 'restaurant',
+                'created_at' => date('Y-m-d H:i:s')
+            ],
+            [
+                'client_id' => $client_ids[2],
+                'name' => 'Healthy Bites',
+                'description' => 'Fresh salads, smoothies, and healthy meals.',
+                'address' => '404 Health Way, Tagoloan, Misamis Oriental',
+                'is_active' => true,
+                'store_type' => 'restaurant',
+                'created_at' => date('Y-m-d H:i:s')
+            ],
+            [
+                'client_id' => $client_ids[3],
+                'name' => 'Sweet Treats',
+                'description' => 'Cakes, pastries, and desserts.',
+                'address' => '505 Dessert Drive, Tagoloan, Misamis Oriental',
+                'is_active' => true,
+                'store_type' => 'restaurant',
+                'created_at' => date('Y-m-d H:i:s')
+            ],
+            [
+                'client_id' => $client_ids[0],
+                'name' => 'Coffee Corner',
+                'description' => 'Premium coffee and light snacks.',
+                'address' => '606 Coffee Court, Tagoloan, Misamis Oriental',
+                'is_active' => true,
+                'store_type' => 'restaurant',
+                'created_at' => date('Y-m-d H:i:s')
+            ],
+            [
+                'client_id' => $client_ids[1],
+                'name' => 'Quick Bites',
+                'description' => 'Fast food favorites and quick meals.',
+                'address' => '707 Fast Lane, Tagoloan, Misamis Oriental',
+                'is_active' => true,
+                'store_type' => 'restaurant',
+                'created_at' => date('Y-m-d H:i:s')
+            ],
+            [
+                'client_id' => $client_ids[2],
+                'name' => 'Ocean Delights',
+                'description' => 'Fresh seafood and marine cuisine.',
+                'address' => '808 Seafood Street, Tagoloan, Misamis Oriental',
+                'is_active' => true,
+                'store_type' => 'restaurant',
+                'created_at' => date('Y-m-d H:i:s')
+            ],
         ];
 
         $this->db->table('stores')->insertBatch($data);

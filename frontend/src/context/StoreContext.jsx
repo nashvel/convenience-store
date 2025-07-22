@@ -62,6 +62,7 @@ export const StoreProvider = ({ children }) => {
             address: store.address,
             phone_number: store.phone_number,
             delivery_fee: parseFloat(store.delivery_fee) || 0,
+            store_type: store.store_type, // Add store_type field
             owner: store.owner
           }));
           setStores(fetchedStores);

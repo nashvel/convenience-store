@@ -265,7 +265,10 @@ const Home = () => {
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FaShoppingBag className="text-primary" /> Shop by Category</h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {categories.map((category) => (
+          {categories.filter(category => {
+            const restaurantCategories = ['Pizza', 'Burgers', 'Asian', 'Healthy', 'Desserts', 'Coffee', 'Fast Food', 'Seafood'];
+            return !restaurantCategories.includes(category.name);
+          }).map((category) => (
             <motion.div key={category.id} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
               <Link to={`/products?category=${category.name}`} className="group flex flex-col bg-white rounded-lg shadow transition-shadow duration-300 hover:shadow-lg overflow-hidden h-full">
                 <div className="relative h-40 w-full overflow-hidden">

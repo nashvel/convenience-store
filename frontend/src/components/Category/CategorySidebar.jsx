@@ -13,6 +13,13 @@ const CategorySidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
+  // Filter out restaurant-specific categories for products page
+  const filteredCategories = useMemo(() => {
+    // Only filter out restaurant-specific food categories, keep convenience store food categories
+    const restaurantOnlyCategories = ['Pizza', 'Burgers', 'Asian', 'Healthy', 'Desserts', 'Coffee', 'Fast Food', 'Seafood'];
+    return categories.filter(parent => !restaurantOnlyCategories.includes(parent.name));
+  }, [categories]);
+  
   const queryParams = new URLSearchParams(location.search);
   const categoryParam = queryParams.get('category');
   const dealsParam = queryParams.get('on_deal') === 'true';
@@ -124,7 +131,7 @@ const CategorySidebar = () => {
               All Products
             </button>
           </li>
-          {categories.map(parent => (
+          {filteredCategories.map(parent => (
             <li key={parent.id}>
               <p className="px-6 py-2 font-bold text-gray-800">{parent.name}</p>
               <ul className="space-y-1">
