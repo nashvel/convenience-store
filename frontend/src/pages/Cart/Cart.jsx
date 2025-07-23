@@ -31,6 +31,10 @@ const Cart = () => {
     toggleSelectAll,
   } = useContext(CartContext);
 
+  // Get fetchCart function from CartContext for refreshing cart after add-ons edit
+  const cartContext = useContext(CartContext);
+  const fetchCart = cartContext.fetchCart || (() => window.location.reload());
+
   const { stores, loading: storesLoading } = useContext(StoreContext);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -237,6 +241,7 @@ const Cart = () => {
                         onRemove={removeFromCart}
                         onSelectItem={toggleItemSelection}
                         isSelected={selectedItems.includes(item.cartItemId)}
+                        onRefreshCart={fetchCart}
                       />
                     ))}
                   </div>

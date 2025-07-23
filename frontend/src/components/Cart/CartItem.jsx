@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaTrash, FaPlus, FaMinus } from 'react-icons/fa';
+import { FaTrash, FaPlus, FaMinus, FaEdit } from 'react-icons/fa';
 import { PRODUCT_ASSET_URL } from '../../config';
+import EditAddOnsModal from './EditAddOnsModal';
 
-const CartItem = ({ item, onUpdateQuantity, onRemove, onSelectItem, isSelected }) => {
+const CartItem = ({ item, onUpdateQuantity, onRemove, onSelectItem, isSelected, onRefreshCart }) => {
+  const [showEditAddOnsModal, setShowEditAddOnsModal] = useState(false);
+  
   const formatPrice = (price) => {
     const numericPrice = Number(price) || 0;
     return numericPrice.toFixed(2);
+  };
+
+  const handleEditAddOns = () => {
+    setShowEditAddOnsModal(true);
+  };
+
+  const handleUpdateCart = () => {
+    setShowEditAddOnsModal(false);
+    if (onRefreshCart) {
+      onRefreshCart();
+    }
   };
 
   return (
@@ -45,9 +59,49 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, onSelectItem, isSelected }
           </div>
         )}
         
+        {/* Display add-ons if available */}
+        {item.addOns && item.addOns.length > 0 && (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold text-gray-600">Add-ons:</p>
+              <button
+                onClick={handleEditAddOns}
+                className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                title="Edit add-ons"
+              >
+                <FaEdit className="text-xs" />
+                Edit
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {item.addOns.map((addon, index) => (
+                <button
+                  key={index}
+                  onClick={handleEditAddOns}
+                  className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-pointer"
+                  title="Click to edit add-ons"
+                >
+                  {addon.addon_name}
+                  {addon.variant_name && addon.variant_value && (
+                    <span className="text-blue-500"> ({addon.variant_name}: {addon.variant_value})</span>
+                  )}
+                  {addon.quantity > 1 && <span className="text-blue-500"> x{addon.quantity}</span>}
+                  <span className="text-blue-700 font-semibold"> +₱{formatPrice(addon.price)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <div className="flex items-center gap-4">
           <p className="text-sm font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-            ₱{formatPrice(item.price)} each
+            {item.addOnsPrice > 0 ? (
+              <span>
+                ₱{formatPrice(item.basePrice)} + ₱{formatPrice(item.addOnsPrice)} each
+              </span>
+            ) : (
+              <span>₱{formatPrice(item.basePrice)} each</span>
+            )}
           </p>
           <button 
             onClick={() => onRemove(item.cartItemId)} 
@@ -78,9 +132,25 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, onSelectItem, isSelected }
           ₱{formatPrice(item.price * item.quantity)}
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          {item.quantity} × ₱{formatPrice(item.price)}
+          {item.quantity} × (
+          {item.addOnsPrice > 0 ? (
+            <span>
+              ₱{formatPrice(item.basePrice)} + ₱{formatPrice(item.addOnsPrice)}
+            </span>
+          ) : (
+            <span>₱{formatPrice(item.basePrice)}</span>
+          )}
+          )
         </p>
       </div>
+      
+      {/* Edit Add-ons Modal */}
+      <EditAddOnsModal
+        isOpen={showEditAddOnsModal}
+        onClose={() => setShowEditAddOnsModal(false)}
+        cartItem={item}
+        onUpdateCart={handleUpdateCart}
+      />
     </div>
   );
 };

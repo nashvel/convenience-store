@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\CartItemModel;
+use App\Models\CartItemAddonModel;
 use Exception;
 use CodeIgniter\API\ResponseTrait;
 
@@ -86,6 +87,10 @@ class CartController extends BaseController
                 }
             }
             
+            // Get add-ons for this cart item
+            $cartItemAddonModel = new CartItemAddonModel();
+            $item['addOns'] = $cartItemAddonModel->getCartItemAddOns($cartItem['id']);
+            
             $cartItems[] = $item;
         }
             
@@ -121,8 +126,9 @@ class CartController extends BaseController
         }
 
         $productId = $this->request->getJsonVar('product_id');
-        $variantId = $this->request->getJsonVar('variant_id'); // Optional variant ID
         $quantity = $this->request->getJsonVar('quantity') ?? 1;
+        $variantId = $this->request->getJsonVar('variant_id');
+        $addOns = $this->request->getJsonVar('addOns') ?? [];
         
         // Convert variant_id to integer if it exists (database expects integer, not string)
         if ($variantId !== null && $variantId !== '') {
@@ -168,6 +174,11 @@ class CartController extends BaseController
             error_log('🔄 WHERE CONDITIONS USED: ' . json_encode($whereConditions));
             $newQuantity = $existingItem['quantity'] + $quantity;
             $cartItemModel->update($existingItem['id'], ['quantity' => $newQuantity]);
+            
+            // Save add-ons for existing item if provided
+            if (!empty($addOns)) {
+                $this->saveCartItemAddOns($existingItem['id'], $addOns);
+            }
         } else {
             $dataToSave = [
                 'user_id' => $userId,
@@ -184,6 +195,14 @@ class CartController extends BaseController
             
             if (!$saveResult) {
                 error_log('💾 SAVE ERRORS: ' . json_encode($cartItemModel->errors()));
+            } else {
+                // Get the newly created cart item ID
+                $cartItemId = $cartItemModel->getInsertID();
+                
+                // Save add-ons if provided
+                if (!empty($addOns) && $cartItemId) {
+                    $this->saveCartItemAddOns($cartItemId, $addOns);
+                }
             }
         }
 
@@ -198,6 +217,7 @@ class CartController extends BaseController
         }
 
         $quantity = $this->request->getJsonVar('quantity');
+        $addOns = $this->request->getJsonVar('addOns');
 
         if ($quantity === null || $quantity < 1) {
             return $this->failValidationErrors('A valid quantity is required.');
@@ -210,7 +230,35 @@ class CartController extends BaseController
             return $this->failNotFound('Cart item not found.');
         }
 
+        // Update cart item quantity
         $cartItemModel->update($id, ['quantity' => $quantity]);
+
+        // Handle add-ons update if provided
+        if ($addOns !== null) {
+            $cartItemAddonModel = new CartItemAddonModel();
+            
+            // Remove existing add-ons for this cart item
+            $cartItemAddonModel->where('cart_item_id', $id)->delete();
+            
+            // Convert addOns to array if it's an object or array of objects
+            $addOnsArray = json_decode(json_encode($addOns), true);
+            
+            // Add new add-ons
+            if (is_array($addOnsArray) && !empty($addOnsArray)) {
+                foreach ($addOnsArray as $addon) {
+                    if (isset($addon['addon_id']) && isset($addon['quantity']) && $addon['quantity'] > 0) {
+                        $addonData = [
+                            'cart_item_id' => $id,
+                            'addon_id' => $addon['addon_id'],
+                            'variant_id' => $addon['variant_id'] ?? null,
+                            'quantity' => $addon['quantity'],
+                            'price' => $addon['price'] ?? 0
+                        ];
+                        $cartItemAddonModel->insert($addonData);
+                    }
+                }
+            }
+        }
 
         return $this->respond(['message' => 'Cart item updated successfully.']);
     }
@@ -245,5 +293,51 @@ class CartController extends BaseController
         $cartItemModel->where('user_id', $userId)->delete();
 
         return $this->respondDeleted(['message' => 'Cart cleared successfully.']);
+    }
+
+    /**
+     * Save add-ons for a cart item
+     */
+    private function saveCartItemAddOns($cartItemId, $addOns)
+    {
+        $cartItemAddonModel = new CartItemAddonModel();
+        
+        // First, remove existing add-ons for this cart item
+        $cartItemAddonModel->deleteByCartItem($cartItemId);
+        
+        // Convert addOns to array if it's an object
+        if (is_object($addOns)) {
+            $addOns = json_decode(json_encode($addOns), true);
+        }
+        
+        // Debug logging
+        error_log('🔧 ADD-ONS DATA TYPE: ' . gettype($addOns));
+        error_log('🔧 ADD-ONS DATA: ' . json_encode($addOns));
+        
+        // Then add new add-ons
+        foreach ($addOns as $addOn) {
+            // Convert addOn to array if it's an object
+            if (is_object($addOn)) {
+                $addOn = json_decode(json_encode($addOn), true);
+            }
+            
+            error_log('🔧 PROCESSING ADD-ON: ' . json_encode($addOn));
+            
+            $addonData = [
+                'cart_item_id' => $cartItemId,
+                'addon_id' => $addOn['addon_id'],
+                'addon_variant_id' => $addOn['variant_id'] ?? null,
+                'quantity' => $addOn['quantity'] ?? 1,
+                'price' => $addOn['price']
+            ];
+            
+            error_log('🔧 SAVING ADDON DATA: ' . json_encode($addonData));
+            $saveResult = $cartItemAddonModel->save($addonData);
+            error_log('🔧 ADDON SAVE RESULT: ' . ($saveResult ? 'SUCCESS' : 'FAILED'));
+            
+            if (!$saveResult) {
+                error_log('🔧 ADDON SAVE ERRORS: ' . json_encode($cartItemAddonModel->errors()));
+            }
+        }
     }
 }

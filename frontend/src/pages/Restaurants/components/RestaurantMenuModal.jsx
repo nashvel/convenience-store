@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaStar, FaClock, FaMotorcycle, FaUtensils, FaPlus, FaShoppingCart } from 'react-icons/fa';
-import { LOGO_ASSET_URL } from '../../../config';
+import { LOGO_ASSET_URL, PRODUCT_ASSET_URL } from '../../../config';
 import slugify from '../../../utils/slugify';
+import AddOnsModal from './AddOnsModal';
 
 const RestaurantMenuModal = ({ 
   isOpen, 
@@ -15,24 +16,29 @@ const RestaurantMenuModal = ({
   onAddToCart, 
   onRetry 
 }) => {
+  const [showAddOnsModal, setShowAddOnsModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   if (!isOpen || !restaurant) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-        >
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="restaurant-menu-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={onClose}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
           {/* Modal Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 relative">
             <button
@@ -86,7 +92,11 @@ const RestaurantMenuModal = ({
               <MenuItemsList 
                 products={products} 
                 restaurant={restaurant} 
-                onAddToCart={onAddToCart} 
+                onAddToCart={onAddToCart}
+                onShowAddOns={(product) => {
+                  setSelectedProduct(product);
+                  setShowAddOnsModal(true);
+                }}
               />
             )}
           </div>
@@ -115,9 +125,22 @@ const RestaurantMenuModal = ({
               </Link>
             </div>
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <AddOnsModal
+        isOpen={showAddOnsModal}
+        onClose={() => setShowAddOnsModal(false)}
+        product={selectedProduct}
+        restaurant={restaurant}
+        onAddToCart={(cartItem) => {
+          onAddToCart(cartItem);
+          setShowAddOnsModal(false);
+        }}
+      />
+    </>
   );
 };
 
@@ -167,7 +190,7 @@ const EmptyMenuState = () => (
 );
 
 // Menu items list component
-const MenuItemsList = ({ products, restaurant, onAddToCart }) => (
+const MenuItemsList = ({ products, restaurant, onAddToCart, onShowAddOns }) => (
   <div className="space-y-4">
     <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
       <FaUtensils className="text-blue-600" />
@@ -181,7 +204,7 @@ const MenuItemsList = ({ products, restaurant, onAddToCart }) => (
         className="flex items-center gap-4 p-4 border border-gray-200 hover:border-blue-300 rounded-xl transition-all duration-200 hover:shadow-md"
       >
         <img
-          src={product.image ? `${LOGO_ASSET_URL}/${product.image}` : '/images/cards/product-placeholder.jpg'}
+                    src={product.image ? `${PRODUCT_ASSET_URL}/${product.image}` : '/images/cards/product-placeholder.jpg'}
           alt={product.name}
           className="w-20 h-20 object-cover rounded-lg"
         />
@@ -205,7 +228,7 @@ const MenuItemsList = ({ products, restaurant, onAddToCart }) => (
         </div>
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => onAddToCart(product, 1)}
+            onClick={() => onShowAddOns(product)}
             disabled={product.stock <= 0 || !restaurant.isOpen}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-semibold"
           >

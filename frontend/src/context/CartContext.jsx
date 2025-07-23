@@ -70,16 +70,26 @@ export const CartProvider = ({ children }) => {
           variant_details: item.variant_details
         });
         
-        const finalPrice = Number(item.price) || Number(item.variant_price) || Number(item.base_price) || Number(item.product_price) || 0;
+        const basePrice = Number(item.price) || Number(item.variant_price) || Number(item.base_price) || Number(item.product_price) || 0;
         
-        console.log('💰 Final calculated price:', finalPrice);
+        // Calculate add-ons total price
+        const addOnsPrice = (item.addOns || []).reduce((total, addon) => {
+          return total + (Number(addon.price) * Number(addon.quantity || 1));
+        }, 0);
+        
+        const finalPrice = basePrice + addOnsPrice;
+        
+        console.log('💰 Base price:', basePrice, 'Add-ons price:', addOnsPrice, 'Final price:', finalPrice);
         
         return {
           ...item,
           price: finalPrice,
+          basePrice: basePrice,
+          addOnsPrice: addOnsPrice,
           quantity: Number(item.quantity) || 1,
           variant_details: item.variant_details || null,
-          variant_id: item.variant_id || null
+          variant_id: item.variant_id || null,
+          addOns: item.addOns || []
         };
       });
       
@@ -126,8 +136,20 @@ export const CartProvider = ({ children }) => {
         cartData.variant_id = product.variant_id;
       }
       
+      // Add add-ons data if available
+      if (product.addOns && product.addOns.length > 0) {
+        cartData.addOns = product.addOns;
+      }
+      
       await api.post('/cart', cartData);
-      toast.success(`${product.name} added to cart!`);
+      
+      // Show success message with add-ons info if applicable
+      const addOnsCount = product.addOns ? product.addOns.length : 0;
+      const successMessage = addOnsCount > 0 
+        ? `${product.name} with ${addOnsCount} add-on${addOnsCount > 1 ? 's' : ''} added to cart!`
+        : `${product.name} added to cart!`;
+      
+      toast.success(successMessage);
       fetchCart();
     } catch (error) {
       console.error('Failed to add to cart:', error);
@@ -177,7 +199,6 @@ export const CartProvider = ({ children }) => {
         selectedItems,
         totalItems,
         subtotal,
-
         total,
         addToCart,
         removeFromCart,
@@ -185,6 +206,7 @@ export const CartProvider = ({ children }) => {
         clearCart,
         toggleItemSelection,
         toggleSelectAll,
+        fetchCart,
       }}
     >
       {children}

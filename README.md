@@ -2,6 +2,40 @@
 
 This is a web application for browsing and ordering items from a convenience store. Users can browse products, view details, add items to their cart, and place an order.
 
+## Development Setup
+
+This project includes helper scripts to streamline the development setup process.
+
+### 1. Database Setup and Seeding
+
+Before running the application for the first time, you need to set up the database schema and populate it with initial data.
+
+This can be done by running the `setup_and_seed.py` script from the project root:
+
+```bash
+python setup_and_seed.py
+```
+
+This script will:
+1.  Execute `backend/public/setup.php` to create the necessary database tables.
+2.  Execute `php spark db:seed DatabaseSeeder` to seed the database with initial data.
+
+**Note:** You only need to run this script once, or whenever there are changes to the database schema or seeders.
+
+### 2. Running the Development Servers
+
+To start the backend and frontend development servers simultaneously, use the `run_dev.py` script:
+
+```bash
+python run_dev.py
+```
+
+This will open two new terminal windows:
+-   One for the **Backend Server** (CodeIgniter) running `php spark serve`.
+-   One for the **Frontend Server** (React) running `npm start`.
+
+To stop the servers, simply close their respective terminal windows.
+
 ## Features
 
 - 🏠 **Home Page**: Displays featured products and special offers.

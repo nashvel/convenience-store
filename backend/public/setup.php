@@ -16,7 +16,7 @@ try {
     $mysqli->query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Drop all tables
-    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'product_variants', 'attributes', 'attribute_values', 'product_variant_attributes', 'orders', 'order_items', 'order_item_addons', 'addons', 'addon_variants', 'addon_categories', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications', 'achievements', 'rider_achievements', 'promotions', 'promotion_scopes', 'store_promotions', 'site_settings'];
+    $tables = ['cart_items', 'user_addresses', 'users', 'roles', 'stores', 'categories', 'products', 'product_variants', 'attributes', 'attribute_values', 'product_variant_attributes', 'orders', 'order_items', 'order_item_addons', 'addons', 'addon_variants', 'addon_categories', 'reviews', 'chats', 'chat_messages', 'chat_message_media', 'settings', 'user_devices', 'remember_me_tokens', 'order_tracking', 'rider_locations', 'email_verifications', 'notifications', 'achievements', 'rider_achievements', 'promotions', 'promotion_scopes', 'store_promotions', 'site_settings', 'cart_item_addons'];
     foreach ($tables as $table) {
         $mysqli->query("DROP TABLE IF EXISTS $table");
     }
@@ -550,6 +550,23 @@ try {
             is_participating BOOLEAN DEFAULT FALSE,
             FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
             FOREIGN KEY (promotion_id) REFERENCES promotions(id) ON DELETE CASCADE
+        )
+    ");
+
+    // Create cart_item_addons table
+    $mysqli->query("
+        CREATE TABLE cart_item_addons (
+            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            cart_item_id INT(11) UNSIGNED NOT NULL,
+            addon_id INT(11) UNSIGNED NOT NULL,
+            addon_variant_id INT(11) UNSIGNED,
+            quantity INT(11) NOT NULL DEFAULT 1,
+            price DECIMAL(10, 2) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (cart_item_id) REFERENCES cart_items(id) ON DELETE CASCADE,
+            FOREIGN KEY (addon_id) REFERENCES addons(id) ON DELETE CASCADE,
+            FOREIGN KEY (addon_variant_id) REFERENCES addon_variants(id) ON DELETE CASCADE
         )
     ");
 

@@ -3,12 +3,14 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { StoreContext } from '../../context/StoreContext';
 import api from '../../api/axios-config';
+import { PRODUCT_ASSET_URL } from '../../config';
 
 import RestaurantHero from './components/RestaurantHero';
 import RestaurantFilters from './components/RestaurantFilters';
 import RestaurantCard from './components/RestaurantCard';
 import RestaurantMenuModal from './components/RestaurantMenuModal';
 import RestaurantCardSkeleton from './components/RestaurantCardSkeleton';
+import DiscoverFood from './components/DiscoverFood';
 import FavoriteCuisines from './components/FavoriteCuisines';
 import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
@@ -412,70 +414,13 @@ const RestaurantsPage = () => {
               )}
             </section>
 
-            {/* All Food Items Section */}
-            <section className="mt-16">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Discover Food</h2>
-              {foodLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {Array.from({ length: 8 }).map((_, index) => (
-                    <div key={index} className="bg-white rounded-xl shadow-md p-4 animate-pulse">
-                      <div className="w-full h-40 bg-gray-200 rounded-lg mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded mb-2 w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : filteredFoodItems.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredFoodItems.slice(0, 12).map((food) => (
-                    <motion.div
-                      key={`${food.restaurantId}-${food.id}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group cursor-pointer"
-                      onClick={() => {
-                        const restaurant = restaurants.find(r => r.id === food.restaurantId);
-                        if (restaurant) {
-                          handleViewMenu(restaurant);
-                        }
-                      }}
-                    >
-                      <div className="relative">
-                        <img
-                          src={food.image || 'https://via.placeholder.com/300x200'}
-                          alt={food.name}
-                          className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700">
-                          {food.restaurantName}
-                        </div>
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-bold text-lg text-gray-800 mb-1 truncate">{food.name}</h3>
-                        <p className="text-sm text-gray-500 mb-2 line-clamp-2">{food.description || 'Delicious food item'}</p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-blue-600">₱{parseFloat(food.price || 0).toFixed(2)}</span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToCart(food, 1);
-                            }}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
-                          >
-                            Add to Cart
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-lg">
-                  <p className="text-gray-500">No food items available at the moment.</p>
-                </div>
-              )}
-            </section>
+            <DiscoverFood 
+              foodItems={filteredFoodItems}
+              loading={foodLoading}
+              restaurants={restaurants}
+              handleViewMenu={handleViewMenu}
+              handleAddToCart={handleAddToCart}
+            />
           </main>
         </div>
       </div>
