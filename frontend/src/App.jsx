@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
 import ScrollToTop from './utils/ScrollToTop';
@@ -69,19 +68,7 @@ const MainLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        toastClassName="bg-white text-gray-800 font-semibold rounded-xl shadow-lg"
-        progressClassName="bg-red-500"
-      />
+
       <Navbar />
       {showCategoryNavbar && <CategoryNavbar />}
       <div className="flex flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">

@@ -58,6 +58,7 @@ class CartItemAddonModel extends Model
                 cart_item_addons.*,
                 addons.name as addon_name,
                 addons.description as addon_description,
+                addons.image as addon_image,
                 addon_categories.name as category_name,
                 addon_variants.variant_name,
                 addon_variants.variant_value,

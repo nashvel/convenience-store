@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaPlus, FaMinus, FaShoppingCart, FaUtensils, FaCoffee, FaCookie, FaEllipsisH } from 'react-icons/fa';
+import { FaTimes, FaPlus, FaMinus, FaShoppingCart, FaUtensils, FaCoffee, FaCookie, FaEllipsisH, FaChevronDown } from 'react-icons/fa';
 import api from '../../api/axios-config';
-import { PRODUCT_ASSET_URL } from '../../config';
+import { PRODUCT_ASSET_URL, ADDON_ASSET_URL } from '../../config';
 
 const EditAddOnsModal = ({ 
   isOpen, 
@@ -17,6 +17,7 @@ const EditAddOnsModal = ({
   const [quantity, setQuantity] = useState(1);
   const [activeCategory, setActiveCategory] = useState(0);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [expandedAddOns, setExpandedAddOns] = useState({});
   const lastOperationRef = useRef(null);
 
   useEffect(() => {
@@ -24,8 +25,16 @@ const EditAddOnsModal = ({
       fetchAddOns();
       setActiveCategory(0);
       setQuantity(cartItem.quantity || 1);
+      setExpandedAddOns({});
     }
   }, [isOpen, cartItem]);
+
+  const toggleAddonExpanded = (addonId) => {
+    setExpandedAddOns(prev => ({
+      ...prev,
+      [addonId]: !prev[addonId]
+    }));
+  };
 
   useEffect(() => {
     if (isOpen && cartItem?.addOns && cartItem.addOns.length > 0) {
@@ -394,16 +403,41 @@ const EditAddOnsModal = ({
                       {addOns[activeCategory]?.addons?.map((addon) => (
                         <div key={addon.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
                           <div className="flex justify-between items-start mb-3">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-800">{addon.name}</h4>
-                              {addon.description && (
-                                <p className="text-sm text-gray-600 mt-1">{addon.description}</p>
+                            <div className="flex items-start gap-3 flex-1">
+                              {addon.image && (
+                                <img
+                                  src={`${ADDON_ASSET_URL}/${addon.image}`}
+                                  alt={addon.name}
+                                  className="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
                               )}
-                              <p className="text-blue-600 font-semibold mt-2">₱{parseFloat(addon.base_price).toFixed(2)}</p>
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-gray-800">{addon.name}</h4>
+                                {addon.description && (
+                                  <p className="text-sm text-gray-600 mt-1">{addon.description}</p>
+                                )}
+                                <p className="text-blue-600 font-semibold mt-2">₱{parseFloat(addon.base_price).toFixed(2)}</p>
+                              </div>
                             </div>
+                            {addon.variants && addon.variants.length > 0 && (
+                              <button
+                                onClick={() => toggleAddonExpanded(addon.id)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors ml-2"
+                                title={expandedAddOns[addon.id] ? 'Hide options' : 'Show options'}
+                              >
+                                <FaChevronDown 
+                                  className={`text-gray-600 transition-transform duration-200 ${
+                                    expandedAddOns[addon.id] ? 'rotate-180' : ''
+                                  }`}
+                                />
+                              </button>
+                            )}
                           </div>
 
-                          {addon.variants && addon.variants.length > 0 && (
+                          {addon.variants && addon.variants.length > 0 && expandedAddOns[addon.id] && (
                             <div className="space-y-2">
                               <p className="text-sm font-medium text-gray-700">Options:</p>
                               {addon.variants.map((variant) => {
@@ -509,25 +543,7 @@ const EditAddOnsModal = ({
           </div>
 
           <div className="bg-gray-50 px-6 py-5 border-t">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">Quantity:</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center"
-                  >
-                    <FaMinus />
-                  </button>
-                  <span className="w-8 text-center font-medium">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center"
-                  >
-                    <FaPlus />
-                  </button>
-                </div>
-              </div>
+            <div className="flex items-center justify-end mb-4">
               <div className="text-right">
                 <div className="text-sm text-gray-600">Total</div>
                 <div className="text-xl font-bold text-blue-600">
