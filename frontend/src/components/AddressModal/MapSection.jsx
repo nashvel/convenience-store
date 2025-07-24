@@ -115,9 +115,9 @@ const MapSection = ({
       
       <p className="text-xs text-gray-500 mt-2">
         Click on the map to select your preferred pickup location. 
-        {address.latitude && address.longitude && (
+        {address && (address.latitude != null) && (address.longitude != null) && (
           <span className="text-blue-600">
-            Current: {address.latitude.toFixed(6)}, {address.longitude.toFixed(6)}
+            Current: {(typeof address.latitude === 'number' ? address.latitude : parseFloat(address.latitude) || 0).toFixed(6)}, {(typeof address.longitude === 'number' ? address.longitude : parseFloat(address.longitude) || 0).toFixed(6)}
           </span>
         )}
       </p>
