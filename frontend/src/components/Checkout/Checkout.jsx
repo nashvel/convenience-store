@@ -194,8 +194,8 @@ const Checkout = ({
                         <h4 className="text-md font-semibold text-gray-700">{group.storeName}</h4>
                       </div>
                       <div className="space-y-3">
-                        {group.items.map(item => (
-                          <div key={`item-${item.id}`} className="bg-white rounded-md">
+                        {group.items.map((item, itemIndex) => (
+                          <div key={`item-${item.product_id || item.id || itemIndex}-${itemIndex}`} className="bg-white rounded-md">
                             {/* Main Item */}
                             <div className="flex justify-between items-center py-2 px-3">
                               <div className="flex items-center flex-1">
@@ -223,8 +223,8 @@ const Checkout = ({
                                 <div className="border-l-2 border-blue-200 pl-3 ml-2 space-y-1">
                                   {item.addOns.map((addOn, index) => {
                                     const addonName = addOn.addon_name || addOn.name || 'Add-on';
-                                    const variantName = addOn.variant_name || addOn.variant_value || '';
-                                    const displayName = variantName ? `${addonName} (${variantName})` : addonName;
+                                    const variantValue = addOn.variant_value || addOn.variant_name || '';
+                                    const displayName = variantValue ? `${addonName} - ${variantValue}` : addonName;
                                     const addonPrice = parseFloat(addOn.price || 0);
                                     const addonQuantity = parseInt(addOn.quantity || 1);
                                     
@@ -233,7 +233,7 @@ const Checkout = ({
                                     const addonImage = addOn.addon_image || addOn.image;
                                     
                                     return (
-                                      <div key={`addon-${item.id}-${index}`} className="flex justify-between items-center py-1">
+                                      <div key={`addon-${item.product_id || item.id || itemIndex}-${index}`} className="flex justify-between items-center py-1">
                                         <div className="flex items-center flex-1">
                                           {addonImage && (
                                             <img 

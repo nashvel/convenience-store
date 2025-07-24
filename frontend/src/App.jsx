@@ -36,6 +36,7 @@ import Partners from './pages/Partners/Partners';
 import Settings from './pages/Profile/Settings';
 import MyOrdersList from './pages/MyOrders/MyOrdersList';
 import MyOrderDetail from './pages/MyOrders/MyOrders';
+import OrderSuccess from './pages/OrderSuccess/OrderSuccess';
 import TrackOrder from './pages/MyOrders/TrackOrder';
 import NotFound from './pages/NotFound';
 import PromotionsPage from './pages/Promotions/PromotionsPage';
@@ -134,6 +135,7 @@ const App = () => (
                           <Route path="/my-orders" element={<MyOrdersList />} />
                           <Route path="/my-orders/:id" element={<MyOrderDetail />} />
                           <Route path="/track-order/:id" element={<TrackOrder />} />
+                          <Route path="/order-success" element={<OrderSuccess />} />
                           <Route path="/profile/settings" element={<Settings />} />
                         </Route>
 
@@ -162,7 +164,7 @@ const App = () => (
       
       {/* Hot Toast with Blue Theme */}
       <Toaster
-        position="top-right"
+        position="top-center"
         toastOptions={{
           duration: 3000,
           style: {

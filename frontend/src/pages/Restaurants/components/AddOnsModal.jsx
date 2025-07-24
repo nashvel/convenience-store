@@ -55,14 +55,24 @@ const AddOnsModal = ({
     }
   };
 
-  const handleAddOnSelect = (categoryId, addonId, variantId = null) => {
+  const handleAddOnSelect = (categoryId, addonId, variantId = null, event = null) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
     setSelectedAddOns(prev => {
       const key = `${categoryId}-${addonId}${variantId ? `-${variantId}` : ''}`;
       const newSelected = { ...prev };
       
       if (newSelected[key]) {
-        newSelected[key].quantity += 1;
+        // Increment existing add-on quantity by 1
+        newSelected[key] = {
+          ...newSelected[key],
+          quantity: newSelected[key].quantity + 1
+        };
       } else {
+        // Create new add-on entry
         const category = addOns.find(cat => cat.id === categoryId);
         const addon = category?.addons.find(addon => addon.id === addonId);
         const variant = variantId ? addon?.variants.find(v => v.id === variantId) : null;
@@ -323,7 +333,7 @@ const AddOnsModal = ({
                                             {selected.quantity}
                                           </span>
                                           <button
-                                            onClick={() => handleAddOnSelect(addOns[activeCategory].id, addon.id, variant.id)}
+                                            onClick={(e) => handleAddOnSelect(addOns[activeCategory].id, addon.id, variant.id, e)}
                                             className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors"
                                           >
                                             <FaPlus />
@@ -331,7 +341,7 @@ const AddOnsModal = ({
                                         </div>
                                       ) : (
                                         <button
-                                          onClick={() => handleAddOnSelect(addOns[activeCategory].id, addon.id, variant.id)}
+                                          onClick={(e) => handleAddOnSelect(addOns[activeCategory].id, addon.id, variant.id, e)}
                                           className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors"
                                         >
                                           <FaPlus />

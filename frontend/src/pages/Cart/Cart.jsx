@@ -120,6 +120,7 @@ const Cart = () => {
         price: item.price,
         store_id: item.store_id,
         name: item.name,
+        addons: item.addOns || [],
       })),
       shippingInfo: {
         id: deliveryAddress.id,
@@ -135,7 +136,7 @@ const Cart = () => {
         toast.success('Order placed successfully!');
         clearCart();
         eventEmitter.dispatch('newNotification');
-        navigate('/my-orders');
+        navigate('/order-success');
       } else {
         toast.error(response.data.message || 'There was an error placing your order.');
       }

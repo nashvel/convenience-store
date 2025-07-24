@@ -72,11 +72,20 @@ class OrderController extends ResourceController
                                       ->where('order_id', $order['id'])
                                       ->get()
                                       ->getResultArray();
+                
+                // For each order item, fetch add-ons
+                foreach ($order['items'] as &$item) {
+                    $item['addOns'] = $db->table('order_item_addons as oia')
+                                         ->join('addons', 'addons.id = oia.addon_id')
+                                         ->where('oia.order_item_id', $item['id'])
+                                         ->select('oia.quantity, addons.name, oia.price as price, addons.image')
+                                         ->get()
+                                         ->getResultArray();
+                }
             }
 
             return $this->respond(['success' => true, 'orders' => $orders]);
         } catch (\Exception $e) {
-            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
             return $this->failServerError('An error occurred while fetching orders.');
         }
     }
@@ -110,7 +119,18 @@ class OrderController extends ResourceController
             foreach ($cartItems as $item) {
                 if (isset($productMap[$item['productId']])) {
                     $product = $productMap[$item['productId']];
-                    $subtotal += $product['price'] * $item['quantity'];
+                    $itemSubtotal = $product['price'] * $item['quantity'];
+                    
+                    // Add add-ons to the subtotal
+                    if (isset($item['addons']) && is_array($item['addons'])) {
+                        foreach ($item['addons'] as $addOn) {
+                            $addOnPrice = floatval($addOn['price'] ?? 0);
+                            $addOnQuantity = intval($addOn['quantity'] ?? 1);
+                            $itemSubtotal += $addOnPrice * $addOnQuantity;
+                        }
+                    }
+                    
+                    $subtotal += $itemSubtotal;
                 } else {
                     $db->transRollback();
                     return $this->failNotFound('Product with ID ' . $item['productId'] . ' not found.');
@@ -138,17 +158,60 @@ class OrderController extends ResourceController
             $db->table('orders')->insert($orderData);
             $orderId = $db->insertID();
 
-            // Insert into order_items table
+            // Insert into order_items table and save add-ons
             $orderItemsData = [];
+            $orderItemAddOnsData = [];
+            
             foreach ($cartItems as $item) {
-                $orderItemsData[] = [
+                // Get the base product price from the database, not from frontend
+                $baseProductPrice = $productMap[$item['productId']]['price'];
+                
+                $orderItemData = [
                     'order_id' => $orderId,
                     'product_id' => $item['productId'],
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
+                    'price' => $baseProductPrice, // Store only base product price
                 ];
+                $orderItemsData[] = $orderItemData;
             }
+            
+            // Insert order items first
             $db->table('order_items')->insertBatch($orderItemsData);
+            
+            // Get the inserted order item IDs and save add-ons
+            $orderItems = $db->table('order_items')
+                            ->where('order_id', $orderId)
+                            ->get()
+                            ->getResultArray();
+            
+            // Create a mapping of order items by product_id for add-on association
+            $orderItemMap = [];
+            foreach ($orderItems as $orderItem) {
+                $orderItemMap[$orderItem['product_id']] = $orderItem['id'];
+            }
+            
+            // Save add-ons for each cart item
+            foreach ($cartItems as $item) {
+                if (isset($item['addons']) && is_array($item['addons']) && !empty($item['addons'])) {
+                    $orderItemId = $orderItemMap[$item['productId']];
+                    foreach ($item['addons'] as $addOn) {
+                        $addonData = [
+                            'order_item_id' => $orderItemId,
+                            'addon_id' => $addOn['addon_id'] ?? null,
+                            'addon_variant_id' => $addOn['addon_variant_id'] ?? null,
+                            'quantity' => intval($addOn['quantity'] ?? 1),
+                            'price' => floatval($addOn['price'] ?? 0),
+                            'created_at' => date('Y-m-d H:i:s')
+                        ];
+                        $orderItemAddOnsData[] = $addonData;
+                    }
+                }
+            }
+
+            // Insert add-ons if any exist
+            if (!empty($orderItemAddOnsData)) {
+                $db->table('order_item_addons')->insertBatch($orderItemAddOnsData);
+            }
 
             // Add a notification for the user
             $message = "Your order #{$orderId} has been placed and is pending review. You will receive an email once it's accepted.";
@@ -221,7 +284,7 @@ class OrderController extends ResourceController
 
                 $email->setMessage($message);
                 if (!$email->send()) {
-                    log_message('error', 'Failed to send new order email to ' . $storeOwner->email . ': ' . $email->printDebugger(['headers']));
+                    // Email failed to send. In a production environment, you might want to log this to a file or a monitoring service.
                 }
             }
 
@@ -235,7 +298,6 @@ class OrderController extends ResourceController
 
         } catch (\Exception $e) {
             $db->transRollback();
-            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
             return $this->failServerError('An error occurred while creating the order: ' . $e->getMessage());
         }
     }
@@ -258,9 +320,37 @@ class OrderController extends ResourceController
                                   ->get()
                                   ->getResultArray();
 
+            foreach ($order['items'] as &$item) {
+                // First get basic addon info
+                $addons = $db->table('order_item_addons as oia')
+                             ->join('addons', 'addons.id = oia.addon_id')
+                             ->where('oia.order_item_id', $item['id'])
+                             ->select('oia.quantity, oia.addon_variant_id, addons.name, oia.price as price, addons.image')
+                             ->get()
+                             ->getResultArray();
+                
+                // Add variant info for each addon if variant_id exists
+                foreach ($addons as &$addon) {
+                    if ($addon['addon_variant_id']) {
+                        $variant = $db->table('addon_variants')
+                                      ->where('id', $addon['addon_variant_id'])
+                                      ->get()
+                                      ->getRowArray();
+                        if ($variant) {
+                            // Try different possible column names for variant data
+                            $addon['variant_name'] = $variant['attribute_name'] ?? $variant['name'] ?? $variant['variant_name'] ?? null;
+                            $addon['variant_value'] = $variant['attribute_value'] ?? $variant['value'] ?? $variant['variant_value'] ?? null;
+                        }
+                    }
+                    // Remove addon_variant_id from response as it's not needed in frontend
+                    unset($addon['addon_variant_id']);
+                }
+                
+                $item['addOns'] = $addons;
+            }
+
             return $this->respond(['success' => true, 'order' => $order]);
         } catch (\Exception $e) {
-            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
             return $this->failServerError('An error occurred while fetching the order: ' . $e->getMessage());
         }
     }
@@ -284,7 +374,6 @@ class OrderController extends ResourceController
 
             return $this->respond(['success' => true, 'message' => 'Order cancelled successfully.']);
         } catch (\Exception $e) {
-            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
             return $this->failServerError('An error occurred while cancelling the order: ' . $e->getMessage());
         }
     }
@@ -315,12 +404,10 @@ class OrderController extends ResourceController
 
                         if ($action === 'accept') {
                                                 $db->query("UPDATE orders SET status = 'accepted' WHERE id = ?", [$orderId]);
-                log_message('info', "Order #{$orderId} status updated to 'accepted'.");
                 $this->sendCustomerNotification($orderId, 'accepted');
                 return $this->respond('<h1>Order Accepted</h1><p>The order has been successfully marked as accepted. The customer has been notified and you can now prepare it for delivery.</p>');
             } elseif ($action === 'reject') {
                                 $db->query("UPDATE orders SET status = 'rejected' WHERE id = ?", [$orderId]);
-                log_message('info', "Order #{$orderId} status updated to 'rejected'.");
                 $this->sendCustomerNotification($orderId, 'rejected');
                 return $this->respond('<h1>Order Rejected</h1><p>The order has been successfully rejected. The customer has been notified.</p>');
             } else {
@@ -328,7 +415,6 @@ class OrderController extends ResourceController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'JWT Decode Error: ' . $e->getMessage());
             return $this->fail('<h1>Link Expired or Invalid</h1><p>This action link is either invalid or has expired. Please manage the order from your dashboard.</p>');
         }
     }
@@ -360,7 +446,6 @@ class OrderController extends ResourceController
             // If status is 'accepted' and a rider_id is provided, update it
             if ($newStatus === 'accepted' && !empty($data['rider_id'])) {
                 $riderId = $data['rider_id'];
-                log_message('info', 'Assigning rider ID: ' . $riderId . ' to order ID: ' . $id);
                 $updateData['rider_id'] = $riderId;
             }
 
@@ -371,8 +456,7 @@ class OrderController extends ResourceController
 
             return $this->respond(['success' => true, 'message' => 'Order status updated successfully.']);
         } catch (\Exception $e) {
-            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
-            return $this->failServerError('An error occurred while updating the order status.');
+            return $this->failServerError('An error occurred while updating order status: ' . $e->getMessage());
         }
     }
 

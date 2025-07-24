@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios-config';
 import { useAuth } from '../../context/AuthContext';
-import { PRODUCT_ASSET_URL } from '../../config';
+import { PRODUCT_ASSET_URL, ADDON_ASSET_URL } from '../../config';
 import CancelOrderModal from '../../components/Modals/CancelOrderModal';
 import MyOrderDetailSkeleton from '../../components/Skeletons/MyOrderDetailSkeleton';
 import { toast } from 'react-toastify';
@@ -15,8 +15,6 @@ const MyOrders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedItems, setSelectedItems] = useState([]);
-
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -43,43 +41,17 @@ const MyOrders = () => {
     fetchOrder();
   }, [id, user, navigate]);
 
-  const cancellableItems = order?.status === 'pending' ? order.items : [];
-
-  const toggleItemSelection = (itemId) => {
-    setSelectedItems((prev) =>
-      prev.includes(itemId)
-        ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId]
-    );
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedItems.length === cancellableItems.length) {
-      setSelectedItems([]);
-    } else {
-      setSelectedItems(cancellableItems.map((item) => item.id));
-    }
-  };
-
   const handleConfirmCancel = async () => {
-    if (selectedItems.length === 0) {
-      toast.error('Please select at least one item to cancel.');
-      setIsModalOpen(false);
-      return;
-    }
     try {
-      const response = await api.put(`/my-orders/cancel/${id}`, {
-        itemIds: selectedItems,
-      });
+      const response = await api.put(`/my-orders/cancel/${id}`);
       if (response.data.success) {
-        toast.success('Selected items have been cancelled.');
-        setOrder(response.data.order);
-        setSelectedItems([]);
+        toast.success('The order has been successfully cancelled.');
+        navigate('/my-orders');
       } else {
-        toast.error(response.data.message || 'Failed to cancel selected items.');
+        toast.error(response.data.message || 'Failed to cancel the order.');
       }
     } catch (err) {
-      toast.error('An error occurred while cancelling the items.');
+      toast.error('An error occurred while cancelling the order.');
       console.error(err);
     } finally {
       setIsModalOpen(false);
@@ -122,34 +94,37 @@ const MyOrders = () => {
 
       <h3 className="mt-8 mb-4 pb-2 border-b-2 border-gray-200 text-xl font-semibold">Items</h3>
       
-      {order.status === 'pending' && cancellableItems.length > 0 && (
-        <div className="flex items-center gap-3 p-3">
-          <input
-            type="checkbox"
-            className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary"
-            checked={selectedItems.length === cancellableItems.length}
-            onChange={toggleSelectAll}
-          />
-          <label className="text-lg font-medium">Select All</label>
-        </div>
-      )}
-
       <div className="flex flex-col gap-2">
         {order.items.map(item => (
-          <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center">
-              {order.status === 'pending' && (
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 rounded-full border-gray-300 text-primary focus:ring-primary mr-4"
-                  checked={selectedItems.includes(item.id)}
-                  onChange={() => toggleItemSelection(item.id)}
-                />
-              )}
-              <img src={`${PRODUCT_ASSET_URL}/${item.image}`} alt={item.name} className="w-16 h-16 object-cover rounded-lg mr-4" />
-              <span>{item.name} (x{item.quantity})</span>
+          <div key={item.id} className="p-4 bg-gray-50 rounded-lg">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <img src={`${PRODUCT_ASSET_URL}/${item.image}`} alt={item.name} className="w-16 h-16 object-cover rounded-lg mr-4" />
+                <span className="font-semibold">{item.name} (x{item.quantity})</span>
+              </div>
+              <span className="font-semibold">₱{parseFloat(item.price || 0).toFixed(2)}</span>
             </div>
-            <span className="font-medium">₱{parseFloat(item.price || 0).toFixed(2)}</span>
+            {item.addOns && item.addOns.length > 0 && (
+              <div className="ml-12 mt-3 pl-8 border-l-2 border-gray-200">
+                <div className="flex flex-col gap-2">
+                  {item.addOns.map((addon, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm text-gray-600">
+                        <div className="flex items-center gap-3">
+                            <img src={`${ADDON_ASSET_URL}/${addon.image}`} alt={addon.name} className="w-8 h-8 object-cover rounded-md" />
+                            <span>
+                              {addon.name || addon.addon_name}
+                              {(addon.variant_value || addon.variant_name) && (
+                                <span> - {addon.variant_value || addon.variant_name}</span>
+                              )}
+                              {addon.quantity > 1 && <span> (x{addon.quantity})</span>}
+                            </span>
+                        </div>
+                        <span>+ ₱{parseFloat(addon.price * addon.quantity).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -161,10 +136,9 @@ const MyOrders = () => {
         {order.status === 'pending' && (
           <button 
             onClick={() => setIsModalOpen(true)} 
-            className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={selectedItems.length === 0}
+            className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold transition hover:bg-red-700"
           >
-            Cancel Selected Items
+            Cancel Order
           </button>
         )}
       </div>
